@@ -1,0 +1,131 @@
+{
+  "runs": [
+    {
+      "topic": "state of small language models for on-device use",
+      "total_tokens": 27306,
+      "cost_usd": 0.0,
+      "latency_s": 143.359,
+      "run_id": "20261029T184317Z-c8fd6a",
+      "attempt": "2 (re-run of attempt 1)",
+      "counted_in_final": true,
+      "failed": false,
+      "stop_reason": "llm_error",
+      "error": null,
+      "report_chars": 7665,
+      "n_sources": 2,
+      "n_questions": 5,
+      "questions_covered": 2,
+      "coverage_per_question": [
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "input_tokens": 18011,
+      "output_tokens": 9295,
+      "llm_calls": 12,
+      "tool_calls": 6,
+      "react_steps": 10,
+      "calls_without_token_counts": 1,
+      "calls_without_price": 1,
+      "models_used": [
+        "openai/gpt-oss-120b"
+      ],
+      "invalid_citations": [
+        4,
+        3
+      ],
+      "tool_errors": [
+        "ERROR you already read this page; choose another source"
+      ],
+      "empty_reply_notes": 3,
+      "note": "Stopped on llm_error (429 at step 11) but a fallback report was written at step 12."
+    },
+    {
+      "topic": "carbon capture: current costs and limits",
+      "total_tokens": 13986,
+      "cost_usd": 0.0,
+      "latency_s": 247.937,
+      "run_id": "20261029T183858Z-290272",
+      "attempt": "1",
+      "counted_in_final": true,
+      "failed": false,
+      "stop_reason": "budget_seconds",
+      "error": null,
+      "report_chars": 178,
+      "n_sources": 0,
+      "n_questions": 5,
+      "questions_covered": 0,
+      "coverage_per_question": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "input_tokens": 10956,
+      "output_tokens": 3030,
+      "llm_calls": 6,
+      "tool_calls": 4,
+      "react_steps": 5,
+      "calls_without_token_counts": 0,
+      "calls_without_price": 0,
+      "models_used": [
+        "openai/gpt-oss-120b"
+      ],
+      "invalid_citations": [],
+      "tool_errors": [
+        "ERROR fetch_page failed: https://netl.doe.gov/sites/default/files/2025-01/Carbon-Capture-Compendium-2024.pdf is application/pdf, not text or HTML (PDFs and binary files are not supported). Pick anothe"
+      ],
+      "empty_reply_notes": 4,
+      "note": "Ended on budget_seconds with no readable page; the report is the placeholder text 'No report could be written'. Not re-run."
+    }
+  ],
+  "failed_attempts": [
+    {
+      "topic": "state of small language models for on-device use",
+      "total_tokens": 28330,
+      "cost_usd": 0.0,
+      "latency_s": 172.547,
+      "run_id": "20261029T183557Z-f41520",
+      "attempt": "1 (failed, re-run once)",
+      "counted_in_final": false,
+      "failed": true,
+      "stop_reason": "llm_error",
+      "error": "AllProvidersFailedError: all providers failed; last error: RateLimitError(\"Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01ke7ddyf9f2kbkm9rsempm1te` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5381, Requested 3138. Please try again in 3.8925s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}\")",
+      "report_chars": 0,
+      "n_sources": 1,
+      "n_questions": 4,
+      "questions_covered": 1,
+      "coverage_per_question": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "input_tokens": 20726,
+      "output_tokens": 7604,
+      "llm_calls": 11,
+      "tool_calls": 4,
+      "react_steps": 10,
+      "calls_without_token_counts": 1,
+      "calls_without_price": 1,
+      "models_used": [
+        "gemini-3.6-flash",
+        "openai/gpt-oss-120b"
+      ],
+      "invalid_citations": null,
+      "tool_errors": [],
+      "empty_reply_notes": 7,
+      "note": "Failed outright: AllProvidersFailedError (Groq gpt-oss-120b TPM rate limit 429); no report produced, no --out file written. Not counted in final runs; kept as a record of the failed attempt."
+    }
+  ],
+  "n_runs": 2,
+  "n_attempts": 3,
+  "n_failed": 1,
+  "n_runs_without_usable_report": 1,
+  "date": "2026-10-29",
+  "cost_note": "cost_usd is 0.0 because the free tier (Gemini/Groq) is unpriced in the cost model, not because the runs had no cost in general.",
+  "notes": "Baseline smoke, 2 topics, n=1 run per topic. Budget per run: 15 steps, 150000 tokens, 300 s, 0.5 USD. Gemini was used only for 3 steps in the failed first attempt (plan and one think step); every other call went to Groq openai/gpt-oss-120b, which returned empty replies repeatedly. Numbers are taken from runs/*.json totals. Earlier builder traces in runs/ (4 files) are excluded."
+}
