@@ -1,9 +1,39 @@
 {
   "stages": [
-    {"id": "R0", "name": "Setup and single-agent baseline", "branch": "stage/r0-baseline", "status": "todo", "pr_url": null},
-    {"id": "R1", "name": "Supervisor and parallel workers", "branch": null, "status": "todo", "pr_url": null},
-    {"id": "R2", "name": "Critic and writer", "branch": null, "status": "todo", "pr_url": null},
-    {"id": "R3", "name": "Benchmark: multi-agent vs single agent", "branch": null, "status": "todo", "pr_url": null},
-    {"id": "R4", "name": "Deploy with jobs, streaming and traces", "branch": null, "status": "todo", "pr_url": null}
+    {
+      "id": "R0",
+      "name": "Setup and single-agent baseline",
+      "branch": "stage/r0-baseline",
+      "status": "pr_open",
+      "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/1"
+    },
+    {
+      "id": "R1",
+      "name": "Supervisor and parallel workers",
+      "branch": null,
+      "status": "todo",
+      "pr_url": null
+    },
+    {
+      "id": "R2",
+      "name": "Critic and writer",
+      "branch": null,
+      "status": "todo",
+      "pr_url": null
+    },
+    {
+      "id": "R3",
+      "name": "Benchmark: multi-agent vs single agent",
+      "branch": null,
+      "status": "todo",
+      "pr_url": null
+    },
+    {
+      "id": "R4",
+      "name": "Deploy with jobs, streaming and traces",
+      "branch": null,
+      "status": "todo",
+      "pr_url": null
+    }
   ]
 }
