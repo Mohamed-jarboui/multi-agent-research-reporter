@@ -27,7 +27,7 @@ class StepRecord(BaseModel):
     """One model call, with the tool call it led to (if any)."""
 
     index: int
-    kind: Literal["plan", "think", "write", "finalize"]
+    kind: Literal["plan", "think", "write", "finalize", "critic"]
     thought: str = ""
     action: str = ""
     model: str = ""
@@ -51,6 +51,7 @@ class WorkerRecord(BaseModel):
 
     section_id: str
     attempt: int
+    phase: str = "research"  # "research", or "retry" when the critic sent the section back
     status: Literal["complete", "incomplete"]
     started_s: float
     ended_s: float
@@ -97,6 +98,10 @@ class Trace(BaseModel):
     rate_limit_waits: list[dict[str, Any]] = Field(default_factory=list)
     concurrency: dict[str, int] = Field(default_factory=dict)
     notes: list[str] = Field(default_factory=list)
+    # critic, retries and writer (R2)
+    critic: dict[str, Any] = Field(default_factory=dict)
+    retries: list[dict[str, Any]] = Field(default_factory=list)
+    writer: dict[str, Any] = Field(default_factory=dict)
 
     _lock: threading.Lock = PrivateAttr(default_factory=threading.Lock)
 

@@ -118,6 +118,18 @@ def sections_json(n: int = 3) -> str:
     )
 
 
+def critic_json(ids: list[str], verdicts: dict[str, str] | None = None, **extra: object) -> str:
+    """A critic reply: every section `pass` unless `verdicts` says otherwise."""
+    verdicts = verdicts or {}
+    sections = []
+    for sid in ids:
+        verdict = verdicts.get(sid, "pass")
+        thin = {"rubric": 2, "issue": f"{sid} is thin", "evidence": "F1"}
+        issues = [] if verdict == "pass" else [thin]
+        sections.append({"id": sid, "verdict": verdict, "issues": issues})
+    return json.dumps({"sections": sections, "contradictions": [], "coverage_gaps": [], **extra})
+
+
 def team_page(k: int, j: int) -> Page:
     return Page(
         url=f"https://s{k}-{j}.example/p", title=f"S{k}-{j}", text=f"Facts of {k}-{j}. " * 20
@@ -145,13 +157,16 @@ class TeamLLM:
 
     def generate(self, prompt: str, **kwargs: Any) -> Generation:
         system = kwargs.get("system") or ""
-        kind = (
-            "plan"
-            if "supervisor" in system
-            else "final"
-            if "extract findings" in system
-            else "think"
-        )
+        if "supervisor" in system:
+            kind = "plan"
+        elif "extract findings" in system:
+            kind = "final"
+        elif "critic" in system:
+            kind = "critic"
+        elif "report writer" in system:
+            kind = "writer"
+        else:
+            kind = "think"
         match = re.search(r"Your section: (.*)", prompt)
         title = match.group(1).strip() if match else ""
         with self.lock:
@@ -167,6 +182,10 @@ class TeamLLM:
     def _default(self, kind: str, title: str, prompt: str) -> str:
         if kind == "plan":
             return sections_json(self.n_sections)
+        if kind == "critic":
+            return critic_json(re.findall(r"^## (s\d+):", prompt, re.MULTILINE))
+        if kind == "writer":
+            return "# Report\n\n## Summary\n\nFacts from the sources [1][2]. More facts [3-4]."
         k = title.split()[-1]
         if kind == "final":
             return json.dumps(

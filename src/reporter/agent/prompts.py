@@ -147,3 +147,61 @@ Reply as JSON:
   "confidence": "low" | "medium" | "high",
   "open_questions": ["what the sources did not settle"]}}
 Give at most {max_findings} findings."""
+
+
+# ---------------------------------------------------------- critic and writer (R2)
+
+CRITIC_SYSTEM = (
+    "You are a strict but fair critic of a research team's findings. You compare claims with "
+    "short excerpts of the sources they cite. Reply with one JSON object and nothing else."
+)
+
+CRITIC_PROMPT = """Topic: {topic}
+
+Rubric:
+1. Every claim is sourced (each finding cites at least one source).
+2. The cited sources support the claim (check the excerpts).
+3. No contradiction between sections.
+4. The section covers its planned scope.
+
+{sections}
+
+Reply as JSON:
+{{"sections": [{{"id": "s1", "verdict": "pass" | "weak" | "fail",
+  "issues": [{{"rubric": 2, "issue": "what is wrong", "evidence": "finding number or quote"}}]}}],
+ "contradictions": [{{"sections": ["s1", "s2"], "issue": "...", "evidence": "..."}}],
+ "coverage_gaps": ["planned point that no section answers"]}}
+pass = rubric met; weak = fixable with more research (unsupported claim, thin coverage); fail = \
+unusable. Give an issue for every verdict that is not pass. Judge support only from the excerpts \
+and only mark rubric 2 when they clearly do not back the claim. One entry per section id."""
+
+CRITIC_RETRY_HINT = (
+    "\n\nYour previous reply could not be used ({reason}). Reply with the JSON object only, with "
+    'a "sections" list that has one entry per section id.'
+)
+
+RETRY_FEEDBACK = """A reviewer found problems with your first attempt at this section:
+{issues}
+Pages already read: {urls}
+Fix these problems: read other or additional pages that really support each claim."""
+
+WRITER_SYSTEM = """You are the report writer of a research team. You write the final report in \
+Markdown from the findings you are given, and from nothing else. Rules: every sentence with a \
+fact ends with citations in the given numbers, like [1] or [2][3]; use only the findings given, \
+never add facts, numbers, quotes or sources; if a section is listed as missing or weak, or the \
+sources disagree, say so plainly instead of filling the gap; do not write a Sources section (it \
+is added for you)."""
+
+WRITER_PROMPT = """Topic: {topic}
+Today's date: {today}
+
+Findings by section (the numbers in brackets are the source numbers to cite):
+{findings}
+
+Sections with no usable findings or with problems (mention them in the report):
+{gaps}
+
+Source titles: {sources}
+
+Write the report: a title (#), a short summary, then one section (##) per section above, then \
+a "Limits" section. Keep it under 900 words."""

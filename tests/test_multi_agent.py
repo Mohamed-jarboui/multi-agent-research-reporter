@@ -30,6 +30,8 @@ TODAY = date(2026, 10, 30)
 
 
 def agent(llm, tools, tmp_path, budget=None, **kw) -> MultiAgent:
+    kw.setdefault("critic", False)  # these tests are about R1; R2 is in test_critic_writer.py
+    kw.setdefault("writer", False)
     return MultiAgent(llm, tools, budget, today=TODAY, runs_dir=tmp_path / "runs", **kw)
 
 
@@ -124,7 +126,7 @@ def test_a_section_that_fails_twice_is_incomplete_and_the_run_goes_on(tmp_path):
 
     assert statuses(result) == {"s1": "complete", "s2": "incomplete", "s3": "complete"}
     assert result.merged.incomplete == ["s2"]
-    assert "INCOMPLETE" in result.report and "always down" in result.report
+    assert "INCOMPLETE" in result.report and "always down" not in result.report
     assert len([w for w in result.trace.workers if w.section_id == "s2"]) == 2
     assert result.trace.stop_reason == "sections_incomplete"
 

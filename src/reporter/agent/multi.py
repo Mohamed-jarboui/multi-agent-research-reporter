@@ -1,40 +1,64 @@
-"""Multi-agent research (R1): a supervisor plans sections, workers research them in parallel, a
-deterministic merge joins the results.
+"""Multi-agent research: a supervisor plans sections, workers research them in parallel, a
+deterministic merge joins the results (R1); a critic grades them, weak sections go back to their
+worker once, and a writer produces the cited report (R2).
 
-Graph:  START -> supervisor -> Send("worker", brief) x N -> merge -> END
+Graph:  START -> supervisor -> Send("worker") x N -> merge -> critic
+        -> [Send("retry_worker") x K -> regrade] -> writer -> END
 
 The meter, the LLM gate and the trace live on the agent instance, not in the graph state (they are
-not serializable). There is no LLM writer yet: `render_digest` is a plain Markdown digest of the
-findings with global source numbers; the critic and the writer arrive in R2.
+not serializable). `render_digest` is the plain Markdown digest of the findings (the R1 output); it
+is the fallback when the writer fails and the output with `critic=False, writer=False`.
 """
 
 from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 from pydantic import BaseModel, ValidationError, field_validator
 
 from reporter.agent import prompts
+from reporter.agent.checks import (
+    check_citations,
+    deterministic_reviews,
+    fetched_urls,
+    normalize_url,
+    plain_reason,
+    section_problem,
+)
+from reporter.agent.critic import (
+    MIN_RETRY_SECONDS,
+    attempt_rank,
+    feedback_text,
+    retry_candidates,
+    run_critic,
+)
 from reporter.agent.llm_call import LLM, LLMGate, generate_charged
-from reporter.agent.parsing import extract_json
+from reporter.agent.parsing import extract_json, strip_sources_section
 from reporter.agent.schemas import (
     Finding,
     MergedResearch,
+    Review,
     SectionBrief,
     SectionOut,
+    SectionReview,
     State,
     WorkerInput,
     WorkerResult,
 )
 from reporter.agent.worker import WorkerContext, run_worker
+from reporter.agent.writer import (
+    assemble_report,
+    no_report_text,
+    run_writer,
+    usable_sections,
+)
 from reporter.budget import BudgetMeter, MultiBudget
 from reporter.llm.base import ProviderError
 from reporter.pricing import call_cost_usd
@@ -45,6 +69,9 @@ MIN_SECTIONS = 3
 MAX_SECTIONS = 6
 PLAN_MAX_TOKENS = 1_500
 RETRY_TEMPERATURE = 0.7
+RETRY_GATE_FRACTION = 0.85  # no retry starts once any limit is past this
+RETRY_STOP_FRACTION = 0.9  # a retry worker stops researching here (research stops at 0.7)
+STEPS_PER_RETRY = 3  # run steps one retry needs at least
 
 GENERIC_SECTIONS = [
     ("Background and current state", "What is the topic and where does it stand today?"),
@@ -135,14 +162,6 @@ def parse_plan(text: str, topic: str) -> list[SectionBrief]:
 # ----------------------------------------------------------------------- merge
 
 
-def normalize_url(url: str) -> str:
-    """Key for 'the same page': lowercase scheme and host, no fragment, no trailing slash."""
-    parts = urlsplit(url.strip())
-    path = parts.path.rstrip("/")
-    query = f"?{parts.query}" if parts.query else ""
-    return f"{parts.scheme.lower()}://{parts.netloc.lower()}{path}{query}"
-
-
 def merge_results(sections: list[SectionBrief], results: list[WorkerResult]) -> MergedResearch:
     """Join worker results. Source numbers follow section order, never completion order."""
     by_id = {r.section_id: r for r in results}
@@ -196,6 +215,8 @@ def merge_results(sections: list[SectionBrief], results: list[WorkerResult]) -> 
                 findings=findings,
                 attempts=result.attempts,
                 error=result.error,
+                n_pages=len(result.pages),
+                stop_reason=result.stop_reason,
             )
         )
     return merged
@@ -219,7 +240,7 @@ def render_digest(topic: str, merged: MergedResearch) -> str:
             "",
         ]
         if not section.findings:
-            reason = f" ({section.error})" if section.error else ""
+            reason = f" ({plain_reason(section.error, section.stop_reason)})"
             lines.append(f"INCOMPLETE: no usable finding for this section{reason}.")
         for finding in section.findings:
             cites = "".join(f"[{n}]" for n in finding.source_ids)
@@ -237,10 +258,12 @@ def render_digest(topic: str, merged: MergedResearch) -> str:
 
 @dataclass(frozen=True)
 class MultiRunResult:
-    report: str  # the digest
+    report: str  # the written report (the digest when the writer is off or failed)
     merged: MergedResearch
     trace: Trace
     trace_path: Path
+    review: Review | None = None
+    digest: str = ""
 
 
 class MultiAgent:
@@ -257,7 +280,11 @@ class MultiAgent:
         today: date | None = None,
         runs_dir: Path = RUNS_DIR,
         cost_fn: Callable[[str, int | None, int | None], float | None] = call_cost_usd,
+        critic: bool = True,
+        writer: bool = True,
     ) -> None:
+        self.use_critic = critic
+        self.use_writer = writer
         self.llm = llm
         self.tools = tools
         self.budget = budget or MultiBudget()
@@ -304,6 +331,9 @@ class MultiAgent:
             "results": [],
             "merged": None,
             "digest": "",
+            "review": None,
+            "retry_ids": [],
+            "report": "",
         }
         config: Any = {"max_concurrency": self.budget.max_parallel_workers}
         try:
@@ -312,9 +342,14 @@ class MultiAgent:
             trace.error = f"{type(exc).__name__}: {exc}"
             raise
         else:
-            trace.report = final["digest"]
+            trace.report = final["report"]
             return MultiRunResult(
-                final["digest"], final["merged"], trace, self._runs_dir / f"{trace.run_id}.json"
+                final["report"],
+                final["merged"],
+                trace,
+                self._runs_dir / f"{trace.run_id}.json",
+                final["review"],
+                final["digest"],
             )
         finally:
             trace.finish(meter.elapsed_s)
@@ -327,10 +362,19 @@ class MultiAgent:
         graph.add_node("supervisor", self._supervisor)
         graph.add_node("worker", self._worker)
         graph.add_node("merge", self._merge)
+        graph.add_node("critic", self._critic)
+        graph.add_node("retry_worker", self._retry_worker)
+        graph.add_node("regrade", self._regrade)
+        graph.add_node("writer", self._writer)
         graph.add_edge(START, "supervisor")
         graph.add_conditional_edges("supervisor", self._fan_out, ["worker"])
         graph.add_edge("worker", "merge")
-        graph.add_edge("merge", END)
+        graph.add_edge("merge", "critic")
+        # one pass only: the retry branch has no way back to the critic
+        graph.add_conditional_edges("critic", self._after_critic, ["retry_worker", "writer"])
+        graph.add_edge("retry_worker", "regrade")
+        graph.add_edge("regrade", "writer")
+        graph.add_edge("writer", END)
         return graph.compile()
 
     def _supervisor(self, state: State) -> State:
@@ -393,10 +437,188 @@ class MultiAgent:
 
     def _merge(self, state: State) -> State:
         merged = merge_results(state["sections"], state["results"])
-        digest = render_digest(state["topic"], merged)
+        self._record_merge(merged, state["results"])
+        return {"merged": merged, "digest": render_digest(state["topic"], merged)}
+
+    def _record_merge(self, merged: MergedResearch, results: list[WorkerResult]) -> None:
         trace = self._ctx.trace
         trace.sources = list(merged.sources)
-        pages_read = {r.section_id: len(r.pages) for r in state["results"]}
+        pages_read = {r.section_id: len(r.pages) for r in results}
         trace.coverage = {s.brief.title: pages_read.get(s.brief.id, 0) for s in merged.sections}
         trace.stop_reason = "all_sections_done" if not merged.incomplete else "sections_incomplete"
-        return {"merged": merged, "digest": digest}
+
+    # ------------------------------------------------------------------ critic
+
+    def _review(self, merged: MergedResearch, ids: list[str]) -> Review:
+        """Deterministic verdicts first (no model), then one critic call for the rest."""
+        reviews = {k: v for k, v in deterministic_reviews(merged).items() if k in ids}
+        todo = [i for i in ids if i not in reviews]
+        review = Review(sections=reviews, critic_status="ok" if self.use_critic else "skipped")
+        if self.use_critic and todo:
+            graded, failure = run_critic(self._ctx, merged, todo)
+            if graded is not None:
+                review.sections.update(graded.sections)
+                review.contradictions = graded.contradictions
+                review.coverage_gaps = graded.coverage_gaps
+            else:
+                review.critic_status = "failed"
+                self._ctx.trace.notes.append(f"critic_failed: {failure}")
+        for sid in todo:
+            review.sections.setdefault(sid, SectionReview(section_id=sid, verdict="unreviewed"))
+        return review
+
+    def _critic(self, state: State) -> State:
+        merged = state["merged"]
+        assert merged is not None
+        review = self._review(merged, [s.brief.id for s in merged.sections])
+        trace = self._ctx.trace
+        trace.critic = {
+            "status": review.critic_status,
+            "before": {k: v.verdict for k, v in review.sections.items()},
+            "issues": {
+                k: [i.model_dump() for i in v.issues]
+                for k, v in review.sections.items()
+                if v.issues
+            },
+            "contradictions": [c.model_dump() for c in review.contradictions],
+            "coverage_gaps": review.coverage_gaps,
+        }
+        ids: list[str] = []
+        if self.use_critic:
+            ids = retry_candidates(review, set())[: self._retry_capacity()]
+            if not ids and retry_candidates(review, set()):
+                trace.critic["retry_skipped"] = "not enough budget left for a retry"
+                ids = []
+        return {"review": review, "retry_ids": ids}
+
+    def _retry_capacity(self) -> int:
+        """How many sections may be retried: what one retry needs, not the research share.
+
+        Retries may use the reserve up to RETRY_GATE_FRACTION of every limit; each needs about
+        STEPS_PER_RETRY run steps and MIN_RETRY_SECONDS of time.
+        """
+        meter, run = self._ctx.meter, self.budget.run
+        if meter.stop_reason(RETRY_GATE_FRACTION):
+            return 0
+        if RETRY_GATE_FRACTION * run.max_seconds - meter.elapsed_s < MIN_RETRY_SECONDS:
+            return 0
+        return max(run.max_steps - meter.steps, 0) // STEPS_PER_RETRY
+
+    def _after_critic(self, state: State) -> list[Send] | str:
+        ids, review = state["retry_ids"], state["review"]
+        if not ids or review is None:
+            return "writer"
+        sends: list[Send] = []
+        for sid in ids:
+            index = next(i for i, b in enumerate(state["sections"]) if b.id == sid)
+            urls = [p.url for r in state["results"] if r.section_id == sid for p in r.pages]
+            payload = {
+                "brief": state["sections"][index],
+                "index": index,
+                "feedback": feedback_text(review, sid, urls),
+            }
+            sends.append(Send("retry_worker", payload))
+        return sends
+
+    def _retry_worker(self, inp: WorkerInput) -> dict[str, list[WorkerResult]]:
+        result = run_worker(
+            replace(self._ctx, stop_fraction=RETRY_STOP_FRACTION),
+            inp["brief"],
+            inp["index"],
+            feedback=inp.get("feedback", ""),
+            max_attempts=1,
+            phase="retry",
+        )
+        return {"retry_results": [result]}
+
+    def _regrade(self, state: State) -> State:
+        """Grade the retried sections again and keep the better attempt of each."""
+        sections, retried, before = state["sections"], state["retry_ids"], state["review"]
+        assert before is not None
+        originals = {r.section_id: r for r in state["results"]}
+        retries = {r.section_id: r for r in state.get("retry_results", [])}
+        swapped = [retries.get(b.id) or originals[b.id] for b in sections if b.id in originals]
+        after = self._review(merge_results(sections, swapped), retried)
+
+        chosen: dict[str, WorkerResult] = dict(originals)
+        final = before.model_copy(deep=True)
+        records: list[dict[str, Any]] = []
+        for sid in retried:
+            old, new = originals.get(sid), retries.get(sid)
+            old_verdict = before.sections[sid].verdict
+            new_verdict = after.sections[sid].verdict
+            # a retry the critic could not grade is judged by the old verdict (pages and findings)
+            judged = old_verdict if new_verdict == "unreviewed" else new_verdict
+            better = new is not None and (
+                old is None or attempt_rank(judged, new) > attempt_rank(old_verdict, old)
+            )
+            if better and new is not None:
+                chosen[sid] = new
+                final.sections[sid] = after.sections[sid]
+            records.append(
+                {
+                    "section_id": sid,
+                    "before": _attempt_summary(old_verdict, old),
+                    "after": _attempt_summary(new_verdict, new),
+                    "kept": "retry" if better else "original",
+                    "issues": [i.issue for i in before.sections[sid].issues],
+                }
+            )
+        replaced = {r["section_id"] for r in records if r["kept"] == "retry"}
+        final.contradictions = [
+            c for c in final.contradictions if not replaced & set(c.section_ids)
+        ] + after.contradictions
+        trace = self._ctx.trace
+        trace.retries = records
+        trace.critic["after"] = {sid: after.sections[sid].verdict for sid in retried}
+        trace.critic["final"] = {k: v.verdict for k, v in final.sections.items()}
+        results = [chosen[b.id] for b in sections if b.id in chosen]
+        merged = merge_results(sections, results)
+        self._record_merge(merged, results)
+        return {"merged": merged, "digest": render_digest(state["topic"], merged), "review": final}
+
+    # ------------------------------------------------------------------ writer
+
+    def _writer(self, state: State) -> State:
+        merged, review = state["merged"], state["review"]
+        assert merged is not None and review is not None
+        trace = self._ctx.trace
+        digest = state["digest"]
+        if not self.use_writer:
+            report, stage = digest, "digest"
+            trace.writer = {"status": "skipped"}
+        elif not usable_sections(merged, review):
+            report, stage = no_report_text(state["topic"], merged, review), "none"
+            trace.writer = {"status": "no_report", "reason": "no section has a usable finding"}
+        else:
+            body, failure = run_writer(self._ctx, merged, review, self._today)
+            if failure:
+                warning = (
+                    f"> Warning: the writer step failed ({plain_reason(failure)}); "
+                    "this is the unedited research digest.\n\n"
+                )
+                report, stage = warning + digest, "digest"
+                trace.writer = {"status": "fallback", "reason": failure}
+                trace.notes.append(f"writer_failed: {failure}")
+            else:
+                report, stage = assemble_report(body, merged, review), "report"
+                trace.writer = {"status": "ok"}
+        results = [*state["results"], *state.get("retry_results", [])]
+        fetched = fetched_urls(trace, [p.url for r in results for p in r.pages])
+        check = check_citations(strip_sources_section(report), merged.sources, fetched)
+        trace.checks = {
+            "stage": stage,
+            **check.model_dump(),
+            "research": {
+                s.brief.id: problem for s in merged.sections if (problem := section_problem(s))
+            },
+        }
+        return {"report": report}
+
+
+def _attempt_summary(verdict: str, result: WorkerResult | None) -> dict[str, Any]:
+    return {
+        "verdict": verdict,
+        "pages": len(result.pages) if result else 0,
+        "findings": len(result.findings) if result else 0,
+    }

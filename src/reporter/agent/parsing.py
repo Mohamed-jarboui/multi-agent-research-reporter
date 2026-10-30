@@ -27,7 +27,26 @@ def extract_json(text: str) -> dict[str, Any]:
 
 
 _SOURCES_HEADING = re.compile(r"\n#{1,6}\s*(sources|references)\b.*\Z", re.IGNORECASE | re.DOTALL)
-_CITATION = re.compile(r"\[(\d+)\]")
+_CITATION_GROUP = re.compile(r"\[\s*(\d+(?:\s*[,;\-–—]\s*\d+)*)\s*\]")
+_MAX_RANGE = 100
+
+
+def citation_numbers(markdown: str) -> list[int]:
+    """Every citation number in the text, in order of first use.
+
+    Understands [5], [5, 6], [5][6], [5-7] and [5,7-9]. A range that runs backwards or is longer
+    than 100 is not expanded: its two ends are kept (so the checker can flag them).
+    """
+    seen: list[int] = []
+    for match in _CITATION_GROUP.finditer(markdown):
+        for part in re.split(r"\s*[,;]\s*", match.group(1)):
+            ends = [int(n) for n in re.findall(r"\d+", part)]
+            if len(ends) == 2 and 0 <= ends[1] - ends[0] <= _MAX_RANGE:
+                numbers = list(range(ends[0], ends[1] + 1))
+            else:
+                numbers = ends
+            seen += [n for n in numbers if n not in seen]
+    return seen
 
 
 def strip_sources_section(markdown: str) -> str:
@@ -36,10 +55,5 @@ def strip_sources_section(markdown: str) -> str:
 
 
 def cited_numbers(markdown: str) -> list[int]:
-    """Every citation number used in the text, in order of first use."""
-    seen: list[int] = []
-    for match in _CITATION.finditer(markdown):
-        n = int(match.group(1))
-        if n not in seen:
-            seen.append(n)
-    return seen
+    """Alias of `citation_numbers`, kept for the R0 baseline."""
+    return citation_numbers(markdown)

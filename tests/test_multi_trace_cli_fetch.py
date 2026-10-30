@@ -39,7 +39,7 @@ def test_multi_command_prints_the_digest_and_saves_the_trace(tmp_path, monkeypat
     monkeypatch.setattr("reporter.tools.default_tools", team_tools)
     monkeypatch.chdir(tmp_path)
 
-    code = cli.main(["multi", "Topic", "--out", "out/report.md"])
+    code = cli.main(["multi", "Topic", "--no-critic", "--no-writer", "--out", "out/report.md"])
 
     captured = capsys.readouterr()
     assert code == 0

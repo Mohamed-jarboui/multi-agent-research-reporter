@@ -39,7 +39,11 @@ class MultiBudget:
 
     run: Budget = field(
         default_factory=lambda: Budget(
-            max_steps=36, max_tokens=300_000, max_seconds=480.0, max_cost_usd=0.50
+            max_steps=60,  # research gets 70% (42): 5 sections x 6 think steps = 30, room to spare
+            max_tokens=300_000,
+            max_seconds=480.0,
+            max_cost_usd=0.50,
+            stop_fraction=0.7,  # research stops here; the last 30% is for critic and writer
         )
     )
     worker_max_steps: int = 6
@@ -102,10 +106,12 @@ class BudgetMeter:
             "cost": self.cost_usd / b.max_cost_usd,
         }
 
-    def stop_reason(self) -> str | None:
-        """Name the first limit that is at or past `stop_fraction`, or None while there is room."""
-        for name, fraction in self.fractions().items():
-            if fraction >= self.budget.stop_fraction:
+    def stop_reason(self, fraction: float | None = None) -> str | None:
+        """Name the first limit at or past `fraction` (default: the budget's `stop_fraction`),
+        or None while there is room."""
+        limit = self.budget.stop_fraction if fraction is None else fraction
+        for name, used in self.fractions().items():
+            if used >= limit:
                 return f"budget_{name}"
         return None
 

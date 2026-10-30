@@ -49,6 +49,8 @@ def build_parser() -> argparse.ArgumentParser:
     multi.add_argument("--max-cost", type=float, default=cost, help="USD")
     multi.add_argument("--workers", type=int, default=multi_defaults.max_parallel_workers)
     multi.add_argument("--llm-slots", type=int, default=multi_defaults.max_parallel_llm_calls)
+    multi.add_argument("--no-critic", action="store_true", help="skip the critic and the retries")
+    multi.add_argument("--no-writer", action="store_true", help="print the research digest only")
     return parser
 
 
@@ -68,6 +70,7 @@ def main(argv: list[str] | None = None) -> int:
                     max_tokens=args.max_tokens,
                     max_seconds=args.max_seconds,
                     max_cost_usd=args.max_cost,
+                    stop_fraction=MultiBudget().run.stop_fraction,
                 ),
                 max_parallel_workers=args.workers,
                 max_parallel_llm_calls=args.llm_slots,
@@ -85,7 +88,14 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.command == "multi":
-        agent: Any = MultiAgent(llm, default_tools(), budget, runs_dir=args.runs_dir)
+        agent: Any = MultiAgent(
+            llm,
+            default_tools(),
+            budget,
+            runs_dir=args.runs_dir,
+            critic=not args.no_critic,
+            writer=not args.no_writer,
+        )
     else:
         agent = BaselineAgent(llm, default_tools(), budget, runs_dir=args.runs_dir)
     try:
@@ -111,7 +121,36 @@ def main(argv: list[str] | None = None) -> int:
         f"{totals.latency_s:.1f}s | trace: {result.trace_path}",
         file=sys.stderr,
     )
+    if args.command == "multi":
+        print(multi_summary(result), file=sys.stderr)
     return 0
+
+
+def multi_summary(result: Any) -> str:
+    """One line: sections ok/weak/missing, retries, and the citation check of the final text."""
+    merged, review, trace = result.merged, result.review, result.trace
+    ok = weak = missing = 0
+    for section in merged.sections:
+        verdict = review.sections[section.brief.id].verdict if review else "unreviewed"
+        if not section.findings:
+            missing += 1
+        elif verdict in ("weak", "fail"):
+            weak += 1
+        else:
+            ok += 1
+    kept = sum(r["kept"] == "retry" for r in trace.retries)
+    checks = trace.checks
+    problems = [
+        f"{name} {checks[name]}"
+        for name in ("invalid_citations", "uncited_sources", "unfetched_urls")
+        if checks.get(name)
+    ]
+    verdict = "ok" if checks and not problems else ", ".join(problems) or "not checked"
+    return (
+        f"sections ok/weak/missing: {ok}/{weak}/{missing} | retries: {len(trace.retries)} "
+        f"(kept {kept}) | critic: {trace.critic.get('status', 'off')} | "
+        f"writer: {trace.writer.get('status', '?')} | citations: {verdict}"
+    )
 
 
 if __name__ == "__main__":

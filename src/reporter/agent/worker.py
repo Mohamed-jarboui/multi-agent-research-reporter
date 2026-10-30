@@ -50,6 +50,7 @@ class WorkerContext:
     gate: LLMGate
     trace: Trace
     clock: Callable[[], float] = time.monotonic
+    stop_fraction: float | None = None  # None: the run budget's; retries use a later one
     cost_fn: Callable[[str, int | None, int | None], float | None] = call_cost_usd
 
 
@@ -125,17 +126,28 @@ def parse_findings(
     return findings, confidence, open_questions
 
 
-def run_worker(ctx: WorkerContext, brief: SectionBrief, index: int) -> WorkerResult:
-    """Research one section: up to two attempts, then `incomplete`. Never raises."""
+def run_worker(
+    ctx: WorkerContext,
+    brief: SectionBrief,
+    index: int,
+    *,
+    feedback: str = "",
+    max_attempts: int = MAX_ATTEMPTS,
+    phase: str = "research",
+) -> WorkerResult:
+    """Research one section: up to `max_attempts` attempts, then `incomplete`. Never raises.
+
+    `feedback` (the critic's issues, for a retry) is shown to the first attempt as a note.
+    """
     section_start = ctx.clock()
     best: WorkerResult | None = None
-    note = ""
+    note = feedback
     prior_tokens = 0
     attempts = 0
-    for attempt_no in range(1, MAX_ATTEMPTS + 1):
+    for attempt_no in range(1, max_attempts + 1):
         attempts = attempt_no
         result, record, st = _run_attempt(
-            ctx, brief, index, attempt_no, note, section_start, prior_tokens
+            ctx, brief, index, attempt_no, note, section_start, prior_tokens, phase
         )
         ctx.trace.add_worker(record)
         prior_tokens += st.tokens()
@@ -144,7 +156,7 @@ def run_worker(ctx: WorkerContext, brief: SectionBrief, index: int) -> WorkerRes
         if result.status == "complete" or result.stop_reason == "budget_exhausted":
             break
         time_left = ctx.budget.worker_max_seconds - (ctx.clock() - section_start)
-        if ctx.meter.stop_reason() or time_left < MIN_RETRY_SECONDS:
+        if ctx.meter.stop_reason(ctx.stop_fraction) or time_left < MIN_RETRY_SECONDS:
             break
         note = f"previous attempt failed: {result.error or result.stop_reason}."
         avoid = [*st.pages, *st.bad_urls]
@@ -163,6 +175,7 @@ def _run_attempt(
     note: str,
     section_start: float,
     prior_tokens: int,
+    phase: str,
 ) -> tuple[WorkerResult, WorkerRecord, _Attempt]:
     st = _Attempt()
     started_s = ctx.meter.elapsed_s
@@ -203,6 +216,7 @@ def _run_attempt(
     record = WorkerRecord(
         section_id=brief.id,
         attempt=attempt_no,
+        phase=phase,
         status=status,
         started_s=round(started_s, 3),
         ended_s=round(ctx.meter.elapsed_s, 3),
@@ -240,7 +254,7 @@ def _research(
     for _ in range(b.worker_max_steps):
         if len(st.pages) >= b.max_pages_per_worker:
             return "max_pages"
-        if reason := ctx.meter.stop_reason():
+        if reason := ctx.meter.stop_reason(ctx.stop_fraction):
             return reason
         if ctx.clock() - section_start >= STOP_FRACTION * b.worker_max_seconds:
             return "worker_time"
