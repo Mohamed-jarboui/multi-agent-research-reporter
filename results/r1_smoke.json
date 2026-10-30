@@ -344,7 +344,7 @@
           "searches": 3,
           "tokens": 6894,
           "error": [
-            "AllProvidersFailedError: all providers failed; last error: RateLimitError(\"Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01ke7ddyf9f2"
+            "AllProvidersFailedError: all providers failed; last error: RateLimitError(\"Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_REDACTED"
           ]
         },
         {

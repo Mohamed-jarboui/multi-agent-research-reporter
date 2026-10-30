@@ -1,0 +1,53 @@
+{
+  "stage": "R2",
+  "branch": "stage/r2-critic-writer",
+  "date": "2026-10-30",
+  "pr": "not opened yet",
+  "tests": {
+    "passed": 140,
+    "failed": 0,
+    "passed_after_first_build": 135,
+    "added_by_fix": 5,
+    "previous_total_r1": 106,
+    "source": "counts and clean ruff check / ruff format --check reported by the main session; not re-run by the reporter"
+  },
+  "files_changed": {
+    "modified_tracked_files": 11,
+    "modified_tracked_insertions": 474,
+    "modified_tracked_deletions": 56,
+    "new_source_files": 3,
+    "new_test_files": 1,
+    "new_source_and_test_lines": 986,
+    "other_new_paths": ["docs/design/r2.md", "examples/multi/", "examples/multi_first_run/", "results/r2_smoke.json", "results/r2_smoke_first_run.json", "results/r2_critic.json", "results/r2_critic_first_run.json"],
+    "source": "git diff --numstat HEAD and git status on 2026-10-30; nothing committed yet for these files; new-file lines from wc -l (checks 126, critic 226, writer 168, test_critic_writer 466)"
+  },
+  "runs_made": {
+    "live_multi_agent_runs": 4,
+    "evaluations": 2,
+    "topics": 2,
+    "runs_per_topic_per_evaluation": 1,
+    "failed_runs": 0,
+    "reruns": 0,
+    "runs_with_a_written_report": 3,
+    "source": "results/r2_smoke_first_run.json, results/r2_smoke.json"
+  },
+  "cost": {
+    "cost_usd": 0.0,
+    "note": "0.0 because Gemini/Groq free-tier models are unpriced in the cost model, not because cost is zero"
+  },
+  "evaluation_note": "The second evaluation ran after code changes made in response to the first (run step limit 36 -> 60, retry gate 85% with retry worker stop 90%, sanitised report text, unsupported claims left out). It is not a controlled comparison. n=1 per topic per evaluation.",
+  "per_run": [
+    {"evaluation": 1, "topic": "state of small language models for on-device use", "run_id": "20261030T164954Z-2252e1", "stop_reason": "sections_incomplete", "total_tokens": 49767, "latency_s": 253.685, "llm_calls": 30, "tool_calls": 10, "sources": 1, "verdicts_before": {"pass": 0, "weak": 0, "fail": 5}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "run_steps_used": "26 of 36", "invalid_citations": 0, "unfetched_urls_in_report": 1, "leaked_raw_error_text": true, "word_count": 740},
+    {"evaluation": 1, "topic": "carbon capture: current costs and limits", "run_id": "20261030T165422Z-7e6fec", "stop_reason": "sections_incomplete", "total_tokens": 56427, "latency_s": 281.947, "llm_calls": 30, "tool_calls": 11, "sources": 1, "verdicts_before": {"pass": 0, "weak": 1, "fail": 4}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "run_steps_used": "26 of 36", "invalid_citations": 0, "unfetched_urls_in_report": 0, "leaked_raw_error_text": "not measured yet", "word_count": "not measured yet"},
+    {"evaluation": 2, "topic": "state of small language models for on-device use", "run_id": "20261030T171308Z-11233a", "stop_reason": "sections_incomplete", "total_tokens": 96171, "latency_s": 438.731, "llm_calls": 54, "tool_calls": 20, "sources": 2, "verdicts_before": {"pass": 1, "weak": 1, "fail": 3}, "verdicts_final": {"pass": 1, "weak": 1, "fail": 3}, "sections_sent_back": 3, "retries_improved": 0, "retries_unchanged": 3, "retries_worse": 0, "retry_phase": {"worker_steps": 16, "tokens": 28316, "wall_s": 125.371}, "run_steps_used": "49 of 60", "citations_in_report": 11, "invalid_citations": 0, "unfetched_urls_in_report": 0, "leaked_raw_error_text": false, "unverified_claims_left_out": 4, "word_count": 940},
+    {"evaluation": 2, "topic": "carbon capture: current costs and limits", "run_id": "20261030T172031Z-7c403b", "stop_reason": "sections_incomplete", "total_tokens": 13084, "latency_s": 462.493, "llm_calls": 16, "tool_calls": 4, "sources": 0, "verdicts_before": {"pass": 0, "weak": 0, "fail": 5}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "run_steps_used": "15 research steps", "writer": "no_report (no section has a usable finding)", "provider_limit": "Groq daily token limit 200,000 reached; says nothing about the pipeline", "invalid_citations": 0, "leaked_raw_error_text": false, "word_count": 89}
+  ],
+  "retries": {
+    "first_evaluation": {"sections_sent_back": 0, "n_runs": 2},
+    "second_evaluation": {"sections_sent_back": 3, "improved": 0, "unchanged": 3, "worse": 0, "n_runs_with_retry": 1}
+  },
+  "spot_checks": {"n_cited_claims_checked": 3, "supported": 2, "partly_supported": 1, "note": "checked against the live pages after the run, not the pages the worker saw"},
+  "citation_forms": "only the single form [n] occurred in the real reports; [5, 6], [5][6], [5-7] covered by unit tests only",
+  "report_quality": "not measured yet (judge is R3)",
+  "caveat": "Smoke runs, n=1 per topic per evaluation, not a benchmark."
+}

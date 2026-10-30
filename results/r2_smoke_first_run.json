@@ -1,0 +1,830 @@
+{
+  "stage": "R2",
+  "step": "evaluator smoke",
+  "date": "2026-10-30",
+  "n_topics": 2,
+  "n_runs": 2,
+  "n_attempts": 2,
+  "n_failed_runs": 0,
+  "rerun_note": "No re-run: neither run crashed or raised a run-level error (exit code 0, trace error=null), so the one-time re-run allowance was not used.",
+  "sample_size_note": "n=1 per topic per system. Smoke comparison, not a benchmark: units differ, no means, no significance.",
+  "command": "uv run reporter multi --out <examples/multi/...md> \"<topic>\" (default budgets and flags; critic and writer on)",
+  "runs": [
+    {
+      "run_id": "20261030T164954Z-2252e1",
+      "topic": "state of small language models for on-device use",
+      "trace_file": "runs/20261030T164954Z-2252e1.json",
+      "report_file": "examples/multi/small-language-models.md",
+      "attempt": 1,
+      "failed": false,
+      "failed_note": "exit code 0 and trace error=null; the one-time re-run allowance (crash/run-level error only) was not used",
+      "stop_reason": "sections_incomplete",
+      "total_tokens": 49767,
+      "input_tokens": 37801,
+      "output_tokens": 11966,
+      "cost_usd": 0.0,
+      "cost_note": "0.0 because free-tier models are unpriced, not because cost is zero",
+      "latency_s": 253.685,
+      "llm_calls": 30,
+      "tool_calls": 10,
+      "react_steps": 26,
+      "sections": {
+        "planned": 5,
+        "ok": 0,
+        "weak": 0,
+        "missing_or_failed": 5,
+        "unreviewed": 0,
+        "with_at_least_one_fetched_page": 1,
+        "worker_status_complete": 1,
+        "definition": "ok = critic verdict pass; weak = verdict weak; missing_or_failed = verdict fail (deterministic: no fetched page or no finding; or critic fail). Source: trace critic.before."
+      },
+      "sources_global": 1,
+      "source_urls": [
+        "https://www.emergentmind.com/topics/distilbert"
+      ],
+      "per_section": [
+        {
+          "section_id": "s1",
+          "title": "Hardware Landscape for On‑Device LLMs",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "error"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 0,
+          "searches": 2,
+          "tokens": 10520,
+          "started_s": 20.92,
+          "ended_s": 150.027,
+          "empty_reply_notes": 5,
+          "rate_limit_wait_count": 2,
+          "rate_limit_wait_s": 16.717,
+          "critic_verdict_before_retry": "fail"
+        },
+        {
+          "section_id": "s2",
+          "title": "Model Architectures and Size Trade‑offs",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "max_steps"
+          ],
+          "status_final": "complete",
+          "pages_fetched": 1,
+          "fetch_calls_ok": 1,
+          "fetch_calls_failed": 0,
+          "searches": 2,
+          "tokens": 11323,
+          "started_s": 20.922,
+          "ended_s": 144.915,
+          "empty_reply_notes": 1,
+          "rate_limit_wait_count": 1,
+          "rate_limit_wait_s": 10.0,
+          "critic_verdict_before_retry": "fail"
+        },
+        {
+          "section_id": "s3",
+          "title": "Software Stacks and Optimization Techniques",
+          "attempts": 2,
+          "attempt_stop_reasons": [
+            "model_output_unparseable",
+            "worker_time"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 0,
+          "searches": 2,
+          "tokens": 11416,
+          "started_s": 20.923,
+          "ended_s": 187.165,
+          "empty_reply_notes": 5,
+          "rate_limit_wait_count": 4,
+          "rate_limit_wait_s": 28.854,
+          "critic_verdict_before_retry": "fail"
+        },
+        {
+          "section_id": "s4",
+          "title": "Benchmarking and Real‑World Performance",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "budget_steps"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 0,
+          "searches": 2,
+          "tokens": 5580,
+          "started_s": 144.915,
+          "ended_s": 218.528,
+          "empty_reply_notes": 2,
+          "rate_limit_wait_count": 2,
+          "rate_limit_wait_s": 11.418,
+          "critic_verdict_before_retry": "fail"
+        },
+        {
+          "section_id": "s5",
+          "title": "Use‑Case Landscape and Future Directions",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "budget_steps"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 0,
+          "searches": 1,
+          "tokens": 4706,
+          "started_s": 150.027,
+          "ended_s": 232.11,
+          "empty_reply_notes": 2,
+          "rate_limit_wait_count": 2,
+          "rate_limit_wait_s": 11.531,
+          "critic_verdict_before_retry": "fail"
+        }
+      ],
+      "models_used_by_step_kind": {
+        "plan": [
+          "openai/gpt-oss-120b"
+        ],
+        "think": [
+          "openai/gpt-oss-120b"
+        ],
+        "finalize": [
+          "openai/gpt-oss-120b"
+        ],
+        "critic": [
+          "openai/gpt-oss-120b"
+        ],
+        "write": [
+          "openai/gpt-oss-120b"
+        ]
+      },
+      "models_used": [
+        "openai/gpt-oss-120b"
+      ],
+      "calls_without_token_counts": 0,
+      "calls_without_price": 0,
+      "rate_limit_waits": {
+        "count": 11,
+        "total_s": 78.52,
+        "max_single_s": 10.0
+      },
+      "empty_reply_notes": 15,
+      "unparseable_reply_notes": 11,
+      "trace_notes": [],
+      "trace_notes_note": "trace.notes is empty: no critic_failed, plan_short or other note was recorded",
+      "critic": {
+        "status": "ok",
+        "sections_sent_back": 0,
+        "retry_skipped": "not enough budget left for a retry",
+        "verdicts_before": {
+          "s1": "fail",
+          "s3": "fail",
+          "s4": "fail",
+          "s5": "fail",
+          "s2": "fail"
+        },
+        "contradictions": [],
+        "coverage_gaps": [
+          "No coverage of other small model families (TinyLlama, Phi‑2, MobileBERT, LLaMA‑Adapter, GPT‑NeoX‑Mini).",
+          "Lacks quantitative performance metrics such as latency per token, benchmark scores, or model size after quantization.",
+          "Does not discuss concrete effects of quantization, pruning, or sparsity on footprint and speed.",
+          "Licensing considerations are only (and incorrectly) addressed for DistilBERT; other models’ licensing is omitted."
+        ],
+        "n_issues_by_origin": {
+          "deterministic": 4,
+          "critic": 6
+        },
+        "critic_step": {
+          "input_tokens": 965,
+          "output_tokens": 1673,
+          "llm_latency_s": 8.99
+        },
+        "critic_origin_issues": {
+          "s2": [
+            {
+              "rubric": 2,
+              "issue": "F1 claims ~40% fewer parameters than BERT‑base, but the source excerpt only mentions the reduction from 12 to 6 layers and does not provide a percentage figure.",
+              "evidence": "Source: \"only six Transformer encoder layers, with a consistent hidden size and number of self‑attention heads\""
+            },
+            {
+              "rubric": 2,
+              "issue": "F2 gives an exact parameter count (≈66 M) and a 40% reduction figure, which are not present in the source excerpt.",
+              "evidence": "Source does not contain any numeric size information."
+            },
+            {
+              "rubric": 2,
+              "issue": "F3 states that DistilBERT retains nearly 97 % of BERT‑base’s downstream performance; the source excerpt provides no performance percentages.",
+              "evidence": "Source mentions \"nearly the full representational power\" but no quantitative metric."
+            },
+            {
+              "rubric": 2,
+              "issue": "F4 asserts removal of token‑type embeddings and the pooler layer, but the excerpt does not mention these architectural changes.",
+              "evidence": "Source excerpt lacks any reference to token‑type embeddings or pooler."
+            },
+            {
+              "rubric": 2,
+              "issue": "F7 claims suitability for 8‑bit quantization and pruning, yet the source excerpt makes no mention of quantization or pruning techniques.",
+              "evidence": "Source excerpt does not discuss quantization or pruning."
+            },
+            {
+              "rubric": 2,
+              "issue": "F8 says DistilBERT is released under an open‑source license; licensing information is absent from the excerpt.",
+              "evidence": "Source excerpt contains no licensing statement."
+            }
+          ]
+        }
+      },
+      "retries": {
+        "sections_sent_back": 0,
+        "improved": 0,
+        "unchanged": 0,
+        "worse": 0,
+        "kept_retry": 0,
+        "raw": [],
+        "note": "trace.retries is empty: no section was retried (critic recorded retry_skipped), so the effect of a retry is not measured (n=0)"
+      },
+      "writer": {
+        "status": "ok",
+        "input_tokens": 1099,
+        "output_tokens": 1081,
+        "llm_latency_s": 12.58
+      },
+      "checks_trace": {
+        "stage": "report",
+        "cited": [
+          1
+        ],
+        "invalid_citations": [],
+        "uncited_sources": [],
+        "unfetched_urls": [
+          "https://console.groq.com/settings/billing"
+        ]
+      },
+      "checks_independent": {
+        "method": "regex over the saved markdown body (before '## Sources') for [5], [5, 6], [5][6], [5-7] (also en/em dash, ';'); Sources list from numbered lines; URLs written in the body and source URLs compared to successful fetch_page URLs in the trace",
+        "citation_numbers_found": [
+          1
+        ],
+        "sources_list_ids": [
+          1
+        ],
+        "invalid_citations": [],
+        "uncited_sources": [],
+        "unfetched_urls": [
+          "https://console.groq.com/settings/billing"
+        ],
+        "non_numeric_bracket_tokens_in_body": [
+          "AllProvidersFailedError",
+          "budget_steps",
+          "model_output_unparseable"
+        ],
+        "agrees_with_trace": true
+      },
+      "report": {
+        "headings": [
+          "State of Small Language Models for On‑Device Use (2026)",
+          "Model Architectures and Size Trade‑offs  ",
+          "Hardware Landscape for On‑Device LLMs  ",
+          "Software Stacks and Optimization Techniques  ",
+          "Benchmarking and Real‑World Performance  ",
+          "Use‑Case Landscape and Future Directions  ",
+          "Limits  ",
+          "Coverage notes",
+          "Sources"
+        ],
+        "word_count": 740,
+        "word_count_method": "whitespace-separated tokens of the whole saved file, including Coverage notes and Sources"
+      },
+      "budgets": {
+        "run": {
+          "max_steps": 36,
+          "max_tokens": 300000,
+          "max_seconds": 480.0,
+          "max_cost_usd": 0.5,
+          "stop_fraction": 0.7
+        },
+        "worker_max_steps": 6,
+        "worker_max_seconds": 150.0,
+        "worker_max_tokens": 50000,
+        "tool_max_seconds": 20.0,
+        "research_stops_at_fraction": 0.7,
+        "used_fractions_at_end_of_run": {
+          "steps": 0.7222,
+          "tokens": 0.1659,
+          "seconds": 0.5285,
+          "cost": 0.0
+        },
+        "binding_stop": "steps: react_steps 26 of 36 = 0.722 >= stop_fraction 0.7 (tokens 0.166, seconds 0.528 below it); inferred from trace totals and worker stop reasons, the meter itself is not stored in the trace"
+      },
+      "tools": {
+        "longest_tool_call": {
+          "step": 22,
+          "name": "web_search",
+          "latency_s": 26.252,
+          "ok": true
+        },
+        "web_searches": 9,
+        "fetch_calls": 1,
+        "fetch_ok": 1,
+        "fetch_failed": 0,
+        "slowest_fetch_s": 9.654,
+        "pdf_fetches": 0,
+        "pdf_note": "no fetch_page call in this run targeted or returned a PDF",
+        "fetches": [
+          {
+            "step": 6,
+            "url": "https://www.emergentmind.com/topics/distilbert",
+            "ok": true,
+            "latency_s": 9.654
+          }
+        ]
+      },
+      "research_end_s": 232.11
+    },
+    {
+      "run_id": "20261030T165422Z-7e6fec",
+      "topic": "carbon capture: current costs and limits",
+      "trace_file": "runs/20261030T165422Z-7e6fec.json",
+      "report_file": "examples/multi/carbon-capture.md",
+      "attempt": 1,
+      "failed": false,
+      "failed_note": "exit code 0 and trace error=null; the one-time re-run allowance (crash/run-level error only) was not used",
+      "stop_reason": "sections_incomplete",
+      "total_tokens": 56427,
+      "input_tokens": 41731,
+      "output_tokens": 14696,
+      "cost_usd": 0.0,
+      "cost_note": "0.0 because free-tier models are unpriced, not because cost is zero",
+      "latency_s": 281.947,
+      "llm_calls": 30,
+      "tool_calls": 11,
+      "react_steps": 26,
+      "sections": {
+        "planned": 5,
+        "ok": 0,
+        "weak": 1,
+        "missing_or_failed": 4,
+        "unreviewed": 0,
+        "with_at_least_one_fetched_page": 1,
+        "worker_status_complete": 1,
+        "definition": "ok = critic verdict pass; weak = verdict weak; missing_or_failed = verdict fail (deterministic: no fetched page or no finding; or critic fail). Source: trace critic.before."
+      },
+      "sources_global": 1,
+      "source_urls": [
+        "https://carboncapturecoalition.org/blog/ensuring-the-continued-success-of-the-carbon-management-industry-through-a-robust-45q-tax-credit"
+      ],
+      "per_section": [
+        {
+          "section_id": "s1",
+          "title": "Technology Overview and Cost Landscape",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "worker_time"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 0,
+          "searches": 2,
+          "tokens": 7768,
+          "started_s": 7.921,
+          "ended_s": 155.781,
+          "empty_reply_notes": 4,
+          "rate_limit_wait_count": 2,
+          "rate_limit_wait_s": 40.0,
+          "critic_verdict_before_retry": "fail"
+        },
+        {
+          "section_id": "s2",
+          "title": "Performance Limits and Technical Barriers",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "worker_time"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 1,
+          "searches": 2,
+          "tokens": 8131,
+          "started_s": 7.923,
+          "ended_s": 147.483,
+          "empty_reply_notes": 3,
+          "rate_limit_wait_count": 3,
+          "rate_limit_wait_s": 33.244,
+          "critic_verdict_before_retry": "fail"
+        },
+        {
+          "section_id": "s3",
+          "title": "Economic Viability and Market Constraints",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "worker_time"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 0,
+          "searches": 1,
+          "tokens": 9227,
+          "started_s": 7.924,
+          "ended_s": 156.931,
+          "empty_reply_notes": 4,
+          "rate_limit_wait_count": 3,
+          "rate_limit_wait_s": 34.095,
+          "critic_verdict_before_retry": "fail"
+        },
+        {
+          "section_id": "s4",
+          "title": "Policy Landscape and Future Cost Trajectories",
+          "attempts": 1,
+          "attempt_stop_reasons": [
+            "max_steps"
+          ],
+          "status_final": "complete",
+          "pages_fetched": 1,
+          "fetch_calls_ok": 1,
+          "fetch_calls_failed": 1,
+          "searches": 1,
+          "tokens": 11873,
+          "started_s": 147.483,
+          "ended_s": 265.663,
+          "empty_reply_notes": 3,
+          "rate_limit_wait_count": 1,
+          "rate_limit_wait_s": 10.0,
+          "critic_verdict_before_retry": "weak"
+        },
+        {
+          "section_id": "s5",
+          "title": "Environmental and Societal Implications of Scaling Carbon Capture",
+          "attempts": 2,
+          "attempt_stop_reasons": [
+            "max_steps",
+            "budget_steps"
+          ],
+          "status_final": "incomplete",
+          "pages_fetched": 0,
+          "fetch_calls_ok": 0,
+          "fetch_calls_failed": 0,
+          "searches": 2,
+          "tokens": 13443,
+          "started_s": 155.782,
+          "ended_s": 252.834,
+          "empty_reply_notes": 5,
+          "rate_limit_wait_count": 1,
+          "rate_limit_wait_s": 9.471,
+          "critic_verdict_before_retry": "fail"
+        }
+      ],
+      "models_used_by_step_kind": {
+        "plan": [
+          "openai/gpt-oss-120b"
+        ],
+        "think": [
+          "openai/gpt-oss-120b"
+        ],
+        "finalize": [
+          "openai/gpt-oss-120b"
+        ],
+        "critic": [
+          "openai/gpt-oss-120b"
+        ],
+        "write": [
+          "openai/gpt-oss-120b"
+        ]
+      },
+      "models_used": [
+        "openai/gpt-oss-120b"
+      ],
+      "calls_without_token_counts": 0,
+      "calls_without_price": 0,
+      "rate_limit_waits": {
+        "count": 10,
+        "total_s": 126.81,
+        "max_single_s": 30.0
+      },
+      "empty_reply_notes": 19,
+      "unparseable_reply_notes": 14,
+      "trace_notes": [],
+      "trace_notes_note": "trace.notes is empty: no critic_failed, plan_short or other note was recorded",
+      "critic": {
+        "status": "ok",
+        "sections_sent_back": 0,
+        "retry_skipped": "not enough budget left for a retry",
+        "verdicts_before": {
+          "s1": "fail",
+          "s2": "fail",
+          "s3": "fail",
+          "s5": "fail",
+          "s4": "weak"
+        },
+        "contradictions": [],
+        "coverage_gaps": [
+          "Regulatory and incentive summary for the EU",
+          "Regulatory and incentive summary for China",
+          "Regulatory and incentive summary for emerging markets",
+          "Discussion of policy mechanisms beyond 45Q (e.g., price floors, credit guarantees, R&D funding) in non‑US contexts",
+          "Projected cost‑trend scenarios (baseline, policy‑enhanced, breakthrough) out to 2035 using modeling studies",
+          "Identification of policy gaps outside the US that could overcome technical or market limits"
+        ],
+        "n_issues_by_origin": {
+          "deterministic": 4,
+          "critic": 2
+        },
+        "critic_step": {
+          "input_tokens": 967,
+          "output_tokens": 1324,
+          "llm_latency_s": 8.336
+        },
+        "critic_origin_issues": {
+          "s4": [
+            {
+              "rubric": 2,
+              "issue": "Claim about inflation, supply‑chain disruptions, and higher interest rates driving up costs is not fully supported; the source only mentions inflation and cost pressures, not supply‑chain or interest‑rate effects.",
+              "evidence": "F4"
+            },
+            {
+              "rubric": 2,
+              "issue": "Coalition warning about needing to update 45Q to protect future projects (direct‑air‑capture, carbon‑reuse, transport‑storage) is not present in the cited excerpt.",
+              "evidence": "F6"
+            }
+          ]
+        }
+      },
+      "retries": {
+        "sections_sent_back": 0,
+        "improved": 0,
+        "unchanged": 0,
+        "worse": 0,
+        "kept_retry": 0,
+        "raw": [],
+        "note": "trace.retries is empty: no section was retried (critic recorded retry_skipped), so the effect of a retry is not measured (n=0)"
+      },
+      "writer": {
+        "status": "ok",
+        "input_tokens": 997,
+        "output_tokens": 1276,
+        "llm_latency_s": 7.939
+      },
+      "checks_trace": {
+        "stage": "report",
+        "cited": [
+          1
+        ],
+        "invalid_citations": [],
+        "uncited_sources": [],
+        "unfetched_urls": []
+      },
+      "checks_independent": {
+        "method": "regex over the saved markdown body (before '## Sources') for [5], [5, 6], [5][6], [5-7] (also en/em dash, ';'); Sources list from numbered lines; URLs written in the body and source URLs compared to successful fetch_page URLs in the trace",
+        "citation_numbers_found": [
+          1
+        ],
+        "sources_list_ids": [
+          1
+        ],
+        "invalid_citations": [],
+        "uncited_sources": [],
+        "unfetched_urls": [],
+        "non_numeric_bracket_tokens_in_body": [],
+        "agrees_with_trace": true
+      },
+      "report": {
+        "headings": [
+          "Carbon Capture: Current Costs and Limits (2026)",
+          "Policy Landscape and Future Cost Trajectories  ",
+          "Technology Overview and Cost Landscape  ",
+          "Performance Limits and Technical Barriers  ",
+          "Economic Viability and Market Constraints  ",
+          "Environmental and Societal Implications of Scaling Carbon Capture  ",
+          "Limits  ",
+          "Coverage notes",
+          "Sources"
+        ],
+        "word_count": 745,
+        "word_count_method": "whitespace-separated tokens of the whole saved file, including Coverage notes and Sources"
+      },
+      "budgets": {
+        "run": {
+          "max_steps": 36,
+          "max_tokens": 300000,
+          "max_seconds": 480.0,
+          "max_cost_usd": 0.5,
+          "stop_fraction": 0.7
+        },
+        "worker_max_steps": 6,
+        "worker_max_seconds": 150.0,
+        "worker_max_tokens": 50000,
+        "tool_max_seconds": 20.0,
+        "research_stops_at_fraction": 0.7,
+        "used_fractions_at_end_of_run": {
+          "steps": 0.7222,
+          "tokens": 0.1881,
+          "seconds": 0.5874,
+          "cost": 0.0
+        },
+        "binding_stop": "steps: react_steps 26 of 36 = 0.722 >= stop_fraction 0.7 (tokens 0.188, seconds 0.587 below it); inferred from trace totals and worker stop reasons, the meter itself is not stored in the trace"
+      },
+      "tools": {
+        "longest_tool_call": {
+          "step": 8,
+          "name": "web_search",
+          "latency_s": 21.794,
+          "ok": true
+        },
+        "web_searches": 8,
+        "fetch_calls": 3,
+        "fetch_ok": 1,
+        "fetch_failed": 2,
+        "slowest_fetch_s": 14.139,
+        "pdf_fetches": 0,
+        "pdf_note": "no fetch_page call in this run targeted or returned a PDF",
+        "fetches": [
+          {
+            "step": 5,
+            "url": "https://pubs.acs.org/enfuem/article/38/15/13858/166706/CO2-Post-combustion-Capture-A-Critical-Review-of",
+            "ok": false,
+            "latency_s": 7.025
+          },
+          {
+            "step": 19,
+            "url": "https://carboncapturecoalition.org/blog/ensuring-the-continued-success-of-the-carbon-management-industry-through-a-robust-45q-tax-credit",
+            "ok": true,
+            "latency_s": 14.139
+          },
+          {
+            "step": 25,
+            "url": "https://carboncapturecoalition.org/blog/ensuring-the-continued-success-of-the-carbon-management-industry-through-a-robust-45q-tax-credit",
+            "ok": false,
+            "latency_s": 0.0
+          }
+        ]
+      },
+      "research_end_s": 265.663
+    }
+  ],
+  "retry_evidence_summary": {
+    "n_runs": 2,
+    "sections_planned_total": 10,
+    "sections_sent_back": 0,
+    "improved": 0,
+    "unchanged": 0,
+    "worse": 0,
+    "kept_retry": 0,
+    "why_none_sent_back": "In both runs the critic stage recorded retry_skipped='not enough budget left for a retry'. Candidates existed (verdict fail/weak: 5 of 5 in the small-language-models run, 5 of 5 in the carbon-capture run), but the meter's stop_reason was already budget_steps (26 of 36 steps = 0.722 >= 0.7). The retry effect is therefore not measured (n=0).",
+    "verdicts_before_all_runs": {
+      "pass": 0,
+      "weak": 1,
+      "fail": 9,
+      "unreviewed": 0
+    },
+    "verdict_origin": "fail verdicts: 8 deterministic (no fetched page) + 1 critic (SLM s2, 6 rubric-2 issues); the weak verdict (carbon s4) came from the critic (2 rubric-2 issues).",
+    "critic_status": {
+      "small-language-models": "ok",
+      "carbon-capture": "ok",
+      "critic_failed_runs": 0,
+      "unreviewed_runs": 0
+    },
+    "critic_call_note": "The critic LLM was called once per run and reviewed only the 1 section with a fetched page; the other 4 sections got deterministic fail verdicts without an LLM call."
+  },
+  "report_checks_summary": {
+    "stage": {
+      "small-language-models": "report",
+      "carbon-capture": "report"
+    },
+    "stage_note": "stage=report means the writer produced a report text; it does not mean the report covers the plan (4 of 5 sections are placeholders in each).",
+    "independent_check_agrees_with_trace": {
+      "small-language-models": true,
+      "carbon-capture": true
+    },
+    "citation_forms_found_in_reports": "only the single form [1] occurs in both reports; the forms [5, 6], [5][6], [5-7] are handled by the parser but were not exercised by these two reports",
+    "internal_error_text_in_report": "The small-language-models report contains a raw RateLimitError string (with organization id and a console.groq.com billing URL) in its Coverage notes, and uses three non-numeric bracket tokens ([AllProvidersFailedError], [model_output_unparseable], [budget_steps]) in section bodies. The trace check flags the billing URL as an unfetched URL."
+  },
+  "spot_checks": {
+    "status": "not verified",
+    "reason": "The trace stores observation_chars only, not page text, so claims cannot be checked against page text from the trace. No page was re-fetched in this step.",
+    "claims_selected": [
+      {
+        "report": "small-language-models",
+        "claim": "DistilBERT retains nearly 97 % of BERT-base downstream results [1]",
+        "result": "not verified",
+        "trace_evidence": "critic (reading a 900-char excerpt, not the full 3609-char page) listed it as unsupported (rubric 2, F3)"
+      },
+      {
+        "report": "small-language-models",
+        "claim": "removal of token-type embeddings and pooler layer [1]",
+        "result": "not verified",
+        "trace_evidence": "critic listed it as absent from the excerpt (rubric 2, F4)"
+      },
+      {
+        "report": "carbon-capture",
+        "claim": "more than 270 projects announced, 132 in advanced development [1]",
+        "result": "not verified",
+        "trace_evidence": "not among the claims the critic flagged; the only flagged claims for this section are F4 (supply-chain/interest rates) and F6 (45Q update warning)"
+      }
+    ],
+    "writer_vs_critic": "small-language-models: the critic listed 6 unsupported-claim issues for section s2 (F1, F2, F3, F4, F7, F8); the written body still states the claims behind F2, F3, F4, F7 and F8 as cited facts, and the added 'Critique' line mentions only F1 (1 of 6). carbon-capture: the critic listed 2 issues for s4 (F4, F6); the body states F6 as a plain bullet, and the 'Critic note' line mentions only F4 (1 of 2). Counted by reading the saved reports; whether the critic or the writer is right about each claim is not verified."
+  },
+  "report_quality": "not measured yet (the judge is R3)",
+  "smoke_comparison": {
+    "caveat": "n=1 per system per topic. Units differ: R0 counts questions covered, R1 sections complete, R2 sections with at least one fetched page. R0 SLM figure is from its second attempt. The R1 trace recorded stop_fraction 0.8; R2 traces record 0.7. No means, no significance.",
+    "rows": [
+      {
+        "topic": "state of small language models for on-device use",
+        "R0_single_agent": {
+          "run_id": "20261029T184317Z-c8fd6a",
+          "unit": "questions covered of 5",
+          "covered": 2,
+          "planned": 5,
+          "sources": 2,
+          "total_tokens": 27306,
+          "latency_s": 143.359,
+          "stop_reason": "llm_error"
+        },
+        "R1_multi_digest": {
+          "run_id": "20261030T161741Z-43137a",
+          "unit": "sections complete of 5",
+          "covered": 3,
+          "planned": 5,
+          "sources": 4,
+          "total_tokens": 57247,
+          "latency_s": 299.025,
+          "stop_reason": "sections_incomplete"
+        },
+        "R2_multi_critic_writer": {
+          "run_id": "20261030T164954Z-2252e1",
+          "unit": "sections with at least one fetched page of 5 (worker status complete: 1; critic pass: 0)",
+          "covered": 1,
+          "planned": 5,
+          "sources": 1,
+          "total_tokens": 49767,
+          "latency_s": 253.685,
+          "stop_reason": "sections_incomplete"
+        }
+      },
+      {
+        "topic": "carbon capture: current costs and limits",
+        "R0_single_agent": {
+          "run_id": "20261029T183858Z-290272",
+          "unit": "questions covered of 5",
+          "covered": 0,
+          "planned": 5,
+          "sources": 0,
+          "total_tokens": 13986,
+          "latency_s": 247.937,
+          "stop_reason": "budget_seconds"
+        },
+        "R1_multi_digest": {
+          "run_id": "20261030T162251Z-b37f4b",
+          "unit": "sections complete of 5",
+          "covered": 0,
+          "planned": 5,
+          "sources": 0,
+          "total_tokens": 46337,
+          "latency_s": 194.671,
+          "stop_reason": "sections_incomplete"
+        },
+        "R2_multi_critic_writer": {
+          "run_id": "20261030T165422Z-7e6fec",
+          "unit": "sections with at least one fetched page of 5 (worker status complete: 1; critic pass: 0)",
+          "covered": 1,
+          "planned": 5,
+          "sources": 1,
+          "total_tokens": 56427,
+          "latency_s": 281.947,
+          "stop_reason": "sections_incomplete"
+        }
+      }
+    ]
+  },
+  "observations_inputs": {
+    "longest_tool_calls_s": {
+      "state of small language models for on-device use": {
+        "step": 22,
+        "name": "web_search",
+        "latency_s": 26.252,
+        "ok": true
+      },
+      "carbon capture: current costs and limits": {
+        "step": 8,
+        "name": "web_search",
+        "latency_s": 21.794,
+        "ok": true
+      }
+    },
+    "tool_max_seconds_budget": 20.0,
+    "tool_max_note": "The longest call in the SLM run (web_search, 26.252 s) is above the 20 s tool_max_seconds budget; whether that budget applies to web_search is not checked here.",
+    "gemini_used": "no step in either trace used a Gemini model; why (quota or routing) is not recorded in the trace"
+  },
+  "not_measured": [
+    "report quality / correctness (judge is R3)",
+    "retry effect (no retries happened)",
+    "findings count per section before/after (trace stores no per-section finding counts)",
+    "claim-level support against page text (page text not in trace)",
+    "the effect of the 0.7 stop fraction versus 0.8 (different runs, n=1 each, no controlled comparison)"
+  ]
+}

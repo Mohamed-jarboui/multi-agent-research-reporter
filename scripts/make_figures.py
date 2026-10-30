@@ -7,6 +7,11 @@ Figures (a figure is skipped, with a message, when its input is missing):
   r1_worker_timeline.svg  Gantt of worker attempts per topic, from results/r1_timeline.json:
                        {"runs": [{"topic": str, "wall_s": float, "workers": [{"section": str,
                                   "start_s": float, "end_s": float, "status": str}, ...]}]}
+  r2_critic_before_after.svg  critic verdict per section before and after the retry, from
+                       results/r2_critic_first_run.json and results/r2_critic.json:
+                       {"runs": [{"topic": str, "sections": [{"section": str, "verdict_before": str,
+                                  "verdict_after": str|null, "retried": bool,
+                                  "kept_retry": bool}]}]}
   baseline_smoke.svg   tokens, cost and latency per topic, from results/baseline_smoke.json:
                        {"runs": [{"topic": str, "total_tokens": int, "cost_usd": float,
                                   "latency_s": float}, ...]}
@@ -151,6 +156,92 @@ def r1_worker_timeline() -> Path | None:
     return _save(fig, "r1_worker_timeline.svg")
 
 
+VERDICT_COLOUR = {"pass": "#2f7d5b", "weak": "#e9a23b", "fail": "#b23a3a"}
+
+
+def r2_critic_before_after() -> Path | None:
+    files = [
+        ("Second evaluation", ROOT / "results" / "r2_critic.json"),
+        ("First evaluation", ROOT / "results" / "r2_critic_first_run.json"),
+    ]
+    panels = []
+    for label, path in files:
+        if not path.is_file():
+            print(f"skip {label} in r2_critic_before_after: {path.name} not measured yet")
+            continue
+        for run in json.loads(path.read_text(encoding="utf-8")).get("runs", []):
+            panels.append((label, run))
+    if not panels:
+        print("skip r2_critic_before_after: no critic data, not measured yet")
+        return None
+    n_rows = len(panels)
+    fig, axes = plt.subplots(n_rows, 1, figsize=(7, 2.5 * n_rows + 1.0), squeeze=False)
+    for ax in axes.flat:
+        ax.axis("off")
+    for ax, (label, run) in zip(axes.flat, panels, strict=False):
+        secs = run["sections"]
+        ax.set_xlim(0, 11.6)
+        ax.set_ylim(len(secs) + 0.2, -1.2)
+        ax.text(0, -0.8, "section", fontsize=8, color=INK, weight="bold")
+        ax.text(5.4, -0.8, "before", fontsize=8, color=INK, weight="bold", ha="center")
+        ax.text(7.1, -0.8, "after retry", fontsize=8, color=INK, weight="bold", ha="center")
+        ax.text(8.0, -0.8, "outcome", fontsize=8, color=INK, weight="bold")
+        for i, sec in enumerate(secs):
+            name = sec["section"].replace("‑", "-")
+            ax.text(
+                0,
+                i,
+                (name if len(name) <= 30 else name[:28] + "..."),
+                va="center",
+                fontsize=7.5,
+                color=INK,
+            )
+            before = sec["verdict_before"]
+            cells = [(5.4, before)]
+            after = sec.get("verdict_after")
+            if sec.get("retried") and after:
+                cells.append((7.1, after))
+            else:
+                cells.append((7.1, "not retried"))
+            for x, verdict in cells:
+                col = VERDICT_COLOUR.get(verdict, "#c9ced6")
+                ax.add_patch(plt.Rectangle((x - 0.7, i - 0.36), 1.4, 0.72, color=col))
+                ax.text(
+                    x,
+                    i,
+                    verdict if verdict in VERDICT_COLOUR else "n/a",
+                    ha="center",
+                    va="center",
+                    fontsize=7.5,
+                    color="white" if verdict in VERDICT_COLOUR else INK,
+                )
+            if sec.get("retried"):
+                note = "retried, kept retry" if sec.get("kept_retry") else "retried, kept original"
+            else:
+                note = "not retried"
+            ax.text(8.0, i, note, va="center", fontsize=7.5, color=INK)
+        n_retried = sum(1 for sec in secs if sec.get("retried"))
+        ax.set_title(
+            f"{label}: {run['topic']}\n(n=1 run, {n_retried} of {len(secs)} retried)",
+            fontsize=8.5,
+            loc="left",
+            color=INK,
+        )
+    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in VERDICT_COLOUR.values()]
+    handles.append(plt.Rectangle((0, 0), 1, 1, color="#c9ced6"))
+    fig.legend(
+        handles,
+        [*VERDICT_COLOUR, "n/a (not retried)"],
+        loc="lower center",
+        ncol=4,
+        fontsize=8,
+        frameon=False,
+    )
+    fig.suptitle("R2 critic verdicts per section, before and after the retry", color=INK)
+    fig.tight_layout(rect=(0, 0.05, 1, 0.96))
+    return _save(fig, "r2_critic_before_after.svg")
+
+
 def _save(fig, name: str) -> Path:
     FIGS.mkdir(parents=True, exist_ok=True)
     out = FIGS / name
@@ -166,6 +257,7 @@ def main() -> None:
     stage_progress()
     baseline_smoke()
     r1_worker_timeline()
+    r2_critic_before_after()
 
 
 if __name__ == "__main__":
