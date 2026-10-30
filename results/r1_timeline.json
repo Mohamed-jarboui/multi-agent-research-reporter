@@ -1,0 +1,96 @@
+{
+  "runs": [
+    {
+      "topic": "state of small language models for on-device use",
+      "run_id": "20261030T161741Z-43137a",
+      "wall_s": 299.025,
+      "workers": [
+        {
+          "section": "s1",
+          "start_s": 41.599,
+          "end_s": 140.596,
+          "status": "complete"
+        },
+        {
+          "section": "s3",
+          "start_s": 41.602,
+          "end_s": 179.587,
+          "status": "complete"
+        },
+        {
+          "section": "s2",
+          "start_s": 41.601,
+          "end_s": 206.179,
+          "status": "complete"
+        },
+        {
+          "section": "s4",
+          "start_s": 140.596,
+          "end_s": 255.216,
+          "status": "incomplete"
+        },
+        {
+          "section": "s4 (attempt 2)",
+          "start_s": 255.216,
+          "end_s": 263.802,
+          "status": "incomplete"
+        },
+        {
+          "section": "s5",
+          "start_s": 179.587,
+          "end_s": 299.022,
+          "status": "incomplete"
+        }
+      ]
+    },
+    {
+      "topic": "carbon capture: current costs and limits",
+      "run_id": "20261030T162251Z-b37f4b",
+      "wall_s": 194.671,
+      "workers": [
+        {
+          "section": "s3",
+          "start_s": 9.259,
+          "end_s": 42.341,
+          "status": "incomplete"
+        },
+        {
+          "section": "s1",
+          "start_s": 9.254,
+          "end_s": 120.694,
+          "status": "incomplete"
+        },
+        {
+          "section": "s1 (attempt 2)",
+          "start_s": 120.694,
+          "end_s": 130.287,
+          "status": "incomplete"
+        },
+        {
+          "section": "s3 (attempt 2)",
+          "start_s": 42.341,
+          "end_s": 142.618,
+          "status": "incomplete"
+        },
+        {
+          "section": "s2",
+          "start_s": 9.257,
+          "end_s": 165.828,
+          "status": "incomplete"
+        },
+        {
+          "section": "s5",
+          "start_s": 142.618,
+          "end_s": 193.479,
+          "status": "incomplete"
+        },
+        {
+          "section": "s4",
+          "start_s": 130.288,
+          "end_s": 194.668,
+          "status": "incomplete"
+        }
+      ]
+    }
+  ]
+}

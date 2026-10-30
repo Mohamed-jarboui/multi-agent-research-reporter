@@ -1,0 +1,78 @@
+{
+  "stage": "R1",
+  "branch": "stage/r1-supervisor-workers",
+  "date": "2026-10-30",
+  "tests": {
+    "passed": 106,
+    "failed": 0,
+    "new_in_r1": 29,
+    "previous_total_r0": 77,
+    "source": "pytest count verified by the main session; ruff check and ruff format --check clean"
+  },
+  "files_changed": {
+    "modified_tracked_files": 9,
+    "modified_tracked_insertions": 376,
+    "modified_tracked_deletions": 87,
+    "new_source_files": 4,
+    "new_test_files": 3,
+    "new_source_and_test_lines": 1604,
+    "other_new_paths": ["docs/design/", "examples/multi_r1/", "results/r1_smoke.json", "results/r1_timeline.json"],
+    "source": "git status and git diff --stat HEAD; nothing committed yet on this branch for these files"
+  },
+  "runs_made": {
+    "live_multi_agent_runs": 2,
+    "runs_per_topic": 1,
+    "topics": 2,
+    "failed_runs": 0,
+    "reruns": 0,
+    "runs_with_usable_digest": 1,
+    "source": "results/r1_smoke.json"
+  },
+  "cost": {
+    "cost_usd": 0.0,
+    "note": "0.0 because Gemini/Groq free-tier models are unpriced in the cost model, not because cost is zero"
+  },
+  "per_run": [
+    {
+      "topic": "state of small language models for on-device use",
+      "run_id": "20261030T161741Z-43137a",
+      "stop_reason": "sections_incomplete",
+      "sections_complete": 3,
+      "sections_planned": 5,
+      "sources": 4,
+      "total_tokens": 57247,
+      "latency_s": 299.025,
+      "llm_calls": 34,
+      "tool_calls": 17,
+      "empty_reply_notes": 12,
+      "rate_limit_waits_count": 8,
+      "rate_limit_waits_total_s": 89.876,
+      "peak_concurrent_workers": 3,
+      "effective_parallelism": 2.5,
+      "longest_tool_call_s": 7.879,
+      "worker_attempts": 6
+    },
+    {
+      "topic": "carbon capture: current costs and limits",
+      "run_id": "20261030T162251Z-b37f4b",
+      "stop_reason": "sections_incomplete",
+      "sections_complete": 0,
+      "sections_planned": 5,
+      "sources": 0,
+      "total_tokens": 46337,
+      "latency_s": 194.671,
+      "llm_calls": 30,
+      "tool_calls": 10,
+      "empty_reply_notes": 22,
+      "rate_limit_waits_count": 13,
+      "rate_limit_waits_total_s": 93.738,
+      "peak_concurrent_workers": 3,
+      "effective_parallelism": 2.84,
+      "longest_tool_call_s": 2.792,
+      "worker_attempts": 7
+    }
+  ],
+  "report_quality": "not measured yet",
+  "citation_validity_of_multi_digests": "not measured yet",
+  "caveat": "Smoke runs, n=1 per topic, not a benchmark. R0 baseline numbers are in results/stage_r0.json; units differ (questions vs sections). The benchmark is stage R3."
+}

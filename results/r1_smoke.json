@@ -1,0 +1,551 @@
+{
+  "stage": "R1",
+  "step": "evaluator smoke",
+  "date": "2026-10-30",
+  "n_runs": 2,
+  "n_attempts": 2,
+  "n_failed_runs": 0,
+  "n_runs_with_usable_digest": 1,
+  "rerun_note": "No re-run: neither run crashed or raised a run-level error, so the one-time re-run allowance for outright failures was not used. The carbon-capture run produced a digest with 0 sources and 0 of 5 sections complete; it is reported as is.",
+  "sample_size_note": "n=1 per topic per system. Smoke comparison, not a benchmark; no means, no significance.",
+  "budgets_used": {
+    "run": {
+      "max_steps": 36,
+      "max_tokens": 300000,
+      "max_seconds": 480.0,
+      "max_cost_usd": 0.5,
+      "stop_fraction": 0.8
+    },
+    "worker_max_steps": 6,
+    "worker_max_tokens": 50000,
+    "worker_max_seconds": 150.0,
+    "tool_max_seconds": 20.0,
+    "max_pages_per_worker": 4,
+    "min_sources": 2,
+    "max_parallel_workers": 3,
+    "max_parallel_llm_calls": 2,
+    "source": "MultiBudget defaults, echoed in each trace budget field; defaults are starting values, not measured"
+  },
+  "runs": [
+    {
+      "run_id": "20261030T161741Z-43137a",
+      "topic": "state of small language models for on-device use",
+      "digest_file": "examples/multi_r1/small-language-models.md",
+      "trace_file": "runs/20261030T161741Z-43137a.json",
+      "stop_reason": "sections_incomplete",
+      "failed": false,
+      "failed_note": "No crash or run-level error; digest written with partial coverage.",
+      "usable_digest": true,
+      "total_tokens": 57247,
+      "input_tokens": 47171,
+      "output_tokens": 10076,
+      "cost_usd": 0.0,
+      "cost_note": "0.0 because Gemini/Groq free-tier models are unpriced in the cost model, not because cost is zero",
+      "latency_s": 299.025,
+      "llm_calls": 34,
+      "tool_calls": 17,
+      "react_steps": 29,
+      "sections_planned": 5,
+      "sections_complete": 3,
+      "sections_incomplete": 2,
+      "sources_global_deduplicated": 4,
+      "source_urls": [
+        "https://huggingface.co/blog/smollm",
+        "https://developers.google.com/edge/litert-lm/overview",
+        "https://awesomeagents.ai/leaderboards/edge-mobile-llm-leaderboard",
+        "https://kaitchup.substack.com/p/the-best-quantization-methods-to"
+      ],
+      "sources_per_section_coverage_field": {
+        "Current Landscape of On‑Device Small LMs": 1,
+        "Benchmarking Performance on Edge Devices": 2,
+        "Optimization Techniques for On‑Device Deployment": 1,
+        "Toolchains and Runtime Environments": 0,
+        "Future Trends, Challenges, and Opportunities": 0
+      },
+      "per_section": [
+        {
+          "section_id": "s1",
+          "title_as_stored": "Current Landscape of On‑Device Small LMs",
+          "attempts": 1,
+          "final_status": "complete",
+          "stop_reasons": [
+            "max_steps"
+          ],
+          "pages_fetched_per_workers_field": 1,
+          "fetch_ok_from_steps": 1,
+          "fetch_failed_from_steps": 0,
+          "searches": 4,
+          "tokens": 11736,
+          "error": [
+            null
+          ]
+        },
+        {
+          "section_id": "s2",
+          "title_as_stored": "Benchmarking Performance on Edge Devices",
+          "attempts": 1,
+          "final_status": "complete",
+          "stop_reasons": [
+            "max_steps"
+          ],
+          "pages_fetched_per_workers_field": 2,
+          "fetch_ok_from_steps": 2,
+          "fetch_failed_from_steps": 0,
+          "searches": 2,
+          "tokens": 17464,
+          "error": [
+            null
+          ]
+        },
+        {
+          "section_id": "s3",
+          "title_as_stored": "Optimization Techniques for On‑Device Deployment",
+          "attempts": 1,
+          "final_status": "complete",
+          "stop_reasons": [
+            "worker_time"
+          ],
+          "pages_fetched_per_workers_field": 1,
+          "fetch_ok_from_steps": 1,
+          "fetch_failed_from_steps": 0,
+          "searches": 3,
+          "tokens": 7434,
+          "error": [
+            null
+          ]
+        },
+        {
+          "section_id": "s4",
+          "title_as_stored": "Toolchains and Runtime Environments",
+          "attempts": 2,
+          "final_status": "incomplete",
+          "stop_reasons": [
+            "model_output_unparseable",
+            "worker_time"
+          ],
+          "pages_fetched_per_workers_field": 0,
+          "fetch_ok_from_steps": 0,
+          "fetch_failed_from_steps": 0,
+          "searches": 1,
+          "tokens": 8897,
+          "error": [
+            "no page was fetched (stopped: model_output_unparseable)",
+            "no page was fetched (stopped: worker_time)"
+          ]
+        },
+        {
+          "section_id": "s5",
+          "title_as_stored": "Future Trends, Challenges, and Opportunities",
+          "attempts": 1,
+          "final_status": "incomplete",
+          "stop_reasons": [
+            "max_steps"
+          ],
+          "pages_fetched_per_workers_field": 0,
+          "fetch_ok_from_steps": 0,
+          "fetch_failed_from_steps": 1,
+          "searches": 2,
+          "tokens": 9459,
+          "error": [
+            "no page was fetched (stopped: max_steps)"
+          ]
+        }
+      ],
+      "llm_calls_by_model": {
+        "gemini-3.6-flash": 15,
+        "openai/gpt-oss-120b": 19
+      },
+      "models_used": [
+        "gemini-3.6-flash",
+        "openai/gpt-oss-120b"
+      ],
+      "calls_without_token_counts": 8,
+      "calls_without_price": 8,
+      "rate_limit_waits_count": 8,
+      "rate_limit_waits_total_s": 89.876,
+      "rate_limit_waits_pct_of_run_latency": 30.1,
+      "rate_limit_waits_note": "waits are summed across workers, so they can overlap in wall time and the percentage can exceed what a single timeline would show",
+      "notes_plan_short_or_generic": [],
+      "worker_attempts": 6,
+      "longest_tool_call": {
+        "name": "fetch_page",
+        "latency_s": 7.879,
+        "input": {
+          "url": "https://awesomeagents.ai/leaderboards/edge-mobile-llm-leaderboard"
+        }
+      },
+      "slow_tool_calls_over_20s": 0,
+      "pdf_fetch_errors": 0,
+      "failed_tool_calls": [
+        "ERROR fetch_page failed: https://ieeexplore.ieee.org/document/11294286 has almost no readable text (0 characters); it may need JavaScript or block bots. Pick an"
+      ],
+      "empty_reply_notes": 12,
+      "unparseable_reply_notes": 10,
+      "budget_binding": {
+        "run_level_budget_hit": false,
+        "run_level_budget_note": "A worker stop_reason of budget_steps means the shared run step budget (36 steps, stop_fraction 0.8 = 28.8) ended that worker; react_steps reached 29. Run-level stop_reason itself is sections_incomplete, not a budget reason. Tokens, seconds and cost were far below their limits.",
+        "run_stop_reason": "sections_incomplete",
+        "run_usage_vs_limit": {
+          "react_steps": "29/36",
+          "llm_calls": 34,
+          "tokens": "57247/300000",
+          "seconds": "299.0/480",
+          "cost_usd": "0.0/0.50"
+        },
+        "worker_level_stops": {
+          "max_steps": 3,
+          "worker_time": 2,
+          "model_output_unparseable": 1
+        }
+      },
+      "overlap": {
+        "worker_attempt_intervals_s": [
+          {
+            "section": "s1",
+            "attempt": 1,
+            "start_s": 41.599,
+            "end_s": 140.596,
+            "duration_s": 98.997,
+            "status": "complete"
+          },
+          {
+            "section": "s3",
+            "attempt": 1,
+            "start_s": 41.602,
+            "end_s": 179.587,
+            "duration_s": 137.985,
+            "status": "complete"
+          },
+          {
+            "section": "s2",
+            "attempt": 1,
+            "start_s": 41.601,
+            "end_s": 206.179,
+            "duration_s": 164.578,
+            "status": "complete"
+          },
+          {
+            "section": "s4",
+            "attempt": 1,
+            "start_s": 140.596,
+            "end_s": 255.216,
+            "duration_s": 114.62,
+            "status": "incomplete"
+          },
+          {
+            "section": "s4",
+            "attempt": 2,
+            "start_s": 255.216,
+            "end_s": 263.802,
+            "duration_s": 8.586,
+            "status": "incomplete"
+          },
+          {
+            "section": "s5",
+            "attempt": 1,
+            "start_s": 179.587,
+            "end_s": 299.022,
+            "duration_s": 119.435,
+            "status": "incomplete"
+          }
+        ],
+        "worker_phase_start_s": 41.599,
+        "worker_phase_end_s": 299.022,
+        "worker_phase_wall_s": 257.423,
+        "sum_of_worker_durations_s": 644.201,
+        "effective_parallelism": 2.5,
+        "peak_concurrent_workers": 3,
+        "seconds_with_ge2_workers": 222.201,
+        "seconds_with_3_workers": 164.577,
+        "seconds_at_each_concurrency_level": {
+          "1": 35.222,
+          "2": 57.624,
+          "3": 164.577
+        },
+        "max_parallel_workers_setting": 3,
+        "max_parallel_llm_calls_setting": 2,
+        "pre_worker_planning_s": 41.599,
+        "post_worker_s": 0.003
+      },
+      "baseline_r0_for_comparison": {
+        "run_id": "20261029T184317Z-c8fd6a",
+        "attempt": "2 (re-run of attempt 1)",
+        "questions_covered": "2 of 5",
+        "sources": 2,
+        "total_tokens": 27306,
+        "latency_s": 143.359,
+        "stop_reason": "llm_error",
+        "models_used": [
+          "openai/gpt-oss-120b"
+        ]
+      }
+    },
+    {
+      "run_id": "20261030T162251Z-b37f4b",
+      "topic": "carbon capture: current costs and limits",
+      "digest_file": "examples/multi_r1/carbon-capture.md",
+      "trace_file": "runs/20261030T162251Z-b37f4b.json",
+      "stop_reason": "sections_incomplete",
+      "failed": false,
+      "failed_note": "No crash or run-level error (error=null, exit code 0, digest written), but the digest is unusable: 0 sources, 0 of 5 sections complete.",
+      "usable_digest": false,
+      "total_tokens": 46337,
+      "input_tokens": 37468,
+      "output_tokens": 8869,
+      "cost_usd": 0.0,
+      "cost_note": "0.0 because Gemini/Groq free-tier models are unpriced in the cost model, not because cost is zero",
+      "latency_s": 194.671,
+      "llm_calls": 30,
+      "tool_calls": 10,
+      "react_steps": 29,
+      "sections_planned": 5,
+      "sections_complete": 0,
+      "sections_incomplete": 5,
+      "sources_global_deduplicated": 0,
+      "source_urls": [],
+      "sources_per_section_coverage_field": {
+        "Technology Overview and Cost Drivers": 0,
+        "Performance Limits and Capture Efficiency": 0,
+        "Economic Viability and Market Context": 0,
+        "Operational and Scale‑up Constraints": 0,
+        "Future Outlook and Pathways to Cost Reduction": 0
+      },
+      "per_section": [
+        {
+          "section_id": "s1",
+          "title_as_stored": "Technology Overview and Cost Drivers",
+          "attempts": 2,
+          "final_status": "incomplete",
+          "stop_reasons": [
+            "max_steps",
+            "worker_time"
+          ],
+          "pages_fetched_per_workers_field": 0,
+          "fetch_ok_from_steps": 0,
+          "fetch_failed_from_steps": 0,
+          "searches": 2,
+          "tokens": 13251,
+          "error": [
+            "no page was fetched (stopped: max_steps)",
+            "no page was fetched (stopped: worker_time)"
+          ]
+        },
+        {
+          "section_id": "s2",
+          "title_as_stored": "Performance Limits and Capture Efficiency",
+          "attempts": 1,
+          "final_status": "incomplete",
+          "stop_reasons": [
+            "provider_error"
+          ],
+          "pages_fetched_per_workers_field": 0,
+          "fetch_ok_from_steps": 0,
+          "fetch_failed_from_steps": 0,
+          "searches": 3,
+          "tokens": 6894,
+          "error": [
+            "AllProvidersFailedError: all providers failed; last error: RateLimitError(\"Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01ke7ddyf9f2"
+          ]
+        },
+        {
+          "section_id": "s3",
+          "title_as_stored": "Economic Viability and Market Context",
+          "attempts": 2,
+          "final_status": "incomplete",
+          "stop_reasons": [
+            "model_output_unparseable",
+            "worker_time"
+          ],
+          "pages_fetched_per_workers_field": 0,
+          "fetch_ok_from_steps": 0,
+          "fetch_failed_from_steps": 0,
+          "searches": 2,
+          "tokens": 12867,
+          "error": [
+            "no page was fetched (stopped: model_output_unparseable)",
+            "no page was fetched (stopped: worker_time)"
+          ]
+        },
+        {
+          "section_id": "s4",
+          "title_as_stored": "Operational and Scale‑up Constraints",
+          "attempts": 1,
+          "final_status": "incomplete",
+          "stop_reasons": [
+            "budget_steps"
+          ],
+          "pages_fetched_per_workers_field": 0,
+          "fetch_ok_from_steps": 0,
+          "fetch_failed_from_steps": 0,
+          "searches": 2,
+          "tokens": 7347,
+          "error": [
+            "no page was fetched (stopped: budget_steps)"
+          ]
+        },
+        {
+          "section_id": "s5",
+          "title_as_stored": "Future Outlook and Pathways to Cost Reduction",
+          "attempts": 1,
+          "final_status": "incomplete",
+          "stop_reasons": [
+            "budget_steps"
+          ],
+          "pages_fetched_per_workers_field": 0,
+          "fetch_ok_from_steps": 0,
+          "fetch_failed_from_steps": 0,
+          "searches": 1,
+          "tokens": 4564,
+          "error": [
+            "no page was fetched (stopped: budget_steps)"
+          ]
+        }
+      ],
+      "llm_calls_by_model": {
+        "openai/gpt-oss-120b": 27,
+        "gemini-3.6-flash": 2,
+        "(none: failed call)": 1
+      },
+      "models_used": [
+        "gemini-3.6-flash",
+        "openai/gpt-oss-120b"
+      ],
+      "calls_without_token_counts": 1,
+      "calls_without_price": 1,
+      "rate_limit_waits_count": 13,
+      "rate_limit_waits_total_s": 93.738,
+      "rate_limit_waits_pct_of_run_latency": 48.2,
+      "rate_limit_waits_note": "waits are summed across workers, so they can overlap in wall time and the percentage can exceed what a single timeline would show",
+      "notes_plan_short_or_generic": [],
+      "worker_attempts": 7,
+      "longest_tool_call": {
+        "name": "web_search",
+        "latency_s": 2.792,
+        "input": {
+          "query": "2025 carbon capture cost per ton post-combustion pre-combustion oxy-fuel direct air capture report 2025",
+          "max_results": 8
+        }
+      },
+      "slow_tool_calls_over_20s": 0,
+      "pdf_fetch_errors": 0,
+      "failed_tool_calls": [],
+      "empty_reply_notes": 22,
+      "unparseable_reply_notes": 18,
+      "budget_binding": {
+        "run_level_budget_hit": true,
+        "run_level_budget_note": "A worker stop_reason of budget_steps means the shared run step budget (36 steps, stop_fraction 0.8 = 28.8) ended that worker; react_steps reached 29. Run-level stop_reason itself is sections_incomplete, not a budget reason. Tokens, seconds and cost were far below their limits.",
+        "run_stop_reason": "sections_incomplete",
+        "run_usage_vs_limit": {
+          "react_steps": "29/36",
+          "llm_calls": 30,
+          "tokens": "46337/300000",
+          "seconds": "194.7/480",
+          "cost_usd": "0.0/0.50"
+        },
+        "worker_level_stops": {
+          "model_output_unparseable": 1,
+          "max_steps": 1,
+          "worker_time": 2,
+          "provider_error": 1,
+          "budget_steps": 2
+        }
+      },
+      "overlap": {
+        "worker_attempt_intervals_s": [
+          {
+            "section": "s3",
+            "attempt": 1,
+            "start_s": 9.259,
+            "end_s": 42.341,
+            "duration_s": 33.082,
+            "status": "incomplete"
+          },
+          {
+            "section": "s1",
+            "attempt": 1,
+            "start_s": 9.254,
+            "end_s": 120.694,
+            "duration_s": 111.44,
+            "status": "incomplete"
+          },
+          {
+            "section": "s1",
+            "attempt": 2,
+            "start_s": 120.694,
+            "end_s": 130.287,
+            "duration_s": 9.593,
+            "status": "incomplete"
+          },
+          {
+            "section": "s3",
+            "attempt": 2,
+            "start_s": 42.341,
+            "end_s": 142.618,
+            "duration_s": 100.277,
+            "status": "incomplete"
+          },
+          {
+            "section": "s2",
+            "attempt": 1,
+            "start_s": 9.257,
+            "end_s": 165.828,
+            "duration_s": 156.571,
+            "status": "incomplete"
+          },
+          {
+            "section": "s5",
+            "attempt": 1,
+            "start_s": 142.618,
+            "end_s": 193.479,
+            "duration_s": 50.861,
+            "status": "incomplete"
+          },
+          {
+            "section": "s4",
+            "attempt": 1,
+            "start_s": 130.288,
+            "end_s": 194.668,
+            "duration_s": 64.38,
+            "status": "incomplete"
+          }
+        ],
+        "worker_phase_start_s": 9.254,
+        "worker_phase_end_s": 194.668,
+        "worker_phase_wall_s": 185.414,
+        "sum_of_worker_durations_s": 526.204,
+        "effective_parallelism": 2.84,
+        "peak_concurrent_workers": 3,
+        "seconds_with_ge2_workers": 184.222,
+        "seconds_with_3_workers": 156.568,
+        "seconds_at_each_concurrency_level": {
+          "1": 1.192,
+          "2": 27.654,
+          "3": 156.568
+        },
+        "max_parallel_workers_setting": 3,
+        "max_parallel_llm_calls_setting": 2,
+        "pre_worker_planning_s": 9.254,
+        "post_worker_s": 0.003
+      },
+      "baseline_r0_for_comparison": {
+        "run_id": "20261029T183858Z-290272",
+        "attempt": "1",
+        "questions_covered": "0 of 5",
+        "sources": 0,
+        "total_tokens": 13986,
+        "latency_s": 247.937,
+        "stop_reason": "budget_seconds",
+        "models_used": [
+          "openai/gpt-oss-120b"
+        ]
+      }
+    }
+  ],
+  "report_quality": "not measured yet",
+  "comparison_caveat": "Baseline unit is 'questions covered' (R0 planned its own 5 questions), multi unit is 'sections complete' of 5; not the same unit. The R0 SLM baseline number is from a second attempt (first attempt failed).",
+  "unmeasured": [
+    "report quality, correctness and citation validity of the multi digests",
+    "invalid_citations for multi runs (no checker run in this step)",
+    "per-call start timestamps (only worker start/end are traced), so LLM-slot contention is inferred from rate_limit_waits, not measured directly"
+  ]
+}
