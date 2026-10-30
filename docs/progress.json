@@ -11,8 +11,8 @@
       "id": "R1",
       "name": "Supervisor and parallel workers",
       "branch": null,
-      "status": "in_progress",
-      "pr_url": null
+      "status": "pr_open",
+      "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/2"
     },
     {
       "id": "R2",
