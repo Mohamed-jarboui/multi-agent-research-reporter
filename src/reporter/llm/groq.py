@@ -28,6 +28,16 @@ DEFAULT_MODELS: dict[Tier, str] = {
 }
 
 
+REASONING_HEADROOM = 600  # extra completion tokens so thinking cannot eat the whole answer
+LOW_TEMPERATURE = (
+    0.5  # below this, gpt-oss on Groq answered with reasoning only (measured 2026-10-29)
+)
+
+
+def is_reasoning_model(model: str) -> bool:
+    return "gpt-oss" in model
+
+
 class GroqProvider:
     name = "groq"
 
@@ -49,8 +59,25 @@ class GroqProvider:
         # retries are the router's job; the timeout stops a stalled call from hanging a request
         self._client = groq_sdk.Groq(api_key=key, max_retries=0, timeout=timeout_s)
         self._models = models or DEFAULT_MODELS
-        # Reasoning models (gpt-oss) spend output tokens thinking; "low" keeps that small.
-        self._extra = {"reasoning_effort": reasoning_effort} if reasoning_effort else {}
+        self._effort = reasoning_effort
+
+    def _params(self, model: str, temperature: float, max_tokens: int | None) -> dict:
+        """Request options. gpt-oss spends completion tokens thinking and, at a low temperature,
+        often returned only reasoning (R0, 2026-10-29): so for it the temperature is left to the
+        server default when low, reasoning effort is "low", reasoning is not returned, and the
+        token limit gets headroom.
+        """
+        params: dict = {"temperature": temperature, "max_tokens": max_tokens}
+        if self._effort:
+            params["reasoning_effort"] = self._effort
+        if is_reasoning_model(model):
+            params.setdefault("reasoning_effort", "low")
+            params["include_reasoning"] = False
+            if temperature < LOW_TEMPERATURE:
+                del params["temperature"]
+            if max_tokens is not None:
+                params["max_tokens"] = max_tokens + REASONING_HEADROOM
+        return params
 
     def generate(
         self,
@@ -70,9 +97,7 @@ class GroqProvider:
             response = self._client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=temperature,
-                max_tokens=max_output_tokens,
-                **self._extra,
+                **self._params(model, temperature, max_output_tokens),
             )
         except Exception as exc:
             raise _translate(exc) from exc
@@ -104,10 +129,8 @@ class GroqProvider:
             stream = self._client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=temperature,
-                max_tokens=max_output_tokens,
                 stream=True,
-                **self._extra,
+                **self._params(model, temperature, max_output_tokens),
             )
             for chunk in stream:
                 piece = chunk.choices[0].delta.content if chunk.choices else None

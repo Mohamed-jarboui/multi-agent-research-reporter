@@ -25,17 +25,40 @@ MIN_BODY_CHARS = 40
 _FINDING_REF = re.compile(r"(?<![A-Za-z0-9])F([0-9]+)(?![A-Za-z0-9])")
 
 
-def unverified_findings(section: SectionOut, review: Review) -> list[int]:
-    """0-based indexes of findings the critic marked as unsourced or unsupported (rubric 1 or 2,
-    naming the finding as F<n>). Decided in code, not by the writer model."""
+MIN_EVIDENCE_CHARS = 15  # a quote of this length (besides F<n>) counts as evidence
+
+
+def flagged_findings(section: SectionOut, review: Review) -> dict[int, bool]:
+    """0-based index -> True when the critic quoted evidence, for findings it marked as unsourced
+    or unsupported (rubric 1 or 2, naming the finding as F<n>). Decided in code."""
     verdict = review.sections.get(section.brief.id)
-    marked: set[int] = set()
+    flagged: dict[int, bool] = {}
     for issue in verdict.issues if verdict else []:
         if issue.origin == "critic" and issue.rubric in (1, 2):
+            quoted = (
+                len(_FINDING_REF.sub("", issue.evidence).strip(" .,;:()'\"")) >= MIN_EVIDENCE_CHARS
+            )
             for ref in _FINDING_REF.findall(f"{issue.evidence} {issue.issue}"):
                 if 1 <= int(ref) <= len(section.findings):
-                    marked.add(int(ref) - 1)
-    return sorted(marked)
+                    index = int(ref) - 1
+                    flagged[index] = flagged.get(index, False) or quoted
+    return flagged
+
+
+def unverified_findings(section: SectionOut, review: Review) -> list[int]:
+    return sorted(flagged_findings(section, review))
+
+
+def unverified_lines(merged: MergedResearch, review: Review) -> list[str]:
+    """Claims flagged without quoted evidence: kept, but labelled unverified in the report."""
+    lines: list[str] = []
+    for section in merged.sections:
+        for i, quoted in sorted(flagged_findings(section, review).items()):
+            if not quoted:
+                finding = section.findings[i]
+                cites = "".join(f"[{n}]" for n in finding.source_ids)
+                lines.append(f"{finding.claim} {cites}")
+    return lines
 
 
 def verified_findings(section: SectionOut, review: Review) -> list[Finding]:
@@ -66,11 +89,12 @@ def gap_lines(merged: MergedResearch, review: Review, *, for_prompt: bool = Fals
             detail = clean_text(first.issue) if first else "no detail given"
             lines.append(f'Weak: "{title}" was judged {verdict.verdict} by the critic ({detail}).')
         n_issues = sum(i.origin == "critic" for i in verdict.issues) if verdict else 0
-        marked = unverified_findings(section, review)
+        flagged = flagged_findings(section, review)
+        marked = [i for i, quoted in sorted(flagged.items()) if quoted]
         if n_issues:
             lines.append(
-                f'Critic issues: "{title}" has {n_issues} issue(s); '
-                f"{len(marked)} claim(s) left out as unverified."
+                f'Critic issues: "{title}" has {n_issues} issue(s); {len(marked)} claim(s) '
+                f"omitted (evidence quoted), {len(flagged) - len(marked)} listed as unverified."
             )
         for i in [] if for_prompt else marked:
             lines.append(
@@ -150,6 +174,12 @@ def run_writer(
 def assemble_report(body: str, merged: MergedResearch, review: Review) -> str:
     """Body, then the code-built coverage notes and the Sources list."""
     parts = [body.rstrip()]
+    if unverified := unverified_lines(merged, review):
+        parts.append(
+            "## Unverified claims\n\nThe critic could not confirm these against the source "
+            "excerpt it saw; treat them as unverified.\n\n"
+            + "\n".join(f"- (unverified) {line}" for line in unverified)
+        )
     if notes := coverage_notes(merged, review):
         parts.append(notes)
     parts.append("## Sources\n\n" + sources_list(merged))

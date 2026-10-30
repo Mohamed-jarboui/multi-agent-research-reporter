@@ -28,7 +28,9 @@ from reporter.llm.base import ProviderError
 from reporter.trace import StepRecord
 
 CRITIC_MAX_TOKENS = 2_500
-EXCERPT_CHARS = 900
+EXCERPT_CHARS = 2_000  # most the critic reads of one source
+SECTION_EXCERPT_CHARS = 3_600  # shared by the sources of a section (token-per-minute limits)
+MIN_EXCERPT_CHARS = 600
 RETRY_TEMPERATURE = 0.7
 MAX_RETRY_SECTIONS = 3
 MIN_RETRY_SECONDS = 30.0  # research time that must be left before the stop fraction
@@ -72,10 +74,14 @@ def render_critic_sections(merged: MergedResearch, ids: list[str]) -> str:
             for i in finding.source_ids:
                 claims_by_source.setdefault(i, []).append(finding.claim)
         lines.append("Sources:")
+        size = max(
+            MIN_EXCERPT_CHARS,
+            min(EXCERPT_CHARS, SECTION_EXCERPT_CHARS // max(len(claims_by_source), 1)),
+        )
         for i, claims in sorted(claims_by_source.items()):
             source = by_id.get(i)
             page = merged.pages.get(source.url) if source else None
-            text = excerpt(page.text, claims) if page else "(page text not available)"
+            text = excerpt(page.text, claims, size) if page else "(page text not available)"
             lines.append(f"[{i}] {source.title if source else '?'}: {text}")
         blocks.append("\n".join(lines))
     return "\n\n".join(blocks)
@@ -212,7 +218,9 @@ def retry_candidates(
     return [r.section_id for r in weak[:limit]]
 
 
-def feedback_text(review: Review, section_id: str, urls: list[str]) -> str:
+def feedback_text(
+    review: Review, section_id: str, urls: list[str], previous: WorkerResult | None = None
+) -> str:
     """The note a retried worker gets: the issues found, the contradictions, the pages read."""
     lines = [
         f"- {i.issue}" + (f" (evidence: {i.evidence})" if i.evidence else "")
@@ -223,4 +231,12 @@ def feedback_text(review: Review, section_id: str, urls: list[str]) -> str:
         for c in review.contradictions
         if section_id in c.section_ids
     ]
-    return prompts.RETRY_FEEDBACK.format(issues="\n".join(lines), urls=", ".join(urls) or "none")
+    text = prompts.RETRY_FEEDBACK.format(issues="\n".join(lines), urls=", ".join(urls) or "none")
+    if previous is not None:
+        if previous.failed_fetches:
+            failed = ", ".join(f"{f['url']} ({f['reason']})" for f in previous.failed_fetches)
+            text += f"\nPages that could not be read (do not retry them): {failed}."
+        if previous.queries:
+            text += "\nEarlier searches found little: " + "; ".join(previous.queries)
+            text += ". Rephrase the query with other keywords."
+    return text

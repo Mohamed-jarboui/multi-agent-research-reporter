@@ -6,11 +6,13 @@ One call to `run_worker` researches one section. It never raises: a failed attem
 
 from __future__ import annotations
 
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import urlsplit
 
 from reporter.agent import prompts
 from reporter.agent.baseline import Decision
@@ -20,7 +22,7 @@ from reporter.agent.schemas import Confidence, Finding, SectionBrief, WorkerResu
 from reporter.budget import BudgetExhausted, BudgetMeter, MultiBudget
 from reporter.llm.base import Generation, ProviderError
 from reporter.pricing import call_cost_usd
-from reporter.tools import Page, Tool, call_tool, describe
+from reporter.tools import Page, Tool, ToolOutput, call_tool, describe
 from reporter.trace import StepRecord, ToolCallRecord, Trace, WorkerRecord
 
 THINK_MAX_TOKENS = 2_000
@@ -62,12 +64,69 @@ class _Attempt:
     steps: list[StepRecord] = field(default_factory=list)
     bad_urls: list[str] = field(default_factory=list)
     history: list[dict[str, Any]] = field(default_factory=list)
+    candidates: list[str] = field(default_factory=list)  # search-result URLs not yet tried
+    tried: set[str] = field(default_factory=set)  # URLs fetched or attempted
+    blocked_hosts: set[str] = field(default_factory=set)  # hosts that answered 403/429
+    failures: dict[str, str] = field(default_factory=dict)  # url -> short reason
+    queries: list[str] = field(default_factory=list)
+
+    def add_candidates(self, urls: list[str]) -> None:
+        for url in urls:
+            if url not in self.candidates and self.usable(url):
+                self.candidates.append(url)
+
+    def usable(self, url: str) -> bool:
+        """Worth fetching: not a PDF, not on a host that blocked us, not tried or read already."""
+        return (
+            not _is_pdf(url)
+            and _host(url) not in self.blocked_hosts
+            and url not in self.tried
+            and url not in self.pages
+        )
+
+    def block_host(self, url: str) -> None:
+        self.blocked_hosts.add(_host(url))
+        self.candidates = [c for c in self.candidates if _host(c) != _host(url)]
+
+    def hint(self, n: int = 3) -> str:
+        """The next candidate URLs to try, for the model."""
+        shown = self.candidates[:n]
+        if not shown:
+            return "No untried search results are left: search again with different keywords."
+        return "Untried search results (fetch the first one next): " + ", ".join(shown)
 
     def tokens(self) -> int:
         return sum((s.input_tokens or 0) + (s.output_tokens or 0) for s in self.steps)
 
     def cost(self) -> float:
         return sum(s.cost_usd or 0.0 for s in self.steps)
+
+
+_URL_LINE = re.compile(r"^\s+(https?://\S+)\s*$", re.MULTILINE)
+
+
+def _is_pdf(url: str) -> bool:
+    return urlsplit(url).path.lower().endswith(".pdf")
+
+
+def _host(url: str) -> str:
+    return (urlsplit(url).hostname or "").lower()
+
+
+def failure_reason(observation: str) -> str:
+    """Short reason for a failed fetch (kept for the retry and the trace; no raw text)."""
+    match = re.search(r"HTTP (\d{3})", observation)
+    if match:
+        return f"HTTP {match.group(1)}"
+    for needle, reason in (
+        ("timed out", "timed out"),
+        ("almost no readable", "no readable text"),
+        ("not text or HTML", "pdf or binary"),
+        ("already read", "already read"),
+    ):
+        if needle in observation:
+            return reason
+    return "fetch failed"
 
 
 class _AttemptFailed(Exception):
@@ -134,6 +193,7 @@ def run_worker(
     feedback: str = "",
     max_attempts: int = MAX_ATTEMPTS,
     phase: str = "research",
+    seed_urls: list[str] | None = None,
 ) -> WorkerResult:
     """Research one section: up to `max_attempts` attempts, then `incomplete`. Never raises.
 
@@ -142,12 +202,13 @@ def run_worker(
     section_start = ctx.clock()
     best: WorkerResult | None = None
     note = feedback
+    seeds = list(seed_urls or [])
     prior_tokens = 0
     attempts = 0
     for attempt_no in range(1, max_attempts + 1):
         attempts = attempt_no
         result, record, st = _run_attempt(
-            ctx, brief, index, attempt_no, note, section_start, prior_tokens, phase
+            ctx, brief, index, attempt_no, note, section_start, prior_tokens, phase, seeds
         )
         ctx.trace.add_worker(record)
         prior_tokens += st.tokens()
@@ -162,6 +223,8 @@ def run_worker(
         avoid = [*st.pages, *st.bad_urls]
         if avoid:
             note += " Avoid these URLs: " + ", ".join(avoid) + "."
+        note += " Try different search keywords."
+        seeds = result.untried_urls
     assert best is not None
     best.attempts = attempts
     return best
@@ -176,8 +239,10 @@ def _run_attempt(
     section_start: float,
     prior_tokens: int,
     phase: str,
+    seeds: list[str],
 ) -> tuple[WorkerResult, WorkerRecord, _Attempt]:
     st = _Attempt()
+    st.add_candidates(seeds)
     started_s = ctx.meter.elapsed_s
     started_at = datetime.now(UTC).isoformat(timespec="seconds")
     findings: list[Finding] = []
@@ -212,6 +277,9 @@ def _run_attempt(
         attempts=attempt_no,
         stop_reason=stop_reason,
         error=None if status == "complete" else error,
+        untried_urls=st.candidates[:8],
+        failed_fetches=[{"url": u, "reason": r} for u, r in list(st.failures.items())[:6]],
+        queries=st.queries[:4],
     )
     record = WorkerRecord(
         section_id=brief.id,
@@ -251,6 +319,7 @@ def _research(
     )
     parse_failures = 0
     refusals = 0
+    _seed_fetch(ctx, brief, st)
     for _ in range(b.worker_max_steps):
         if len(st.pages) >= b.max_pages_per_worker:
             return "max_pages"
@@ -267,6 +336,7 @@ def _research(
             retry_note=retry_note,
             pages=_render_pages(st),
             history=_render_history(st),
+            candidates=f"\n{st.hint()}\n" if st.candidates else "",
             budget=", ".join(f"{k} {v:.0%}" for k, v in ctx.meter.fractions().items()),
         )
         try:
@@ -299,6 +369,43 @@ def _research(
     return "max_steps"
 
 
+def _seed_fetch(ctx: WorkerContext, brief: SectionBrief, st: _Attempt) -> None:
+    """Start a retry with a fetch of the best untried candidate instead of another search.
+
+    No model call is needed for this; it tries up to 3 candidates until one page is read.
+    """
+    for url in list(st.candidates[:3]):
+        if st.pages or not st.candidates:
+            break
+        output = _fetch(ctx, url, st)
+        outcome = failure_reason(output.observation) if output.error else "ok"
+        ctx.trace.notes.append(f"{brief.id}: seeded fetch {outcome}")
+        if not output.error:
+            st.history.append(_item("fetch_page", {"url": url}, output.observation))
+
+
+def _fetch(ctx: WorkerContext, url: str, st: _Attempt) -> ToolOutput:
+    """fetch_page with the worker's bookkeeping: tried urls, blocked hosts, failure reasons."""
+    st.tried.add(url)
+    if url in st.candidates:
+        st.candidates.remove(url)
+    if _is_pdf(url):
+        output = ToolOutput(observation="ERROR PDFs are not supported.", error=True)
+    elif _host(url) in st.blocked_hosts:
+        output = ToolOutput(observation="ERROR this site blocked us earlier.", error=True)
+    else:
+        output = call_tool(ctx.tools["fetch_page"], {"url": url})
+    for page in output.pages:
+        st.pages.setdefault(page.url, page)
+    if output.error:
+        st.bad_urls.append(url)
+        reason = failure_reason(output.observation)
+        st.failures[url] = reason
+        if reason in ("HTTP 403", "HTTP 429"):
+            st.block_host(url)
+    return output
+
+
 def _act(ctx: WorkerContext, step: StepRecord, decision: Decision, st: _Attempt) -> None:
     tool = ctx.tools.get(decision.action)
     started = ctx.clock()
@@ -307,14 +414,21 @@ def _act(ctx: WorkerContext, step: StepRecord, decision: Decision, st: _Attempt)
         known = ", ".join([*ctx.tools, "finish"])
         observation, ok = f"ERROR unknown action {decision.action!r}; use one of: {known}", False
     elif decision.action == "fetch_page" and url in st.pages:
-        observation, ok = "ERROR you already read this page; choose another source", False
+        observation, ok = f"ERROR you already read this page. {st.hint()}", False
+    elif decision.action == "fetch_page":
+        output = _fetch(ctx, url, st)
+        observation, ok = output.observation, not output.error
+        if not ok:
+            observation += f"\n{st.hint()}"
     else:
         output = call_tool(tool, decision.input)
         observation, ok = output.observation, not output.error
         for page in output.pages:
             st.pages.setdefault(page.url, page)
-        if not ok and decision.action == "fetch_page" and url:
-            st.bad_urls.append(url)
+        if decision.action == "web_search":
+            st.queries.append(str(decision.input.get("query", "")))
+            if ok:
+                st.add_candidates(_URL_LINE.findall(output.observation))
     step.tool_call = ToolCallRecord(
         name=decision.action,
         input=decision.input,

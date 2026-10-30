@@ -440,7 +440,7 @@ def test_provider_error_text_never_reaches_the_report(tmp_path):
     )  # the detail is kept in the trace
 
 
-def test_claims_the_critic_marked_unsupported_are_left_out_and_listed(tmp_path):
+def critic_with_issue(evidence: str):
     def on_call(kind, title, nth):
         if kind == "critic" and nth == 1:
             reply = json.loads(critic_json(["s1", "s2", "s3"]))
@@ -448,19 +448,37 @@ def test_claims_the_critic_marked_unsupported_are_left_out_and_listed(tmp_path):
                 "id": "s1",
                 "verdict": "pass",  # no retry: the issues are kept as they are
                 "issues": [
-                    {"rubric": 2, "issue": "not in the source", "evidence": "F1"},
+                    {"rubric": 2, "issue": "not in the source", "evidence": evidence},
                     {"rubric": 4, "issue": "thin scope", "evidence": ""},
                 ],
             }
             return json.dumps(reply)
 
-    llm = RecordingLLM(3, on_call)
+    return on_call
+
+
+def test_a_claim_flagged_with_quoted_evidence_is_omitted_and_listed(tmp_path):
+    quote = 'F1: the page says "about 30 percent", not 40'
+    llm = RecordingLLM(3, critic_with_issue(quote))
     result = run(llm, tmp_path)
 
     writer_prompt = next(p for p in llm.all_prompts if "Findings by section" in p)
     assert "Part 1 fact one" not in writer_prompt and "Part 1 fact two" in writer_prompt
     assert "Unverified, not used in the text: Part 1 fact one" in result.report
+    assert "## Unverified claims" not in result.report
     assert (
-        'Critic issues: "Part 1" has 2 issue(s); 1 claim(s) left out as unverified.'
-        in result.report
+        'Critic issues: "Part 1" has 2 issue(s); 1 claim(s) omitted (evidence quoted), '
+        "0 listed as unverified." in result.report
     )
+
+
+def test_a_claim_flagged_without_evidence_is_kept_but_labelled_unverified(tmp_path):
+    llm = RecordingLLM(3, critic_with_issue("F1"))
+    result = run(llm, tmp_path)
+
+    writer_prompt = next(p for p in llm.all_prompts if "Findings by section" in p)
+    assert "Part 1 fact one" not in writer_prompt  # the model never states it as a fact
+    assert "## Unverified claims" in result.report
+    assert "- (unverified) Part 1 fact one [1]" in result.report
+    assert "1 listed as unverified" in result.report
+    assert result.trace.checks["invalid_citations"] == []

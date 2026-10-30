@@ -102,6 +102,8 @@ class Trace(BaseModel):
     critic: dict[str, Any] = Field(default_factory=dict)
     retries: list[dict[str, Any]] = Field(default_factory=list)
     writer: dict[str, Any] = Field(default_factory=dict)
+    # the model router: providers, calls and failures by provider, empty replies (counted once)
+    llm: dict[str, Any] = Field(default_factory=dict)
 
     _lock: threading.Lock = PrivateAttr(default_factory=threading.Lock)
 

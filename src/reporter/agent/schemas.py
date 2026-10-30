@@ -43,6 +43,10 @@ class WorkerResult(BaseModel):
     attempts: int = 1
     stop_reason: str = ""
     error: str | None = None
+    # what a retry can use: search results never fetched, failed fetches, earlier queries
+    untried_urls: list[str] = Field(default_factory=list)
+    failed_fetches: list[dict[str, str]] = Field(default_factory=list)
+    queries: list[str] = Field(default_factory=list)
 
 
 class SectionOut(BaseModel):
@@ -115,3 +119,4 @@ class WorkerInput(TypedDict):
     brief: SectionBrief
     index: int
     feedback: NotRequired[str]  # critic issues, for a retry
+    seeds: NotRequired[list[str]]  # untried search results of the first attempt

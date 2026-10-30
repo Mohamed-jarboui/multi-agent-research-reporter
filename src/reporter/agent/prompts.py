@@ -125,7 +125,7 @@ WORKER_THINK_PROMPT = """{brief}
 {retry_note}
 Pages read so far:
 {pages}
-
+{candidates}
 Recent actions:
 {history}
 

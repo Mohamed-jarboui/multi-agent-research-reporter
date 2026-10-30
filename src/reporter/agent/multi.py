@@ -352,6 +352,9 @@ class MultiAgent:
                 final["digest"],
             )
         finally:
+            summary = getattr(self.llm, "summary", None)
+            if callable(summary):
+                trace.llm = summary()
             trace.finish(meter.elapsed_s)
             self.last_trace_path = trace.save(self._runs_dir)
 
@@ -511,11 +514,13 @@ class MultiAgent:
         sends: list[Send] = []
         for sid in ids:
             index = next(i for i, b in enumerate(state["sections"]) if b.id == sid)
-            urls = [p.url for r in state["results"] if r.section_id == sid for p in r.pages]
+            previous = next((r for r in state["results"] if r.section_id == sid), None)
+            urls = [p.url for p in previous.pages] if previous else []
             payload = {
                 "brief": state["sections"][index],
                 "index": index,
-                "feedback": feedback_text(review, sid, urls),
+                "feedback": feedback_text(review, sid, urls, previous),
+                "seeds": previous.untried_urls if previous else [],
             }
             sends.append(Send("retry_worker", payload))
         return sends
@@ -528,6 +533,7 @@ class MultiAgent:
             feedback=inp.get("feedback", ""),
             max_attempts=1,
             phase="retry",
+            seed_urls=inp.get("seeds", []),
         )
         return {"retry_results": [result]}
 
