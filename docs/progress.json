@@ -18,8 +18,8 @@
       "id": "R2",
       "name": "Critic and writer",
       "branch": null,
-      "status": "in_progress",
-      "pr_url": null
+      "status": "pr_open",
+      "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3"
     },
     {
       "id": "R3",
