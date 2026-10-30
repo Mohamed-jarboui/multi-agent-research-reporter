@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import ipaddress
 import re
+import time
+from collections.abc import Callable
 from html.parser import HTMLParser
 from typing import ClassVar
 from urllib.parse import urlparse
@@ -17,6 +19,7 @@ from reporter.tools.search import USER_AGENT
 MAX_DOWNLOAD_BYTES = 1_500_000  # stop reading a response after this many bytes
 MAX_PAGE_CHARS = 8_000  # readable text kept per page
 OBSERVATION_CHARS = 3_500  # what the model sees in its next step
+MAX_DOWNLOAD_SECONDS = 20.0  # total time for one download (the httpx timeout is per read)
 MIN_TEXT_CHARS = 200  # below this a page is treated as empty (JavaScript shell, bot wall)
 
 
@@ -102,19 +105,25 @@ class FetchPage:
     )
     input_model: ClassVar[type[BaseModel]] = FetchInput
 
-    def __init__(self, client: httpx.Client | None = None, max_chars: int = MAX_PAGE_CHARS) -> None:
+    def __init__(
+        self,
+        client: httpx.Client | None = None,
+        max_chars: int = MAX_PAGE_CHARS,
+        *,
+        max_seconds: float = MAX_DOWNLOAD_SECONDS,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
         self._client = client or httpx.Client(
-            timeout=15.0, follow_redirects=True, headers={"User-Agent": USER_AGENT}
+            timeout=httpx.Timeout(10.0, connect=5.0),
+            follow_redirects=True,
+            headers={"User-Agent": USER_AGENT},
         )
         self._max_chars = max_chars
+        self._max_seconds = max_seconds
+        self._clock = clock
 
     def run(self, args: FetchInput) -> ToolOutput:
         body, content_type = self._download(args.url)
-        if "html" not in content_type and not content_type.startswith("text/"):
-            raise ToolError(
-                f"{args.url} is {content_type or 'an unknown type'}, not text or HTML "
-                "(PDFs and binary files are not supported). Pick another source."
-            )
         if "html" in content_type:
             title, text = extract_text(body)
         else:
@@ -142,17 +151,25 @@ class FetchPage:
                     raise ToolError(
                         f"{url} answered HTTP {response.status_code}. Pick another source."
                     )
+                header = response.headers.get("content-type", "")
+                content_type = header.split(";")[0].strip().lower()
+                if "html" not in content_type and not content_type.startswith("text/"):
+                    # refuse from the headers: a PDF must not be downloaded at all
+                    raise ToolError(
+                        f"{url} is {content_type or 'an unknown type'}, not text or HTML "
+                        "(PDFs and binary files are not supported). Pick another source."
+                    )
                 chunks: list[bytes] = []
                 size = 0
+                deadline = self._clock() + self._max_seconds
                 for chunk in response.iter_bytes():
                     chunks.append(chunk)
                     size += len(chunk)
-                    if size >= MAX_DOWNLOAD_BYTES:
-                        break
-                content_type = response.headers.get("content-type", "").split(";")[0].strip()
+                    if size >= MAX_DOWNLOAD_BYTES or self._clock() >= deadline:
+                        break  # too big, or too slow: keep what arrived
                 body = b"".join(chunks).decode(response.encoding or "utf-8", errors="replace")
         except httpx.TimeoutException as exc:
             raise ToolError(f"{url} timed out. Pick another source.") from exc
         except httpx.HTTPError as exc:
             raise ToolError(f"{url} could not be fetched ({type(exc).__name__}).") from exc
-        return body, content_type.lower()
+        return body, content_type
