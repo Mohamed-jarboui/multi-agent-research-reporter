@@ -8,7 +8,8 @@ Figures (a figure is skipped, with a message, when its input is missing):
                        {"runs": [{"topic": str, "wall_s": float, "workers": [{"section": str,
                                   "start_s": float, "end_s": float, "status": str}, ...]}]}
   r2_critic_before_after.svg  critic verdict per section before and after the retry, from
-                       results/r2_critic_first_run.json and results/r2_critic.json:
+                       results/r2_critic_first_run.json, r2_critic_second_run.json, r2_critic.json
+                       (page counts from the matching results/r2_smoke*.json):
                        {"runs": [{"topic": str, "sections": [{"section": str, "verdict_before": str,
                                   "verdict_after": str|null, "retried": bool,
                                   "kept_retry": bool}]}]}
@@ -161,9 +162,22 @@ VERDICT_COLOUR = {"pass": "#2f7d5b", "weak": "#e9a23b", "fail": "#b23a3a"}
 
 def r2_critic_before_after() -> Path | None:
     files = [
-        ("Second evaluation", ROOT / "results" / "r2_critic.json"),
         ("First evaluation", ROOT / "results" / "r2_critic_first_run.json"),
+        ("Second evaluation", ROOT / "results" / "r2_critic_second_run.json"),
+        ("Third evaluation", ROOT / "results" / "r2_critic.json"),
     ]
+    pages = {}  # (run_id, section_id) -> (pages before, pages after) from the smoke files
+    for name in ("r2_smoke_second_run.json", "r2_smoke.json"):
+        sp = ROOT / "results" / name
+        if sp.is_file():
+            for r in json.loads(sp.read_text(encoding="utf-8")).get("runs", []):
+                per = (r.get("retries") or {}).get("per_section") or []
+                for e in per:
+                    if "pages_before" in e:
+                        pages[(r["run_id"], e["section_id"])] = (
+                            e["pages_before"],
+                            e["pages_after"],
+                        )
     panels = []
     for label, path in files:
         if not path.is_file():
@@ -171,6 +185,7 @@ def r2_critic_before_after() -> Path | None:
             continue
         for run in json.loads(path.read_text(encoding="utf-8")).get("runs", []):
             panels.append((label, run))
+            run["_pages"] = pages
     if not panels:
         print("skip r2_critic_before_after: no critic data, not measured yet")
         return None
@@ -180,7 +195,7 @@ def r2_critic_before_after() -> Path | None:
         ax.axis("off")
     for ax, (label, run) in zip(axes.flat, panels, strict=False):
         secs = run["sections"]
-        ax.set_xlim(0, 11.6)
+        ax.set_xlim(0, 14.5)
         ax.set_ylim(len(secs) + 0.2, -1.2)
         ax.text(0, -0.8, "section", fontsize=8, color=INK, weight="bold")
         ax.text(5.4, -0.8, "before", fontsize=8, color=INK, weight="bold", ha="center")
@@ -217,6 +232,9 @@ def r2_critic_before_after() -> Path | None:
                 )
             if sec.get("retried"):
                 note = "retried, kept retry" if sec.get("kept_retry") else "retried, kept original"
+                pg = run["_pages"].get((run["run_id"], sec["section_id"]))
+                if pg:
+                    note += f" (pages {pg[0]} to {pg[1]})"
             else:
                 note = "not retried"
             ax.text(8.0, i, note, va="center", fontsize=7.5, color=INK)

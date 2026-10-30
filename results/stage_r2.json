@@ -1,53 +1,90 @@
 {
   "stage": "R2",
   "branch": "stage/r2-critic-writer",
-  "date": "2026-10-30",
-  "pr": "not opened yet",
+  "date": "2026-10-31",
+  "pr": "not opened yet in this file (progress.json lists R2 as pr_open)",
   "tests": {
-    "passed": 140,
+    "passed": 155,
     "failed": 0,
-    "passed_after_first_build": 135,
-    "added_by_fix": 5,
     "previous_total_r1": 106,
-    "source": "counts and clean ruff check / ruff format --check reported by the main session; not re-run by the reporter"
+    "added_in_first_r2_build": 29,
+    "added_by_fix_1": 5,
+    "added_by_reliability_fixes": 15,
+    "check": "106 + 29 + 5 + 15 = 155",
+    "source": "counts and clean ruff check / ruff format --check reported by the main session; verified with fake LLMs and fake tools only; not re-run by the reporter"
   },
   "files_changed": {
-    "modified_tracked_files": 11,
-    "modified_tracked_insertions": 474,
-    "modified_tracked_deletions": 56,
-    "new_source_files": 3,
-    "new_test_files": 1,
-    "new_source_and_test_lines": 986,
-    "other_new_paths": ["docs/design/r2.md", "examples/multi/", "examples/multi_first_run/", "results/r2_smoke.json", "results/r2_smoke_first_run.json", "results/r2_critic.json", "results/r2_critic_first_run.json"],
-    "source": "git diff --numstat HEAD and git status on 2026-10-30; nothing committed yet for these files; new-file lines from wc -l (checks 126, critic 226, writer 168, test_critic_writer 466)"
+    "committed_on_branch_vs_main": "36 files changed, 8076 insertions, 198 deletions (git diff --shortstat main...HEAD at the time of the third evaluation; includes results, examples and figures)",
+    "uncommitted_since_last_commit": {
+      "modified_source_and_script_files": 13,
+      "modified_source_and_script_insertions": 366,
+      "modified_source_and_script_deletions": 49,
+      "new_test_file": "tests/test_reliability.py (291 lines)",
+      "other_new_paths": ["results/r2_smoke_second_run.json", "results/r2_critic_second_run.json", "examples/multi_second_run/"],
+      "overwritten_by_third_evaluation": ["results/r2_smoke.json", "results/r2_critic.json", "examples/multi/"]
+    },
+    "source": "git diff --numstat, git log and git status on 2026-10-31"
   },
   "runs_made": {
-    "live_multi_agent_runs": 4,
-    "evaluations": 2,
+    "live_multi_agent_runs": 6,
+    "evaluations": 3,
     "topics": 2,
     "runs_per_topic_per_evaluation": 1,
     "failed_runs": 0,
     "reruns": 0,
     "runs_with_a_written_report": 3,
-    "source": "results/r2_smoke_first_run.json, results/r2_smoke.json"
+    "note": "evaluation 1 wrote 2 reports (4 of 5 sections placeholders in each), evaluation 2 wrote 1 (small language models; carbon capture got a no-report placeholder), evaluation 3 wrote none",
+    "source": "results/r2_smoke_first_run.json, r2_smoke_second_run.json, r2_smoke.json"
   },
   "cost": {
     "cost_usd": 0.0,
     "note": "0.0 because Gemini/Groq free-tier models are unpriced in the cost model, not because cost is zero"
   },
-  "evaluation_note": "The second evaluation ran after code changes made in response to the first (run step limit 36 -> 60, retry gate 85% with retry worker stop 90%, sanitised report text, unsupported claims left out). It is not a controlled comparison. n=1 per topic per evaluation.",
+  "evaluation_notes": {
+    "first": "run step limit 36, retry gate closed in both runs",
+    "second": "after fix 1 (step limit 60, retry gate 85%, sanitised text, unsupported claims left out)",
+    "third": "after the reliability fixes (Groq gpt-oss settings, empty replies as retryable errors with per-provider failure reasons in trace.llm, fetch retry on 403/429, seeded candidate URLs, critic reads 2,000 chars per source, unverified claims section)",
+    "comparability": "code and provider quota state differ between evaluations; n=1 per topic per evaluation; not a controlled comparison"
+  },
   "per_run": [
-    {"evaluation": 1, "topic": "state of small language models for on-device use", "run_id": "20261030T164954Z-2252e1", "stop_reason": "sections_incomplete", "total_tokens": 49767, "latency_s": 253.685, "llm_calls": 30, "tool_calls": 10, "sources": 1, "verdicts_before": {"pass": 0, "weak": 0, "fail": 5}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "run_steps_used": "26 of 36", "invalid_citations": 0, "unfetched_urls_in_report": 1, "leaked_raw_error_text": true, "word_count": 740},
-    {"evaluation": 1, "topic": "carbon capture: current costs and limits", "run_id": "20261030T165422Z-7e6fec", "stop_reason": "sections_incomplete", "total_tokens": 56427, "latency_s": 281.947, "llm_calls": 30, "tool_calls": 11, "sources": 1, "verdicts_before": {"pass": 0, "weak": 1, "fail": 4}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "run_steps_used": "26 of 36", "invalid_citations": 0, "unfetched_urls_in_report": 0, "leaked_raw_error_text": "not measured yet", "word_count": "not measured yet"},
-    {"evaluation": 2, "topic": "state of small language models for on-device use", "run_id": "20261030T171308Z-11233a", "stop_reason": "sections_incomplete", "total_tokens": 96171, "latency_s": 438.731, "llm_calls": 54, "tool_calls": 20, "sources": 2, "verdicts_before": {"pass": 1, "weak": 1, "fail": 3}, "verdicts_final": {"pass": 1, "weak": 1, "fail": 3}, "sections_sent_back": 3, "retries_improved": 0, "retries_unchanged": 3, "retries_worse": 0, "retry_phase": {"worker_steps": 16, "tokens": 28316, "wall_s": 125.371}, "run_steps_used": "49 of 60", "citations_in_report": 11, "invalid_citations": 0, "unfetched_urls_in_report": 0, "leaked_raw_error_text": false, "unverified_claims_left_out": 4, "word_count": 940},
-    {"evaluation": 2, "topic": "carbon capture: current costs and limits", "run_id": "20261030T172031Z-7c403b", "stop_reason": "sections_incomplete", "total_tokens": 13084, "latency_s": 462.493, "llm_calls": 16, "tool_calls": 4, "sources": 0, "verdicts_before": {"pass": 0, "weak": 0, "fail": 5}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "run_steps_used": "15 research steps", "writer": "no_report (no section has a usable finding)", "provider_limit": "Groq daily token limit 200,000 reached; says nothing about the pipeline", "invalid_citations": 0, "leaked_raw_error_text": false, "word_count": 89}
+    {"evaluation": 1, "topic": "state of small language models for on-device use", "run_id": "20261030T164954Z-2252e1", "stop_reason": "sections_incomplete", "sections_planned": 5, "total_tokens": 49767, "latency_s": 253.685, "llm_calls": 30, "tool_calls": 10, "sources": 1, "verdicts_before": {"pass": 0, "weak": 0, "fail": 5}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "invalid_citations": 0, "unfetched_urls_in_report": 1, "leaked_raw_error_text": true, "word_count": 740},
+    {"evaluation": 1, "topic": "carbon capture: current costs and limits", "run_id": "20261030T165422Z-7e6fec", "stop_reason": "sections_incomplete", "sections_planned": 5, "total_tokens": 56427, "latency_s": 281.947, "llm_calls": 30, "tool_calls": 11, "sources": 1, "verdicts_before": {"pass": 0, "weak": 1, "fail": 4}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "invalid_citations": 0, "unfetched_urls_in_report": 0, "leaked_raw_error_text": "not measured yet", "word_count": "not measured yet"},
+    {"evaluation": 2, "topic": "state of small language models for on-device use", "run_id": "20261030T171308Z-11233a", "stop_reason": "sections_incomplete", "sections_planned": 5, "total_tokens": 96171, "latency_s": 438.731, "llm_calls": 54, "tool_calls": 20, "sources": 2, "verdicts_before": {"pass": 1, "weak": 1, "fail": 3}, "verdicts_final": {"pass": 1, "weak": 1, "fail": 3}, "sections_sent_back": 3, "retries_improved": 0, "retries_unchanged": 3, "retries_worse": 0, "retry_phase": {"worker_steps": 16, "tokens": 28316, "wall_s": 125.371}, "citations_in_report": 11, "invalid_citations": 0, "unfetched_urls_in_report": 0, "leaked_raw_error_text": false, "unverified_claims_left_out": 4, "word_count": 940},
+    {"evaluation": 2, "topic": "carbon capture: current costs and limits", "run_id": "20261030T172031Z-7c403b", "stop_reason": "sections_incomplete", "sections_planned": 5, "total_tokens": 13084, "latency_s": 462.493, "llm_calls": 16, "tool_calls": 4, "sources": 0, "verdicts_before": {"pass": 0, "weak": 0, "fail": 5}, "sections_sent_back": 0, "retry_skipped": "not enough budget left for a retry", "writer": "no_report (no section has a usable finding)", "provider_limit": "Groq daily token limit 200,000 reached", "invalid_citations": 0, "leaked_raw_error_text": false, "word_count": 89},
+    {"evaluation": 3, "topic": "state of small language models for on-device use", "run_id": "20261030T233306Z-0c2054", "stop_reason": "sections_incomplete", "sections_planned": 3, "plan_note": "supervisor plan rejected, generic 3-section plan used", "total_tokens": 4846, "latency_s": 244.847, "llm_steps_recorded": 15, "tool_calls": 4, "sources": 2, "verdicts_before": {"pass": 0, "weak": 0, "fail": 3}, "verdicts_final": {"pass": 0, "weak": 0, "fail": 3}, "critic_llm_review_ran": false, "sections_sent_back": 3, "retries_improved_verdict": 0, "retries_unchanged_verdict": 3, "retries_worse_verdict": 0, "retry_pages_up": 1, "retry_pages_same": 2, "retry_pages_down": 0, "retry_kept": 1, "retry_phase": {"worker_steps": 5, "tokens": 1976}, "llm_calls_including_failed": {"gemini": 58, "groq": 48}, "llm_successful_calls": {"gemini": 2, "groq": 4}, "llm_failures": {"gemini": {"RateLimitError 429": 56}, "groq": {"EmptyReplyError": 34, "RateLimitError 429": 10}}, "fetch_attempts": {"ok": 4, "failed": 0, "seeded_ok": 2}, "writer": "no_report (no section has a usable finding)", "leaked_raw_error_text": false},
+    {"evaluation": 3, "topic": "carbon capture: current costs and limits", "run_id": "20261030T233745Z-d89e98", "stop_reason": "sections_incomplete", "sections_planned": 3, "plan_note": "supervisor plan accepted", "total_tokens": 12757, "latency_s": 192.441, "llm_steps_recorded": 20, "tool_calls": 9, "sources": 3, "verdicts_before": {"pass": 0, "weak": 0, "fail": 3}, "verdicts_final": {"pass": 0, "weak": 0, "fail": 3}, "critic_llm_review_ran": false, "sections_sent_back": 3, "retries_improved_verdict": 0, "retries_unchanged_verdict": 3, "retries_worse_verdict": 0, "retry_pages_up": 0, "retry_pages_same": 2, "retry_pages_down": 1, "retry_kept": 0, "retry_phase": {"worker_steps": 4, "tokens": 798}, "llm_calls_including_failed": {"gemini": 84, "groq": 64}, "llm_successful_calls": {"gemini": 0, "groq": 12}, "llm_failures": {"gemini": {"RateLimitError 429": 84}, "groq": {"EmptyReplyError": 8, "RateLimitError 429": 44}}, "fetch_attempts": {"ok": 6, "failed": 2, "failed_reasons": {"HTTP 403 (after both tries)": 1, "timeout": 1}, "seeded_ok": 4}, "writer": "no_report (no section has a usable finding)", "leaked_raw_error_text": false}
   ],
+  "third_evaluation_totals": {
+    "n_runs": 2,
+    "reports_written": 0,
+    "sections_planned": 6,
+    "sections_with_at_least_one_fetched_page": 5,
+    "fetch_attempts_ok": 10,
+    "fetch_attempts_total": 12,
+    "seeded_candidate_fetches_ok": "6 of 6",
+    "gemini_calls": 142,
+    "gemini_failed_429": 140,
+    "groq_calls": 112,
+    "groq_successful": 16,
+    "groq_empty_replies": 42,
+    "groq_rate_limit_429": 54,
+    "findings_in_any_section": 0,
+    "critic_passes": 0,
+    "limit_type": "not measured (trace stores 'RateLimitError 429' only, not per-minute or daily)"
+  },
   "retries": {
     "first_evaluation": {"sections_sent_back": 0, "n_runs": 2},
-    "second_evaluation": {"sections_sent_back": 3, "improved": 0, "unchanged": 3, "worse": 0, "n_runs_with_retry": 1}
+    "second_evaluation": {"sections_sent_back": 3, "improved": 0, "unchanged": 3, "worse": 0, "n_runs_with_retry": 1},
+    "third_evaluation": {"sections_sent_back": 6, "verdict_improved": 0, "verdict_unchanged": 6, "verdict_worse": 0, "pages_up": 1, "pages_same": 4, "pages_down": 1, "kept_retry": 1, "n_runs_with_retry": 2}
   },
-  "spot_checks": {"n_cited_claims_checked": 3, "supported": 2, "partly_supported": 1, "note": "checked against the live pages after the run, not the pages the worker saw"},
-  "citation_forms": "only the single form [n] occurred in the real reports; [5, 6], [5][6], [5-7] covered by unit tests only",
+  "spot_checks": {"evaluation": 2, "n_cited_claims_checked": 3, "supported": 2, "partly_supported": 1, "note": "checked against the live pages after the run, not the pages the worker saw; evaluation 3 has no cited claims"},
+  "citation_forms": "only the single form [n] occurred in real reports (evaluations 1 and 2); [5, 6], [5][6], [5-7] covered by unit tests only",
+  "strongest_end_to_end_evidence": "evaluation 2, small language models: a written report with 11 citations, all valid",
+  "not_demonstrated": [
+    "critic LLM review, writer and the (unverified) claims section on working LLM calls since evaluation 2",
+    "that a retry improves a section when LLM calls succeed",
+    "report quality (judge is R3)"
+  ],
   "report_quality": "not measured yet (judge is R3)",
-  "caveat": "Smoke runs, n=1 per topic per evaluation, not a benchmark."
+  "caveat": "Smoke runs, n=1 per topic per evaluation, 6 runs in total, not a benchmark."
 }

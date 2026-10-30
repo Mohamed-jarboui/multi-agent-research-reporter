@@ -2,10 +2,10 @@
   "runs": [
     {
       "topic": "state of small language models for on-device use",
-      "run_id": "20261030T171308Z-11233a",
+      "run_id": "20261030T233306Z-0c2054",
       "sections": [
         {
-          "section": "Hardware Landscape for On‑Device LLMs",
+          "section": "Background and current state",
           "section_id": "s1",
           "verdict_before": "fail",
           "verdict_after": "fail",
@@ -13,81 +13,49 @@
           "kept_retry": false
         },
         {
-          "section": "Model Architectures and Size Trade‑offs",
+          "section": "Numbers and evidence",
           "section_id": "s2",
-          "verdict_before": "weak",
-          "verdict_after": null,
-          "retried": false,
+          "verdict_before": "fail",
+          "verdict_after": "fail",
+          "retried": true,
           "kept_retry": false
         },
         {
-          "section": "Software Stacks and Deployment Pipelines",
+          "section": "Limits, risks and outlook",
           "section_id": "s3",
-          "verdict_before": "pass",
-          "verdict_after": null,
-          "retried": false,
-          "kept_retry": false
-        },
-        {
-          "section": "Use‑Case Landscape and Performance Benchmarks",
-          "section_id": "s4",
           "verdict_before": "fail",
           "verdict_after": "fail",
           "retried": true,
-          "kept_retry": false
-        },
-        {
-          "section": "Challenges, Open Problems, and Future Directions",
-          "section_id": "s5",
-          "verdict_before": "fail",
-          "verdict_after": "fail",
-          "retried": true,
-          "kept_retry": false
+          "kept_retry": true
         }
       ]
     },
     {
       "topic": "carbon capture: current costs and limits",
-      "run_id": "20261030T172031Z-7c403b",
+      "run_id": "20261030T233745Z-d89e98",
       "sections": [
         {
-          "section": "Technology Overview and Cost Landscape",
+          "section": "Economic Landscape of Carbon Capture (2020‑2026)",
           "section_id": "s1",
           "verdict_before": "fail",
-          "verdict_after": null,
-          "retried": false,
+          "verdict_after": "fail",
+          "retried": true,
           "kept_retry": false
         },
         {
-          "section": "Performance Limits and Technical Barriers",
+          "section": "Technical Performance Limits of Carbon Capture Technologies",
           "section_id": "s2",
           "verdict_before": "fail",
-          "verdict_after": null,
-          "retried": false,
+          "verdict_after": "fail",
+          "retried": true,
           "kept_retry": false
         },
         {
-          "section": "Economic Viability and Market Constraints",
+          "section": "Policy, Market, and Environmental Context",
           "section_id": "s3",
           "verdict_before": "fail",
-          "verdict_after": null,
-          "retried": false,
-          "kept_retry": false
-        },
-        {
-          "section": "Environmental and Energy Trade‑offs",
-          "section_id": "s4",
-          "verdict_before": "fail",
-          "verdict_after": null,
-          "retried": false,
-          "kept_retry": false
-        },
-        {
-          "section": "Policy Landscape and Future Outlook",
-          "section_id": "s5",
-          "verdict_before": "fail",
-          "verdict_after": null,
-          "retried": false,
+          "verdict_after": "fail",
+          "retried": true,
           "kept_retry": false
         }
       ]

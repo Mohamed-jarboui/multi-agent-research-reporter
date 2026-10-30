@@ -1,228 +1,749 @@
 {
   "stage": "R2",
-  "step": "evaluator smoke, second evaluation (after the builder's fix)",
-  "date": "2026-10-30",
+  "step": "evaluator smoke, third evaluation (after the builder's reliability fixes)",
+  "date": "2026-10-30 (UTC; 2026-10-31 local)",
   "n_topics": 2,
   "n_runs": 2,
   "n_attempts": 2,
   "n_failed_runs": 0,
-  "n_runs_with_a_written_report": 1,
-  "rerun_note": "No re-run: neither run crashed or raised a run-level error (exit code 0, trace error=null), so the one-time re-run allowance was not used. The carbon-capture run produced no report because the Groq daily token limit was reached (see provider_limit_note); that is a degraded result, not a crash, and a re-run within minutes would have hit the same daily cap.",
+  "n_runs_with_a_written_report": 0,
+  "rerun_note": "No re-run: neither run crashed or raised a run-level error (exit code 0, trace error=null), so the one-time re-run allowance was not used. Both runs are DEGRADED (placeholder report only).",
+  "stop_rule_note": "Brief: stop if the first run immediately fails with a Groq daily token limit (TPD) error for every section. The first run did not match: the trace records only the short reason 'RateLimitError 429' and does not say whether Groq's limit was per-minute or per-day; Groq answered 4 calls successfully, Gemini 2; and Gemini (the first provider) also returned 429. So the stop rule was not shown to apply and the second topic was run once. Whether the limit was TPD is not measured.",
   "sample_size_note": "n=1 per topic per evaluation. Smoke test, not a benchmark: no means, no significance, no generalisation.",
-  "second_evaluation_note": "This evaluation ran AFTER code changes made in response to the first evaluation (default run step limit 60 instead of 36; retry gate at 85% of any limit and retry workers stopping at 90%; sanitised plain-language reasons in the report; claims the critic marks unsupported are left out of the writer prompt and listed as 'Unverified, not used in the text'). The two evaluations are therefore not a controlled comparison of the same code, and each is a single run per topic.",
-  "first_evaluation_files": [
+  "third_evaluation_note": "Ran after the builder's reliability fixes (verified by the builder only with fakes): Groq gpt-oss default temperature / reasoning_effort low / include_reasoning false / more token headroom; empty replies counted as retryable errors (trace.llm.empty_replies) with per-provider failure reasons; fetch retries 403/429 once with browser-like headers; workers keep untried search-result URLs and a retry starts with a seeded fetch; critic reads up to 2,000 chars per source; claims the critic names without quoted evidence are kept under 'Unverified claims'. Code differs from the first two evaluations, and the runs are single and rate-limited, so nothing here is a controlled comparison.",
+  "background_files_untouched": [
     "results/r2_smoke_first_run.json",
+    "results/r2_smoke_second_run.json",
     "results/r2_critic_first_run.json",
-    "examples/multi_first_run/ (read only, untouched)"
+    "results/r2_critic_second_run.json",
+    "examples/multi_first_run/",
+    "examples/multi_second_run/",
+    "examples/baseline/",
+    "examples/multi_r1/"
   ],
-  "command": "uv run reporter multi --out examples/multi/<topic>.md \"<topic>\" (default flags and budgets; critic and writer on)",
-  "provider_limit_note": {
-    "applies_to": "carbon capture run (20261030T172031Z-7c403b)",
-    "what_the_trace_shows": "All 5 sections ended with a provider rate-limit error on the Groq model openai/gpt-oss-120b, reporting the DAILY token limit (TPD): limit 200000, used between 198673 and 198899 at the time of the failed calls, and suggested retry waits between 1m49s and 7m51s. 14 rate-limit waits totalling 292.13 s (max single wait 30 s) were recorded.",
-    "not_measured": [
-      "which earlier runs consumed the daily Groq allowance (the same account had other runs earlier today, including this evaluation's small-language-models run of 96171 tokens); why the second provider did not take over (the trace says all providers failed but stores no per-provider cause); whether a run after the daily window resets would have produced a report"
-    ],
-    "raw_error_text_in_trace": "the trace file itself still contains the raw provider error text (organisation id, billing URL) in checks.research, critic.issues and workers.error; the saved report does not (see leak_check). The raw text is not copied into this file."
-  },
+  "overwritten_by_this_evaluation": [
+    "results/r2_smoke.json",
+    "results/r2_critic.json",
+    "examples/multi/small-language-models.md",
+    "examples/multi/carbon-capture.md"
+  ],
+  "command": "uv run reporter multi --out examples/multi/<topic>.md \"<topic>\" (default flags and budgets; critic and writer on); run sequentially, small-language-models first, then carbon-capture",
+  "quota_check": "CLI only, as instructed; no manual API calls. No separate check was possible beyond the first run itself.",
+  "full_report_saved": "none: neither run produced a report. examples/multi/ holds the two placeholder files ('No report could be written' plus coverage notes). The second evaluation's reports are preserved in examples/multi_second_run/.",
   "runs": [
     {
-      "run_id": "20261030T171308Z-11233a",
+      "run_id": "20261030T233306Z-0c2054",
       "topic": "state of small language models for on-device use",
-      "trace_file": "runs/20261030T171308Z-11233a.json",
+      "trace_file": "runs/20261030T233306Z-0c2054.json",
       "report_file": "examples/multi/small-language-models.md",
       "attempt": 1,
       "failed": false,
-      "failed_note": "exit code 0 and trace error=null: no crash and no run-level error, so the one-time re-run allowance was not used.",
+      "failed_note": "exit code 0 and trace error=null: no crash and no run-level error, so the one-time re-run allowance was not used. The run is DEGRADED: the report file is the 'No report could be written' placeholder.",
+      "report_written": false,
       "stop_reason": "sections_incomplete",
-      "total_tokens": 96171,
-      "input_tokens": 74417,
-      "output_tokens": 21754,
+      "run_level_error": null,
+      "total_tokens": 4846,
+      "input_tokens": 3850,
+      "output_tokens": 996,
       "cost_usd": 0.0,
       "cost_note": "0.0 because free-tier models are unpriced, not because cost is zero",
-      "latency_s": 438.731,
-      "llm_calls": 54,
-      "tool_calls": 20,
-      "react_steps": 49,
+      "latency_s": 244.847,
+      "llm_steps_recorded": 15,
+      "tool_calls": 4,
+      "react_steps": 13,
       "sections": {
-        "planned": 5,
-        "ok": 1,
-        "weak": 1,
+        "planned": 3,
+        "ok": 0,
+        "weak": 0,
         "missing": 3,
-        "ok_before_retry": 1,
-        "weak_before_retry": 1,
-        "missing_before_retry": 3,
-        "definition": "final verdicts (trace critic.final, else critic.before): ok = pass, weak = weak, missing = fail (no fetched page or no finding, or critic fail)"
+        "definition": "final verdicts (trace critic.final): ok=pass, weak=weak, missing=fail",
+        "plan_note": "plan_generic: no valid section from the supervisor"
       },
       "sources_global": 2,
       "source_urls": [
-        "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v0.1",
-        "https://developers.googleblog.com/large-language-models-on-device-with-mediapipe-and-tensorflow-lite"
+        "https://finance.yahoo.com/news/small-language-models-smls-company-090100930.html",
+        "https://semiengineering.com/small-language-models-create-new-security-risks"
       ],
       "pages_fetched_per_section": {
-        "s1": 0,
-        "s2": 1,
-        "s3": 1,
-        "s4": 0,
-        "s5": 0
-      },
-      "coverage_field_per_section": {
-        "Hardware Landscape for On‑Device LLMs": 0,
-        "Model Architectures and Size Trade‑offs": 1,
-        "Software Stacks and Deployment Pipelines": 1,
-        "Use‑Case Landscape and Performance Benchmarks": 0,
-        "Challenges, Open Problems, and Future Directions": 0
+        "s1": {
+          "sum_over_attempts": 3,
+          "coverage_field": 1
+        },
+        "s2": {
+          "sum_over_attempts": 0,
+          "coverage_field": 0
+        },
+        "s3": {
+          "sum_over_attempts": 1,
+          "coverage_field": 1
+        }
       },
       "per_section": [
         {
           "section_id": "s1",
-          "title": "Hardware Landscape for On‑Device LLMs",
-          "worker_attempts_research": 1,
+          "title": "Background and current state",
+          "worker_attempts_research": 2,
           "worker_attempts_retry": 1,
           "attempt_stop_reasons": [
             [
               "research",
-              "worker_time"
+              "(none recorded)"
+            ],
+            [
+              "research",
+              "(none recorded)"
             ],
             [
               "retry",
-              "model_output_unparseable"
+              "(none recorded)"
             ]
           ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 1,
-          "searches": 3,
-          "tokens_all_attempts": 16094,
-          "tokens_retry_phase": 7738,
-          "steps_retry_phase": 4,
-          "seconds_retry_phase_wall": 80.038,
-          "empty_reply_notes": 3,
-          "unparseable_reply_notes": 5,
-          "rate_limit_wait_count": 0,
-          "rate_limit_wait_s": 0,
+          "attempt_errors": [
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: EmptyReplyError x2; groq: RateLimitError 429 x1)"
+            ],
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: EmptyReplyError x3)"
+            ],
+            [
+              "retry",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x7; groq: EmptyReplyError x3)"
+            ]
+          ],
+          "pages_fetched_by_attempt": [
+            [
+              "research",
+              1,
+              1
+            ],
+            [
+              "research",
+              2,
+              1
+            ],
+            [
+              "retry",
+              1,
+              1
+            ]
+          ],
+          "pages_fetched_sum_over_attempts": 3,
+          "coverage_field_sources": 1,
+          "model_issued_fetch_calls_ok": 1,
+          "model_issued_fetch_calls_failed": 0,
+          "searches": 1,
+          "tokens_all_attempts": 1837,
+          "tokens_retry_phase": 0,
+          "steps_retry_phase": 1,
+          "seconds_retry_phase": 46.672,
           "verdict_before_retry": "fail",
           "verdict_final": "fail"
         },
         {
           "section_id": "s2",
-          "title": "Model Architectures and Size Trade‑offs",
-          "worker_attempts_research": 1,
-          "worker_attempts_retry": 0,
+          "title": "Numbers and evidence",
+          "worker_attempts_research": 2,
+          "worker_attempts_retry": 1,
           "attempt_stop_reasons": [
             [
               "research",
-              "max_steps"
+              "(none recorded)"
+            ],
+            [
+              "research",
+              "(none recorded)"
+            ],
+            [
+              "retry",
+              "(none recorded)"
             ]
           ],
-          "pages_fetched_total_all_attempts": 1,
-          "fetch_calls_ok": 1,
-          "fetch_calls_failed": 0,
-          "searches": 2,
-          "tokens_all_attempts": 14843,
+          "attempt_errors": [
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x8; groq: EmptyReplyError x3)"
+            ],
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x6; groq: EmptyReplyError x6)"
+            ],
+            [
+              "retry",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x6; groq: EmptyReplyError x4; groq: RateLimitError 429 x1)"
+            ]
+          ],
+          "pages_fetched_by_attempt": [
+            [
+              "research",
+              1,
+              0
+            ],
+            [
+              "research",
+              2,
+              0
+            ],
+            [
+              "retry",
+              1,
+              0
+            ]
+          ],
+          "pages_fetched_sum_over_attempts": 0,
+          "coverage_field_sources": 0,
+          "model_issued_fetch_calls_ok": 0,
+          "model_issued_fetch_calls_failed": 0,
+          "searches": 0,
+          "tokens_all_attempts": 0,
           "tokens_retry_phase": 0,
-          "steps_retry_phase": 0,
-          "seconds_retry_phase_wall": 0,
-          "empty_reply_notes": 2,
-          "unparseable_reply_notes": 3,
-          "rate_limit_wait_count": 0,
-          "rate_limit_wait_s": 0,
-          "verdict_before_retry": "weak",
-          "verdict_final": "weak"
+          "steps_retry_phase": 1,
+          "seconds_retry_phase": 7.867,
+          "verdict_before_retry": "fail",
+          "verdict_final": "fail"
         },
         {
           "section_id": "s3",
-          "title": "Software Stacks and Deployment Pipelines",
-          "worker_attempts_research": 1,
-          "worker_attempts_retry": 0,
-          "attempt_stop_reasons": [
-            [
-              "research",
-              "max_steps"
-            ]
-          ],
-          "pages_fetched_total_all_attempts": 1,
-          "fetch_calls_ok": 1,
-          "fetch_calls_failed": 0,
-          "searches": 3,
-          "tokens_all_attempts": 13138,
-          "tokens_retry_phase": 0,
-          "steps_retry_phase": 0,
-          "seconds_retry_phase_wall": 0,
-          "empty_reply_notes": 1,
-          "unparseable_reply_notes": 2,
-          "rate_limit_wait_count": 0,
-          "rate_limit_wait_s": 0,
-          "verdict_before_retry": "pass",
-          "verdict_final": "pass"
-        },
-        {
-          "section_id": "s4",
-          "title": "Use‑Case Landscape and Performance Benchmarks",
+          "title": "Limits, risks and outlook",
           "worker_attempts_research": 2,
           "worker_attempts_retry": 1,
           "attempt_stop_reasons": [
             [
               "research",
-              "model_output_unparseable"
+              "(none recorded)"
             ],
             [
               "research",
-              "max_steps"
+              "(none recorded)"
             ],
             [
               "retry",
-              "max_steps"
+              "(none recorded)"
             ]
           ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 1,
-          "searches": 4,
-          "tokens_all_attempts": 24157,
-          "tokens_retry_phase": 10883,
-          "steps_retry_phase": 6,
-          "seconds_retry_phase_wall": 100.66,
-          "empty_reply_notes": 2,
-          "unparseable_reply_notes": 9,
-          "rate_limit_wait_count": 0,
-          "rate_limit_wait_s": 0,
-          "verdict_before_retry": "fail",
-          "verdict_final": "fail"
-        },
-        {
-          "section_id": "s5",
-          "title": "Challenges, Open Problems, and Future Directions",
-          "worker_attempts_research": 2,
-          "worker_attempts_retry": 1,
-          "attempt_stop_reasons": [
+          "attempt_errors": [
             [
               "research",
-              "model_output_unparseable"
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x6; groq: EmptyReplyError x6)"
             ],
             [
               "research",
-              "worker_time"
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x6; groq: EmptyReplyError x6)"
             ],
             [
               "retry",
-              "max_steps"
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: EmptyReplyError x3)"
             ]
           ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 1,
-          "searches": 3,
-          "tokens_all_attempts": 20908,
-          "tokens_retry_phase": 9695,
-          "steps_retry_phase": 6,
-          "seconds_retry_phase_wall": 125.367,
-          "empty_reply_notes": 1,
-          "unparseable_reply_notes": 8,
-          "rate_limit_wait_count": 0,
-          "rate_limit_wait_s": 0,
+          "pages_fetched_by_attempt": [
+            [
+              "research",
+              1,
+              0
+            ],
+            [
+              "research",
+              2,
+              0
+            ],
+            [
+              "retry",
+              1,
+              1
+            ]
+          ],
+          "pages_fetched_sum_over_attempts": 1,
+          "coverage_field_sources": 1,
+          "model_issued_fetch_calls_ok": 1,
+          "model_issued_fetch_calls_failed": 0,
+          "searches": 1,
+          "tokens_all_attempts": 1976,
+          "tokens_retry_phase": 1976,
+          "steps_retry_phase": 3,
+          "seconds_retry_phase": 104.443,
           "verdict_before_retry": "fail",
           "verdict_final": "fail"
         }
+      ],
+      "models_actually_used": [
+        "gemini-3.6-flash",
+        "openai/gpt-oss-120b"
+      ],
+      "models_used_by_step_kind": {
+        "plan": [
+          "gemini-3.6-flash"
+        ],
+        "think": [
+          "openai/gpt-oss-120b"
+        ]
+      },
+      "steps_with_empty_model_field": 9,
+      "calls_without_token_counts": 9,
+      "calls_without_token_counts_note": "steps where no provider answered have no model and no token counts; their tokens are not in total_tokens",
+      "rate_limit_waits": {
+        "count": 6,
+        "total_s": 105.994,
+        "max_single_s": 30.0,
+        "note": "summed across parallel workers; waits overlap in wall time"
+      },
+      "empty_replies": {
+        "trace_llm_empty_replies_router_level": 34,
+        "note_based_old_count_empty_reply_retried": 0,
+        "note_based_old_count_unparseable_reply": 0,
+        "which_is_which": "trace.llm.empty_replies is the NEW router counter (each provider call that returned no text, counted once, treated as a retryable error). The note-based counts are the OLD metric (step notes 'model returned an empty reply; retried' / 'unparseable reply'): 0 here because the router now retries empty replies itself, so the step-note path is not reached. The two are not comparable with the second evaluation's note-based counts (9 and 27 in the small-language-models run)."
+      },
+      "trace_notes": [
+        "plan_generic: no valid section from the supervisor",
+        "s1: seeded fetch ok",
+        "s1: seeded fetch ok"
+      ],
+      "budgets": {
+        "run": {
+          "max_steps": 60,
+          "max_tokens": 300000,
+          "max_seconds": 480.0,
+          "max_cost_usd": 0.5,
+          "stop_fraction": 0.7
+        },
+        "worker_max_steps": 6,
+        "worker_max_tokens": 50000,
+        "worker_max_seconds": 150.0,
+        "tool_max_seconds": 20.0,
+        "max_pages_per_worker": 4,
+        "min_sources": 2,
+        "max_parallel_workers": 3,
+        "max_parallel_llm_calls": 2,
+        "used_fractions_at_end_of_run": {
+          "steps": 0.2167,
+          "tokens": 0.0162,
+          "seconds": 0.5101,
+          "cost": 0.0
+        },
+        "highest_fraction_limit": "seconds",
+        "fraction_definition": "react_steps/max_steps, total_tokens/max_tokens, latency_s/max_seconds, cost_usd/max_cost_usd (total_tokens excludes calls where no provider answered)",
+        "binding_note": "no limit was reached; stop_reason is sections_incomplete; highest fraction was seconds (0.5101)"
+      },
+      "llm": {
+        "providers_in_chain": [
+          "gemini",
+          "groq"
+        ],
+        "calls_including_failed": {
+          "gemini": 58,
+          "groq": 48
+        },
+        "failures_by_reason": {
+          "gemini": {
+            "RateLimitError 429": 56
+          },
+          "groq": {
+            "EmptyReplyError": 34,
+            "RateLimitError 429": 10
+          }
+        },
+        "successful_calls_derived": {
+          "gemini": 2,
+          "groq": 4
+        },
+        "empty_replies": 34,
+        "derivation": "successful = calls - sum(failures); cross-checked against steps whose model field is set"
+      },
+      "fetch": {
+        "model_issued_fetch_calls": 2,
+        "ok": 2,
+        "failed": 0,
+        "failed_by_reason": {},
+        "failed_detail": [],
+        "http_403_header_retry_succeeded": "not measured (the trace stores only the final result of a fetch; a URL whose first try was 403 and whose retry worked looks the same as an ordinary success)",
+        "http_403_after_both_tries": 0,
+        "seeded_candidate_fetches": {
+          "total": 2,
+          "outcomes": {
+            "ok": 2
+          },
+          "source": "trace.notes 'sN: seeded fetch <outcome>'; seeded fetches create no step record, so their latency and URL are not in the trace"
+        },
+        "all_fetch_attempts_ok": 4,
+        "all_fetch_attempts_failed": 0,
+        "pdf_fetches": 0
+      },
+      "tools": {
+        "web_searches": 2,
+        "longest_tool_call": {
+          "step": 14,
+          "section": "s3",
+          "name": "fetch_page",
+          "latency_s": 3.53,
+          "ok": true
+        },
+        "tool_calls_over_tool_max_seconds": [],
+        "tool_max_seconds": 20.0,
+        "slowest_fetch_s": 3.53,
+        "note": "seeded fetches are not in the step records, so their latency is not measured"
+      },
+      "critic": {
+        "status": "ok",
+        "sections_sent_back": 3,
+        "critic_llm_step_ran": false,
+        "verdicts_before": {
+          "s1": "fail",
+          "s2": "fail",
+          "s3": "fail"
+        },
+        "verdicts_after_retry": {
+          "s1": "fail",
+          "s2": "fail",
+          "s3": "fail"
+        },
+        "verdicts_final": {
+          "s1": "fail",
+          "s2": "fail",
+          "s3": "fail"
+        },
+        "n_issues_by_origin": {
+          "deterministic": 3
+        },
+        "contradictions": 0,
+        "coverage_gaps": 0,
+        "claims_marked_unverified": 0,
+        "claims_omitted": 0,
+        "claims_note": "0 and 0 because no finding existed to be marked; the critic's LLM review did not run (all issues are deterministic), so the new 'Unverified claims' section was not exercised"
+      },
+      "retries": {
+        "sections_sent_back": 3,
+        "improved_verdict": 0,
+        "unchanged_verdict": 3,
+        "worse_verdict": 0,
+        "pages_up": 1,
+        "pages_same": 2,
+        "pages_down": 0,
+        "findings_up": 0,
+        "kept_retry": 1,
+        "kept_original": 2,
+        "per_section": [
+          {
+            "section_id": "s1",
+            "verdict_before": "fail",
+            "verdict_after": "fail",
+            "pages_before": 1,
+            "pages_after": 1,
+            "findings_before": 0,
+            "findings_after": 0,
+            "kept": "original",
+            "issues_before": [
+              "no finding with a valid source"
+            ]
+          },
+          {
+            "section_id": "s2",
+            "verdict_before": "fail",
+            "verdict_after": "fail",
+            "pages_before": 0,
+            "pages_after": 0,
+            "findings_before": 0,
+            "findings_after": 0,
+            "kept": "original",
+            "issues_before": [
+              "no page was fetched (AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x8; groq: EmptyReplyError x3))"
+            ]
+          },
+          {
+            "section_id": "s3",
+            "verdict_before": "fail",
+            "verdict_after": "fail",
+            "pages_before": 0,
+            "pages_after": 1,
+            "findings_before": 0,
+            "findings_after": 0,
+            "kept": "retry",
+            "issues_before": [
+              "no page was fetched (AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x6; groq: EmptyReplyError x6))"
+            ]
+          }
+        ],
+        "retry_phase_tokens": 1976,
+        "retry_phase_worker_steps": 5
+      },
+      "writer": {
+        "status": "no_report",
+        "reason": "no section has a usable finding"
+      },
+      "report_checks": {
+        "trace_checks": {
+          "stage": "none",
+          "cited": [],
+          "invalid_citations": [],
+          "uncited_sources": [
+            1,
+            2
+          ],
+          "unfetched_urls": []
+        },
+        "independent_citations_found": 0,
+        "citation_forms_counts": {
+          "single": 0,
+          "comma_list": 0,
+          "adjacent_multi": 0,
+          "range": 0
+        },
+        "range_or_multi_forms_exercised": false,
+        "headings": [
+          "# state of small language models for on-device use",
+          "## Coverage notes"
+        ],
+        "word_count": 62,
+        "word_count_method": "whitespace-separated tokens of the whole saved file",
+        "leaked_raw_error_text": false,
+        "leak_hits": {
+          "urls": [],
+          "ids": [],
+          "exception_names": [],
+          "provider_terms": [],
+          "non_numeric_brackets": []
+        },
+        "spot_checks": "not verified (the report contains no cited claims)",
+        "report_quality": "not measured yet (judge is R3)"
+      }
+    },
+    {
+      "run_id": "20261030T233745Z-d89e98",
+      "topic": "carbon capture: current costs and limits",
+      "trace_file": "runs/20261030T233745Z-d89e98.json",
+      "report_file": "examples/multi/carbon-capture.md",
+      "attempt": 1,
+      "failed": false,
+      "failed_note": "exit code 0 and trace error=null: no crash and no run-level error, so the one-time re-run allowance was not used. The run is DEGRADED: the report file is the 'No report could be written' placeholder.",
+      "report_written": false,
+      "stop_reason": "sections_incomplete",
+      "run_level_error": null,
+      "total_tokens": 12757,
+      "input_tokens": 10417,
+      "output_tokens": 2340,
+      "cost_usd": 0.0,
+      "cost_note": "0.0 because free-tier models are unpriced, not because cost is zero",
+      "latency_s": 192.441,
+      "llm_steps_recorded": 20,
+      "tool_calls": 9,
+      "react_steps": 19,
+      "sections": {
+        "planned": 3,
+        "ok": 0,
+        "weak": 0,
+        "missing": 3,
+        "definition": "final verdicts (trace critic.final): ok=pass, weak=weak, missing=fail",
+        "plan_note": "supervisor plan accepted (3 sections)"
+      },
+      "sources_global": 3,
+      "source_urls": [
+        "https://digitalwindmill.com/ai-technology/carbon-capture-technology-costs-drivers-compare",
+        "https://eureka.patsnap.com/report-co-capture-sorbent-and-its-impact-on-energy-efficiency-metrics",
+        "https://carboncapturecoalition.org/ensuring-the-continued-success-of-the-carbon-management-industry-through-a-robust-45q-tax-credit/"
+      ],
+      "pages_fetched_per_section": {
+        "s1": {
+          "sum_over_attempts": 1,
+          "coverage_field": 1
+        },
+        "s2": {
+          "sum_over_attempts": 3,
+          "coverage_field": 1
+        },
+        "s3": {
+          "sum_over_attempts": 2,
+          "coverage_field": 1
+        }
+      },
+      "per_section": [
+        {
+          "section_id": "s1",
+          "title": "Economic Landscape of Carbon Capture (2020‑2026)",
+          "worker_attempts_research": 2,
+          "worker_attempts_retry": 1,
+          "attempt_stop_reasons": [
+            [
+              "research",
+              "(none recorded)"
+            ],
+            [
+              "research",
+              "(none recorded)"
+            ],
+            [
+              "retry",
+              "(none recorded)"
+            ]
+          ],
+          "attempt_errors": [
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: RateLimitError 429 x4; groq: EmptyReplyError x1)"
+            ],
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x8; groq: EmptyReplyError x2; groq: RateLimitError 429 x1)"
+            ],
+            [
+              "retry",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: RateLimitError 429 x3)"
+            ]
+          ],
+          "pages_fetched_by_attempt": [
+            [
+              "research",
+              1,
+              0
+            ],
+            [
+              "research",
+              2,
+              1
+            ],
+            [
+              "retry",
+              1,
+              0
+            ]
+          ],
+          "pages_fetched_sum_over_attempts": 1,
+          "coverage_field_sources": 1,
+          "model_issued_fetch_calls_ok": 0,
+          "model_issued_fetch_calls_failed": 1,
+          "searches": 2,
+          "tokens_all_attempts": 3028,
+          "tokens_retry_phase": 798,
+          "steps_retry_phase": 2,
+          "seconds_retry_phase": 53.819,
+          "verdict_before_retry": "fail",
+          "verdict_final": "fail"
+        },
+        {
+          "section_id": "s2",
+          "title": "Technical Performance Limits of Carbon Capture Technologies",
+          "worker_attempts_research": 2,
+          "worker_attempts_retry": 1,
+          "attempt_stop_reasons": [
+            [
+              "research",
+              "(none recorded)"
+            ],
+            [
+              "research",
+              "(none recorded)"
+            ],
+            [
+              "retry",
+              "(none recorded)"
+            ]
+          ],
+          "attempt_errors": [
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: RateLimitError 429 x4)"
+            ],
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x6; groq: RateLimitError 429 x3; groq: EmptyReplyError x2)"
+            ],
+            [
+              "retry",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: RateLimitError 429 x3)"
+            ]
+          ],
+          "pages_fetched_by_attempt": [
+            [
+              "research",
+              1,
+              1
+            ],
+            [
+              "research",
+              2,
+              1
+            ],
+            [
+              "retry",
+              1,
+              1
+            ]
+          ],
+          "pages_fetched_sum_over_attempts": 3,
+          "coverage_field_sources": 1,
+          "model_issued_fetch_calls_ok": 1,
+          "model_issued_fetch_calls_failed": 0,
+          "searches": 1,
+          "tokens_all_attempts": 2074,
+          "tokens_retry_phase": 0,
+          "steps_retry_phase": 1,
+          "seconds_retry_phase": 25.896,
+          "verdict_before_retry": "fail",
+          "verdict_final": "fail"
+        },
+        {
+          "section_id": "s3",
+          "title": "Policy, Market, and Environmental Context",
+          "worker_attempts_research": 2,
+          "worker_attempts_retry": 1,
+          "attempt_stop_reasons": [
+            [
+              "research",
+              "model_finished"
+            ],
+            [
+              "research",
+              "(none recorded)"
+            ],
+            [
+              "retry",
+              "(none recorded)"
+            ]
+          ],
+          "attempt_errors": [
+            [
+              "research",
+              "no page was fetched (stopped: model_finished)"
+            ],
+            [
+              "research",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: RateLimitError 429 x3)"
+            ],
+            [
+              "retry",
+              "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3; groq: RateLimitError 429 x3)"
+            ]
+          ],
+          "pages_fetched_by_attempt": [
+            [
+              "research",
+              1,
+              0
+            ],
+            [
+              "research",
+              2,
+              1
+            ],
+            [
+              "retry",
+              1,
+              1
+            ]
+          ],
+          "pages_fetched_sum_over_attempts": 2,
+          "coverage_field_sources": 1,
+          "model_issued_fetch_calls_ok": 1,
+          "model_issued_fetch_calls_failed": 1,
+          "searches": 2,
+          "tokens_all_attempts": 6658,
+          "tokens_retry_phase": 0,
+          "steps_retry_phase": 1,
+          "seconds_retry_phase": 40.364,
+          "verdict_before_retry": "fail",
+          "verdict_final": "fail"
+        }
+      ],
+      "models_actually_used": [
+        "openai/gpt-oss-120b"
       ],
       "models_used_by_step_kind": {
         "plan": [
@@ -230,109 +751,170 @@
         ],
         "think": [
           "openai/gpt-oss-120b"
-        ],
-        "finalize": [
-          "openai/gpt-oss-120b"
-        ],
-        "critic": [
-          "openai/gpt-oss-120b"
-        ],
-        "write": [
-          "openai/gpt-oss-120b"
         ]
       },
-      "models_used": [
-        "openai/gpt-oss-120b"
-      ],
-      "steps_with_empty_model_field": 0,
-      "calls_without_token_counts": 0,
-      "calls_without_price": 0,
+      "steps_with_empty_model_field": 8,
+      "calls_without_token_counts": 8,
+      "calls_without_token_counts_note": "steps where no provider answered have no model and no token counts; their tokens are not in total_tokens",
       "rate_limit_waits": {
-        "count": 0,
-        "total_s": 0,
-        "max_single_s": 0,
-        "note": "summed across parallel workers, so waits overlap in wall time"
+        "count": 13,
+        "total_s": 192.961,
+        "max_single_s": 30.0,
+        "note": "summed across parallel workers; waits overlap in wall time"
       },
-      "empty_reply_retried_notes": 9,
-      "unparseable_reply_notes": 27,
-      "unparseable_notes_caused_by_two_empty_replies": 26,
-      "notes_definition": "empty_reply_retried = step note starts with model returned an empty reply; retried. unparseable = step note starts with unparseable reply (a subset says the model returned an empty reply twice). The two groups do not overlap.",
-      "trace_notes": [],
-      "trace_notes_note": "trace.notes is empty: no critic_failed, plan_short or other note was recorded",
+      "empty_replies": {
+        "trace_llm_empty_replies_router_level": 8,
+        "note_based_old_count_empty_reply_retried": 0,
+        "note_based_old_count_unparseable_reply": 0,
+        "which_is_which": "trace.llm.empty_replies is the NEW router counter (each provider call that returned no text, counted once, treated as a retryable error). The note-based counts are the OLD metric (step notes 'model returned an empty reply; retried' / 'unparseable reply'): 0 here because the router now retries empty replies itself, so the step-note path is not reached. The two are not comparable with the second evaluation's note-based counts (9 and 27 in the small-language-models run)."
+      },
+      "trace_notes": [
+        "s1: seeded fetch ok",
+        "s2: seeded fetch ok",
+        "s2: seeded fetch ok",
+        "s3: seeded fetch ok"
+      ],
+      "budgets": {
+        "run": {
+          "max_steps": 60,
+          "max_tokens": 300000,
+          "max_seconds": 480.0,
+          "max_cost_usd": 0.5,
+          "stop_fraction": 0.7
+        },
+        "worker_max_steps": 6,
+        "worker_max_tokens": 50000,
+        "worker_max_seconds": 150.0,
+        "tool_max_seconds": 20.0,
+        "max_pages_per_worker": 4,
+        "min_sources": 2,
+        "max_parallel_workers": 3,
+        "max_parallel_llm_calls": 2,
+        "used_fractions_at_end_of_run": {
+          "steps": 0.3167,
+          "tokens": 0.0425,
+          "seconds": 0.4009,
+          "cost": 0.0
+        },
+        "highest_fraction_limit": "seconds",
+        "fraction_definition": "react_steps/max_steps, total_tokens/max_tokens, latency_s/max_seconds, cost_usd/max_cost_usd (total_tokens excludes calls where no provider answered)",
+        "binding_note": "no limit was reached; stop_reason is sections_incomplete; highest fraction was seconds (0.4009)"
+      },
+      "llm": {
+        "providers_in_chain": [
+          "gemini",
+          "groq"
+        ],
+        "calls_including_failed": {
+          "gemini": 84,
+          "groq": 64
+        },
+        "failures_by_reason": {
+          "gemini": {
+            "RateLimitError 429": 84
+          },
+          "groq": {
+            "EmptyReplyError": 8,
+            "RateLimitError 429": 44
+          }
+        },
+        "successful_calls_derived": {
+          "gemini": 0,
+          "groq": 12
+        },
+        "empty_replies": 8,
+        "derivation": "successful = calls - sum(failures); cross-checked against steps whose model field is set"
+      },
+      "fetch": {
+        "model_issued_fetch_calls": 4,
+        "ok": 2,
+        "failed": 2,
+        "failed_by_reason": {
+          "HTTP 403": 1,
+          "timeout": 1
+        },
+        "failed_detail": [
+          {
+            "step": 6,
+            "section": "s1",
+            "url": "https://www.mdpi.com/1996-1073/18/21/5608",
+            "reason": "HTTP 403",
+            "latency_s": 0.741,
+            "twice_403": true
+          },
+          {
+            "step": 7,
+            "section": "s3",
+            "url": "https://www.osti.gov/servlets/purl/1894124",
+            "reason": "timeout",
+            "latency_s": 10.086,
+            "twice_403": false
+          }
+        ],
+        "http_403_header_retry_succeeded": "not measured (the trace stores only the final result of a fetch; a URL whose first try was 403 and whose retry worked looks the same as an ordinary success)",
+        "http_403_after_both_tries": 1,
+        "seeded_candidate_fetches": {
+          "total": 4,
+          "outcomes": {
+            "ok": 4
+          },
+          "source": "trace.notes 'sN: seeded fetch <outcome>'; seeded fetches create no step record, so their latency and URL are not in the trace"
+        },
+        "all_fetch_attempts_ok": 6,
+        "all_fetch_attempts_failed": 2,
+        "pdf_fetches": 0
+      },
+      "tools": {
+        "web_searches": 5,
+        "longest_tool_call": {
+          "step": 7,
+          "section": "s3",
+          "name": "fetch_page",
+          "latency_s": 10.086,
+          "ok": false
+        },
+        "tool_calls_over_tool_max_seconds": [],
+        "tool_max_seconds": 20.0,
+        "slowest_fetch_s": 10.086,
+        "note": "seeded fetches are not in the step records, so their latency is not measured"
+      },
       "critic": {
         "status": "ok",
         "sections_sent_back": 3,
-        "retry_skipped": null,
+        "critic_llm_step_ran": false,
         "verdicts_before": {
           "s1": "fail",
-          "s4": "fail",
-          "s5": "fail",
-          "s2": "weak",
-          "s3": "pass"
+          "s2": "fail",
+          "s3": "fail"
         },
         "verdicts_after_retry": {
           "s1": "fail",
-          "s4": "fail",
-          "s5": "fail"
+          "s2": "fail",
+          "s3": "fail"
         },
         "verdicts_final": {
           "s1": "fail",
-          "s4": "fail",
-          "s5": "fail",
-          "s2": "weak",
-          "s3": "pass"
+          "s2": "fail",
+          "s3": "fail"
         },
-        "contradictions": [],
-        "contradictions_count": 0,
-        "coverage_gaps": [
-          "No comparison between dense, sparsified, and quantized transformer variants.",
-          "Missing discussion of models with ≤10 B parameters beyond TinyLlama (e.g., Phi‑2, MobileBERT‑LLM).",
-          "Absence of performance metrics such as latency, perplexity, or downstream task scores for the architectures considered.",
-          "Techniques like weight pruning, mixture‑of‑experts, and detailed quantization (4‑bit, binary) are not addressed.",
-          "Impact of architecture choices on memory usage and on‑device latency is not quantified."
-        ],
-        "coverage_gaps_count": 5,
         "n_issues_by_origin": {
-          "deterministic": 3,
-          "critic": 4
+          "deterministic": 3
         },
-        "critic_llm_step": {
-          "input_tokens": 1585,
-          "output_tokens": 1462,
-          "llm_latency_s": 9.355
-        },
-        "claims_marked_unverified_by_critic": 4,
-        "claims_listed_unverified_in_report": 4,
-        "critic_origin_issues": {
-          "s2": [
-            {
-              "rubric": 2,
-              "issue": "The claim that the released model files are stored in 32‑bit floating‑point (F32) format is not supported by the provided excerpt.",
-              "evidence": "F4"
-            },
-            {
-              "rubric": 2,
-              "issue": "The statement that the repository provides at least one quantized variant of TinyLlama is not backed by the excerpt.",
-              "evidence": "F5"
-            },
-            {
-              "rubric": 2,
-              "issue": "The observation that the Hugging Face inference pipeline demonstrates loading TinyLlama in half‑precision (torch.float16) is not mentioned in the source text.",
-              "evidence": "F6"
-            },
-            {
-              "rubric": 2,
-              "issue": "The reported 585 downloads in the most recent month lacks supporting evidence in the excerpt.",
-              "evidence": "F7"
-            }
-          ]
-        }
+        "contradictions": 0,
+        "coverage_gaps": 0,
+        "claims_marked_unverified": 0,
+        "claims_omitted": 0,
+        "claims_note": "0 and 0 because no finding existed to be marked; the critic's LLM review did not run (all issues are deterministic), so the new 'Unverified claims' section was not exercised"
       },
       "retries": {
         "sections_sent_back": 3,
-        "improved": 0,
-        "unchanged": 3,
-        "worse": 0,
+        "improved_verdict": 0,
+        "unchanged_verdict": 3,
+        "worse_verdict": 0,
+        "pages_up": 0,
+        "pages_same": 2,
+        "pages_down": 1,
+        "findings_up": 0,
         "kept_retry": 0,
         "kept_original": 3,
         "per_section": [
@@ -340,618 +922,134 @@
             "section_id": "s1",
             "verdict_before": "fail",
             "verdict_after": "fail",
-            "pages_before": 0,
+            "pages_before": 1,
             "pages_after": 0,
             "findings_before": 0,
             "findings_after": 0,
-            "kept": "original"
+            "kept": "original",
+            "issues_before": [
+              "no finding with a valid source"
+            ]
           },
           {
-            "section_id": "s4",
+            "section_id": "s2",
             "verdict_before": "fail",
             "verdict_after": "fail",
-            "pages_before": 0,
-            "pages_after": 0,
+            "pages_before": 1,
+            "pages_after": 1,
             "findings_before": 0,
             "findings_after": 0,
-            "kept": "original"
+            "kept": "original",
+            "issues_before": [
+              "no finding with a valid source"
+            ]
           },
           {
-            "section_id": "s5",
+            "section_id": "s3",
             "verdict_before": "fail",
             "verdict_after": "fail",
-            "pages_before": 0,
-            "pages_after": 0,
+            "pages_before": 1,
+            "pages_after": 1,
             "findings_before": 0,
             "findings_after": 0,
-            "kept": "original"
+            "kept": "original",
+            "issues_before": [
+              "no finding with a valid source"
+            ]
           }
         ],
-        "cost_of_retry_phase": {
-          "worker_steps": 16,
-          "tokens": 28316,
-          "retry_phase_wall_s": 125.371
-        },
-        "research_phase_worker_steps": 35
-      },
-      "writer": {
-        "status": "ok",
-        "reason": null,
-        "llm_step": {
-          "input_tokens": 1293,
-          "output_tokens": 1282,
-          "llm_latency_s": 12.406
-        }
-      },
-      "plan_step": {
-        "input_tokens": 245,
-        "output_tokens": 1164,
-        "llm_latency_s": 12.133
-      },
-      "checks_trace": {
-        "stage": "report",
-        "cited": [
-          1,
-          2
-        ],
-        "invalid_citations": [],
-        "uncited_sources": [],
-        "unfetched_urls": []
-      },
-      "checks_independent": {
-        "method": "regex over the saved markdown body (before '## Sources'): [5], [5, 6], [5][6], [5-7] (also en/em dash, ';'); numbered Sources lines; URLs in the file compared with successful fetch_page URLs in the trace",
-        "citation_numbers_found": [
-          1,
-          2
-        ],
-        "citation_forms_counts": {
-          "single": 11,
-          "comma_list": 0,
-          "adjacent_multi": 0,
-          "range": 0
-        },
-        "sources_list_ids": [
-          1,
-          2
-        ],
-        "invalid_citations": [],
-        "uncited_sources": [],
-        "unfetched_urls": [],
-        "agrees_with_trace": true,
-        "range_or_multi_forms_exercised": false
-      },
-      "leak_check": {
-        "urls_outside_numbered_sources": [],
-        "org_or_request_ids": [],
-        "exception_names": [],
-        "provider_terms": [],
-        "non_numeric_bracket_tokens": [],
-        "leaked_raw_error_text": false
-      },
-      "report": {
-        "headings": [
-          "State of Small Language Models for On‑Device Use (2026)",
-          "Model Architectures and Size Trade‑offs  ",
-          "Software Stacks and Deployment Pipelines  ",
-          "Missing or Weak Sections  ",
-          "Gaps Identified  ",
-          "Limits  ",
-          "Coverage notes",
-          "Sources"
-        ],
-        "word_count": 940,
-        "word_count_method": "whitespace-separated tokens of the whole saved file, including Coverage notes and Sources"
-      },
-      "budgets": {
-        "run": {
-          "max_steps": 60,
-          "max_tokens": 300000,
-          "max_seconds": 480.0,
-          "max_cost_usd": 0.5,
-          "stop_fraction": 0.7
-        },
-        "worker_max_steps": 6,
-        "worker_max_seconds": 150.0,
-        "worker_max_tokens": 50000,
-        "tool_max_seconds": 20.0,
-        "retry_gate_fraction_per_source_code": 0.85,
-        "retry_worker_stop_fraction_per_source_code": 0.9,
-        "research_stop_fraction": 0.7,
-        "used_fractions_at_end_of_run": {
-          "steps": 0.8167,
-          "tokens": 0.3206,
-          "seconds": 0.914,
-          "cost": 0.0
-        },
-        "highest_fraction_limit": "seconds"
-      },
-      "tools": {
-        "longest_tool_call": {
-          "step": 27,
-          "name": "web_search",
-          "latency_s": 23.83,
-          "ok": true
-        },
-        "web_searches": 15,
-        "fetch_calls": 5,
-        "fetch_ok": 2,
-        "fetch_failed": 3,
-        "slowest_fetch_s": 10.279,
-        "tool_calls_over_tool_max_seconds_20": [
-          {
-            "step": 27,
-            "name": "web_search",
-            "latency_s": 23.83
-          }
-        ],
-        "pdf_fetches": 0,
-        "fetches": [
-          {
-            "step": 11,
-            "url": "https://developers.googleblog.com/large-language-models-on-device-with-mediapipe-and-tensorflow-lite",
-            "ok": true,
-            "latency_s": 3.678,
-            "error": null
-          },
-          {
-            "step": 15,
-            "url": "https://huggingface.co/TinyLlama/TinyLlama-1.1B-Chat-v0.1",
-            "ok": true,
-            "latency_s": 8.506,
-            "error": null
-          },
-          {
-            "step": 17,
-            "url": "https://www.researchgate.net/publication/406910334_Energy-Efficient_On-Device_RAG_on_a_Mobile_NPU_System_Design_and_Benchmark_on_Snapdragon_X_Elite",
-            "ok": false,
-            "latency_s": 2.855,
-            "error": "ERROR fetch_page failed: <url> answered HTTP 403. Pick another source."
-          },
-          {
-            "step": 33,
-            "url": "https://note.com/ai_driven/n/n32aaf4461e65?hl=en",
-            "ok": false,
-            "latency_s": 6.649,
-            "error": "ERROR fetch_page failed: <url> timed out. Pick another source."
-          },
-          {
-            "step": 51,
-            "url": "https://www.mdpi.com/2076-3417/15/14/8103",
-            "ok": false,
-            "latency_s": 10.279,
-            "error": "ERROR fetch_page failed: <url> answered HTTP 403. Pick another source."
-          }
-        ]
-      },
-      "research_end_s": 291.591
-    },
-    {
-      "run_id": "20261030T172031Z-7c403b",
-      "topic": "carbon capture: current costs and limits",
-      "trace_file": "runs/20261030T172031Z-7c403b.json",
-      "report_file": "examples/multi/carbon-capture.md",
-      "attempt": 1,
-      "failed": false,
-      "failed_note": "exit code 0 and trace error=null: no crash and no run-level error, so the one-time re-run allowance was not used.",
-      "stop_reason": "sections_incomplete",
-      "total_tokens": 13084,
-      "input_tokens": 9588,
-      "output_tokens": 3496,
-      "cost_usd": 0.0,
-      "cost_note": "0.0 because free-tier models are unpriced, not because cost is zero",
-      "latency_s": 462.493,
-      "llm_calls": 16,
-      "tool_calls": 4,
-      "react_steps": 15,
-      "sections": {
-        "planned": 5,
-        "ok": 0,
-        "weak": 0,
-        "missing": 5,
-        "ok_before_retry": 0,
-        "weak_before_retry": 0,
-        "missing_before_retry": 5,
-        "definition": "final verdicts (trace critic.final, else critic.before): ok = pass, weak = weak, missing = fail (no fetched page or no finding, or critic fail)"
-      },
-      "sources_global": 0,
-      "source_urls": [],
-      "pages_fetched_per_section": {
-        "s1": 0,
-        "s2": 0,
-        "s3": 0,
-        "s4": 0,
-        "s5": 0
-      },
-      "coverage_field_per_section": {
-        "Technology Overview and Cost Landscape": 0,
-        "Performance Limits and Technical Barriers": 0,
-        "Economic Viability and Market Constraints": 0,
-        "Environmental and Energy Trade‑offs": 0,
-        "Policy Landscape and Future Outlook": 0
-      },
-      "per_section": [
-        {
-          "section_id": "s1",
-          "title": "Technology Overview and Cost Landscape",
-          "worker_attempts_research": 2,
-          "worker_attempts_retry": 0,
-          "attempt_stop_reasons": [
-            [
-              "research",
-              "error"
-            ],
-            [
-              "research",
-              "error"
-            ]
-          ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 0,
-          "searches": 1,
-          "tokens_all_attempts": 4391,
-          "tokens_retry_phase": 0,
-          "steps_retry_phase": 0,
-          "seconds_retry_phase_wall": 0,
-          "empty_reply_notes": 2,
-          "unparseable_reply_notes": 1,
-          "rate_limit_wait_count": 3,
-          "rate_limit_wait_s": 59.39,
-          "verdict_before_retry": "fail",
-          "verdict_final": "fail"
-        },
-        {
-          "section_id": "s2",
-          "title": "Performance Limits and Technical Barriers",
-          "worker_attempts_research": 2,
-          "worker_attempts_retry": 0,
-          "attempt_stop_reasons": [
-            [
-              "research",
-              "error"
-            ],
-            [
-              "research",
-              "error"
-            ]
-          ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 0,
-          "searches": 1,
-          "tokens_all_attempts": 4002,
-          "tokens_retry_phase": 0,
-          "steps_retry_phase": 0,
-          "seconds_retry_phase_wall": 0,
-          "empty_reply_notes": 2,
-          "unparseable_reply_notes": 1,
-          "rate_limit_wait_count": 3,
-          "rate_limit_wait_s": 56.049,
-          "verdict_before_retry": "fail",
-          "verdict_final": "fail"
-        },
-        {
-          "section_id": "s3",
-          "title": "Economic Viability and Market Constraints",
-          "worker_attempts_research": 2,
-          "worker_attempts_retry": 0,
-          "attempt_stop_reasons": [
-            [
-              "research",
-              "error"
-            ],
-            [
-              "research",
-              "error"
-            ]
-          ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 0,
-          "searches": 1,
-          "tokens_all_attempts": 1638,
-          "tokens_retry_phase": 0,
-          "steps_retry_phase": 0,
-          "seconds_retry_phase_wall": 0,
-          "empty_reply_notes": 1,
-          "unparseable_reply_notes": 0,
-          "rate_limit_wait_count": 2,
-          "rate_limit_wait_s": 60.0,
-          "verdict_before_retry": "fail",
-          "verdict_final": "fail"
-        },
-        {
-          "section_id": "s4",
-          "title": "Environmental and Energy Trade‑offs",
-          "worker_attempts_research": 2,
-          "worker_attempts_retry": 0,
-          "attempt_stop_reasons": [
-            [
-              "research",
-              "error"
-            ],
-            [
-              "research",
-              "error"
-            ]
-          ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 0,
-          "searches": 0,
-          "tokens_all_attempts": 761,
-          "tokens_retry_phase": 0,
-          "steps_retry_phase": 0,
-          "seconds_retry_phase_wall": 0,
-          "empty_reply_notes": 1,
-          "unparseable_reply_notes": 0,
-          "rate_limit_wait_count": 3,
-          "rate_limit_wait_s": 54.105,
-          "verdict_before_retry": "fail",
-          "verdict_final": "fail"
-        },
-        {
-          "section_id": "s5",
-          "title": "Policy Landscape and Future Outlook",
-          "worker_attempts_research": 2,
-          "worker_attempts_retry": 0,
-          "attempt_stop_reasons": [
-            [
-              "research",
-              "error"
-            ],
-            [
-              "research",
-              "budget_seconds"
-            ]
-          ],
-          "pages_fetched_total_all_attempts": 0,
-          "fetch_calls_ok": 0,
-          "fetch_calls_failed": 0,
-          "searches": 1,
-          "tokens_all_attempts": 898,
-          "tokens_retry_phase": 0,
-          "steps_retry_phase": 0,
-          "seconds_retry_phase_wall": 0,
-          "empty_reply_notes": 0,
-          "unparseable_reply_notes": 0,
-          "rate_limit_wait_count": 3,
-          "rate_limit_wait_s": 62.586,
-          "verdict_before_retry": "fail",
-          "verdict_final": "fail"
-        }
-      ],
-      "models_used_by_step_kind": {
-        "plan": [
-          "openai/gpt-oss-120b"
-        ],
-        "think": [
-          "openai/gpt-oss-120b"
-        ]
-      },
-      "models_used": [
-        "openai/gpt-oss-120b"
-      ],
-      "steps_with_empty_model_field": 6,
-      "calls_without_token_counts": 6,
-      "calls_without_price": 6,
-      "rate_limit_waits": {
-        "count": 14,
-        "total_s": 292.13,
-        "max_single_s": 30.0,
-        "note": "summed across parallel workers, so waits overlap in wall time"
-      },
-      "empty_reply_retried_notes": 6,
-      "unparseable_reply_notes": 2,
-      "unparseable_notes_caused_by_two_empty_replies": 2,
-      "notes_definition": "empty_reply_retried = step note starts with model returned an empty reply; retried. unparseable = step note starts with unparseable reply (a subset says the model returned an empty reply twice). The two groups do not overlap.",
-      "trace_notes": [],
-      "trace_notes_note": "trace.notes is empty: no critic_failed, plan_short or other note was recorded",
-      "critic": {
-        "status": "ok",
-        "sections_sent_back": 0,
-        "retry_skipped": "not enough budget left for a retry",
-        "verdicts_before": {
-          "s1": "fail",
-          "s2": "fail",
-          "s3": "fail",
-          "s4": "fail",
-          "s5": "fail"
-        },
-        "verdicts_after_retry": null,
-        "verdicts_final": null,
-        "contradictions": [],
-        "contradictions_count": 0,
-        "coverage_gaps": [],
-        "coverage_gaps_count": 0,
-        "n_issues_by_origin": {
-          "deterministic": 5,
-          "critic": 0
-        },
-        "critic_llm_step": "not run (no critic LLM call in this trace)",
-        "claims_marked_unverified_by_critic": 0,
-        "claims_listed_unverified_in_report": 0,
-        "critic_origin_issues": {}
-      },
-      "retries": {
-        "sections_sent_back": 0,
-        "improved": 0,
-        "unchanged": 0,
-        "worse": 0,
-        "kept_retry": 0,
-        "kept_original": 0,
-        "per_section": [],
-        "cost_of_retry_phase": {
-          "worker_steps": 0,
-          "tokens": 0,
-          "retry_phase_wall_s": null
-        },
-        "research_phase_worker_steps": 15
+        "retry_phase_tokens": 798,
+        "retry_phase_worker_steps": 4
       },
       "writer": {
         "status": "no_report",
-        "reason": "no section has a usable finding",
-        "llm_step": "not run"
+        "reason": "no section has a usable finding"
       },
-      "plan_step": {
-        "input_tokens": 243,
-        "output_tokens": 1151,
-        "llm_latency_s": 63.108
-      },
-      "checks_trace": {
-        "stage": "none",
-        "cited": [],
-        "invalid_citations": [],
-        "uncited_sources": [],
-        "unfetched_urls": []
-      },
-      "checks_independent": {
-        "method": "regex over the saved markdown body (before '## Sources'): [5], [5, 6], [5][6], [5-7] (also en/em dash, ';'); numbered Sources lines; URLs in the file compared with successful fetch_page URLs in the trace",
-        "citation_numbers_found": [],
+      "report_checks": {
+        "trace_checks": {
+          "stage": "none",
+          "cited": [],
+          "invalid_citations": [],
+          "uncited_sources": [
+            1,
+            2,
+            3
+          ],
+          "unfetched_urls": []
+        },
+        "independent_citations_found": 0,
         "citation_forms_counts": {
           "single": 0,
           "comma_list": 0,
           "adjacent_multi": 0,
           "range": 0
         },
-        "sources_list_ids": [],
-        "invalid_citations": [],
-        "uncited_sources": [],
-        "unfetched_urls": [],
-        "agrees_with_trace": true,
-        "range_or_multi_forms_exercised": false
-      },
-      "leak_check": {
-        "urls_outside_numbered_sources": [],
-        "org_or_request_ids": [],
-        "exception_names": [],
-        "provider_terms": [],
-        "non_numeric_bracket_tokens": [],
-        "leaked_raw_error_text": false
-      },
-      "report": {
+        "range_or_multi_forms_exercised": false,
         "headings": [
-          "carbon capture: current costs and limits",
-          "Coverage notes"
+          "# carbon capture: current costs and limits",
+          "## Coverage notes"
         ],
-        "word_count": 89,
-        "word_count_method": "whitespace-separated tokens of the whole saved file, including Coverage notes and Sources"
-      },
-      "budgets": {
-        "run": {
-          "max_steps": 60,
-          "max_tokens": 300000,
-          "max_seconds": 480.0,
-          "max_cost_usd": 0.5,
-          "stop_fraction": 0.7
+        "word_count": 67,
+        "word_count_method": "whitespace-separated tokens of the whole saved file",
+        "leaked_raw_error_text": false,
+        "leak_hits": {
+          "urls": [],
+          "ids": [],
+          "exception_names": [],
+          "provider_terms": [],
+          "non_numeric_brackets": []
         },
-        "worker_max_steps": 6,
-        "worker_max_seconds": 150.0,
-        "worker_max_tokens": 50000,
-        "tool_max_seconds": 20.0,
-        "retry_gate_fraction_per_source_code": 0.85,
-        "retry_worker_stop_fraction_per_source_code": 0.9,
-        "research_stop_fraction": 0.7,
-        "used_fractions_at_end_of_run": {
-          "steps": 0.25,
-          "tokens": 0.0436,
-          "seconds": 0.9635,
-          "cost": 0.0
-        },
-        "highest_fraction_limit": "seconds"
-      },
-      "tools": {
-        "longest_tool_call": {
-          "step": 16,
-          "name": "web_search",
-          "latency_s": 11.987,
-          "ok": true
-        },
-        "web_searches": 4,
-        "fetch_calls": 0,
-        "fetch_ok": 0,
-        "fetch_failed": 0,
-        "slowest_fetch_s": null,
-        "tool_calls_over_tool_max_seconds_20": [],
-        "pdf_fetches": 0,
-        "fetches": []
-      },
-      "research_end_s": 462.489
+        "spot_checks": "not verified (the report contains no cited claims)",
+        "report_quality": "not measured yet (judge is R3)"
+      }
     }
   ],
-  "first_evaluation_same_definitions_recomputed_from_traces": {
-    "20261030T164954Z-2252e1": {
-      "empty_reply_retried_notes": 5,
-      "unparseable_reply_notes": 11,
-      "rate_limit_wait_count": 11,
-      "rate_limit_wait_s": 78.52,
-      "run_max_steps": 36
-    },
-    "20261030T165422Z-7e6fec": {
-      "empty_reply_retried_notes": 5,
-      "unparseable_reply_notes": 14,
-      "rate_limit_wait_count": 10,
-      "rate_limit_wait_s": 126.81,
-      "run_max_steps": 36
-    }
+  "gemini_finding": {
+    "was_gemini_in_the_chain": true,
+    "chain_order": [
+      "gemini",
+      "groq"
+    ],
+    "small_language_models_run": "Gemini: 58 calls recorded, 56 failed (all 'RateLimitError 429'), 2 succeeded. The 2 successes were the supervisor plan calls at the start (model gemini-3.6-flash); the plan was then rejected ('plan_generic: no valid section from the supervisor') and a generic 3-section plan was used. After that Gemini returned 429 on every call, so Groq handled the rest.",
+    "carbon_capture_run": "Gemini: 84 calls recorded, 84 failed (all 'RateLimitError 429'), 0 succeeded. Groq took every successful call (12).",
+    "why_it_failed": "Provider rate limit (HTTP 429) on 140 of 142 Gemini calls over the two runs. The trace stores only the short reason 'RateLimitError 429'; it does not say which Gemini limit (per minute, per day, or quota exhausted) was hit. That is not measured.",
+    "answer": "Gemini WAS in the chain (first), it was tried on every call, and it failed almost entirely on 429 rate limits (2 of 142 calls succeeded, both plan calls in the first run). Gemini therefore did not rescue the Groq failures. This closes the earlier 'Gemini never used, no reason in the trace' gap: it was used, and the reason is a 429.",
+    "secrets_note": "provider names only; .env was not read or printed"
+  },
+  "groq_finding": {
+    "small_language_models_run": "Groq: 48 calls, 4 succeeded, 34 EmptyReplyError, 10 RateLimitError 429.",
+    "carbon_capture_run": "Groq: 64 calls, 12 succeeded, 8 EmptyReplyError, 44 RateLimitError 429.",
+    "tpd_or_tpm": "not measured (reason stored without the limit type)",
+    "possible_context_not_verified": "The second evaluation recorded Groq's daily token limit (200000, ~198.7k used) at about 17:20 UTC on 2026-10-30; this evaluation started at 23:33 UTC the same day. A rolling daily window would plausibly not have reset, but this was not checked."
   },
   "retry_evidence_summary": {
     "n_runs": 2,
-    "small-language-models": {
-      "sections_sent_back": 3,
-      "improved": 0,
-      "unchanged": 3,
-      "worse": 0,
-      "kept_retry": 0,
-      "kept_original": 3,
-      "detail": "s1, s4, s5 were sent back (all three were deterministic fails: no page fetched). Before and after: verdict fail -> fail, pages 0 -> 0, findings 0 -> 0 for each. The retry phase used 16 worker steps, 28316 tokens and 125.4 s of wall time (the three retry workers ran in parallel). Section s2 (weak) and s3 (pass) were not sent back; the trace does not record why the weak section was not retried."
-    },
-    "carbon-capture": {
-      "sections_sent_back": 0,
-      "reason": "critic.retry_skipped = 'not enough budget left for a retry' (the research phase ended at 462.5 s of 480 s, 96.3% of the time limit, so the time gate was closed). The critic LLM call and the writer LLM call did not run (no section had a usable finding)."
-    },
-    "first_evaluation_for_reference": "0 sections sent back in both runs (retry_skipped in both).",
-    "answer": "The retry stage now fires when the budget allows (1 of 2 runs), but in that run it did not improve any section (0 improved, 3 unchanged, 0 worse, n=3 sections, n=1 run). Whether a retry can help when the fetches succeed is not measured."
-  },
-  "report_checks_summary": {
-    "stage": {
-      "small-language-models": "report",
-      "carbon-capture": "none"
-    },
-    "independent_check_agrees_with_trace": {
-      "small-language-models": true,
-      "carbon-capture": true
-    },
-    "citation_forms_found": "small-language-models: 11 citations, all in the single form [n] ([1] x3, [2] x8); carbon-capture: no citations (no report). The range/multi forms ([5, 6], [5][6], [5-7]) were NOT exercised by either saved report; they are covered only by the parser's own logic, not by this evaluation's data.",
-    "leaked_raw_error_text": {
-      "small-language-models": "no",
-      "carbon-capture": "no"
-    },
-    "leak_check_scope": "searched each saved file for URLs outside the numbered Sources list, ids (org_/req_/key_), exception names (*Error/*Exception), provider terms (groq, billing, TPD/TPM, 429, service tier) and bracketed non-numeric tokens: zero hits in both reports. The first evaluation's small-language-models report had a raw RateLimitError string with an organisation id and billing URL plus three bracketed internal tokens; the leak is not present in the new reports. Caveat: the sanitiser was exercised by 1 report with plain 'time limit reached / model output unusable' reasons and 1 with 'rate limited' reasons only."
-  },
-  "spot_checks": {
-    "method": "fetched the two source pages again with a plain HTTP GET on 2026-10-30 (after the run) and searched the text. The trace does not store page text, so this checks the live page, not necessarily what the worker saw (the trace records only observation_chars: 1901 for the TinyLlama page fetch).",
-    "n_cited_claims_checked": 3,
-    "checks": [
-      {
-        "claim": "[1] TinyLlama-1.1B has ~1.1 billion parameters and uses the same architecture and tokenizer as Llama 2, enabling drop-in use in Llama-based projects",
-        "result": "supported by the page text ('exactly the same architecture and tokenizer as Llama 2 ... plugged and played in many open-source projects'; '1.1B parameters')"
-      },
-      {
-        "claim": "[1] The model was pretrained on a 3 trillion-token corpus, training commencing 2023-09-01 using 16 A100-40 GB GPUs",
-        "result": "partly supported: the date and the 16 A100-40G GPUs are on the page, but the page says the project 'aims to pretrain' on 3 trillion tokens, and describes this chat model as fine-tuned from an intermediate 503B-token checkpoint. 'Was pretrained on a 3 trillion-token corpus' is stronger than the page for this model."
-      },
-      {
-        "claim": "[2] MediaPipe LLM Inference API supports Gemma, Phi 2, Falcon and Stable LM; AICore (Android 14) offers LoRA adapters and safety filters; the API is experimental/research-only on Android",
-        "result": "supported by the page text"
-      }
+    "n_sections_sent_back": 6,
+    "n_sections_planned": 6,
+    "verdict_improved": 0,
+    "verdict_unchanged": 6,
+    "verdict_worse": 0,
+    "pages_up": 1,
+    "pages_same": 4,
+    "pages_down": 1,
+    "findings_up": 0,
+    "kept_retry": 1,
+    "kept_original": 5,
+    "retry_phase_tokens": [
+      1976,
+      798
     ],
-    "omitted_claims_vs_live_page": "The 4 claims the critic marked unsupported (and the writer left out): F32 weights, a quantized variant, torch.float16 loading, 585 downloads last month. On the live page: the F32 parameter count (1100052480), torch_dtype=torch.float16 in the code sample, and 'Downloads last month 585' are all present; a 'Browse Quantizations' link is present but the exact '1 model' count was not checked. So at least 3 of the 4 omitted claims are on the live page. Whether they were inside the excerpt the critic saw is not measured. This means the unsupported-claim filter removed claims that the live page supports (a false-positive rate that cannot be quantified from n=4 and one page).",
-    "carbon-capture": "no report, no claims to check"
+    "answer": "The retry fired for 3 of 3 sections in each run (6 of 6), but 0 of 6 improved in verdict (all fail -> fail) and 0 of 6 gained a finding. Pages rose in 1 of 6 (small-language-models s3, 0 -> 1, kept the retry), stayed the same in 4 and fell in 1 (carbon-capture s1, 1 -> 0). The critic's LLM review did not run in either run (no finding existed), so every verdict is deterministic.",
+    "did_retry_improve": "no (verdict-level: 0 of 6). Whether a retry helps when the LLM calls succeed is not measured here."
   },
-  "report_quality": "not measured yet (the judge is R3). Headings and word counts are in each run's report field.",
+  "reliability_fixes_effect": {
+    "empty_replies": "Router now counts them: 34 (small-language-models run) and 8 (carbon-capture run) provider calls returned no text. The note-based counts that were 9 and 27 in the second evaluation's SLM run are 0 here only because the path moved into the router; counts are not comparable across metrics. Rate of empty replies among Groq calls: 34/48 and 8/64 (not an improvement that can be claimed; the second evaluation did not record a Groq call total).",
+    "fetch": "Fetch layer, counting model-issued fetches plus seeded candidate fetches: 10 ok, 2 failed of 12 attempts (small-language-models run: 4 ok, 0 failed; carbon-capture run: 6 ok, 2 failed). The 2 failures were both in the carbon-capture run: 1 HTTP 403 after both tries (mdpi.com) and 1 timeout at 10.086 s (osti.gov). All 6 seeded candidate fetches succeeded (2 + 4). Whether the 403 header retry ever succeeded is not measured; 1 URL still ended in 403 after both tries. No PDF fetch occurred.",
+    "llm_availability": "Not fixed. Gemini: 142 calls over the two runs, 140 failed on 429, 2 succeeded. Groq: 112 calls, 16 succeeded, 42 empty replies, 54 rate-limit 429. Across both runs no worker produced a finding (findings 0 -> 0 in all 6 retries).",
+    "failure_picture_changed": "Yes in kind, no in outcome. In kind: pages are now fetched (5 of 6 sections had at least one fetched page: 2 of 3 in the small-language-models run, 3 of 3 in the carbon-capture run) and failures are visible per provider. In outcome: still 0 reports, 0 sections with a usable finding, 0 critic passes. The blocker moved from the fetch layer (second evaluation: 0 pages in 3 sections) to LLM availability (Gemini 429, Groq 429/empty)."
+  },
   "smoke_comparison": {
-    "caveat": "n=1 per system per topic. Units differ: R0 counts questions covered of 5, R1 counts sections complete of 5, R2 counts sections with at least one fetched page of 5 (with critic pass count in brackets). The second R2 evaluation ran after code changes made in response to the first (run step limit 36 -> 60, retry gate, sanitiser, unverified-claim filter); R1 used step limit 36 and stop fraction 0.8. R0 small-language-models figures come from its second attempt (the first attempt failed with a provider error and was recorded separately). The R2 second-evaluation carbon-capture run was cut short by the Groq daily token limit, so it does not measure the pipeline. No means, no significance.",
+    "caveat": "n=1 per system per topic. Units differ (R0 questions covered of 5; R1 sections complete of 5; R2 sections with a fetched page, with critic pass count). The third R2 evaluation planned only 3 sections per topic (generic fallback in one run), so its 'of 3' is not comparable with 'of 5'. Runs differ in code version and in provider quota state. The third evaluation's tokens are low because most LLM calls failed (calls without token counts: 9 and 8) and failed calls carry no token count. No means, no significance.",
     "rows": [
       {
         "topic": "state of small language models for on-device use",
@@ -988,6 +1086,16 @@
           "latency_s": 438.731,
           "stop_reason": "sections_incomplete",
           "retries": 3
+        },
+        "R2_third_evaluation": {
+          "run_id": "20261030T233306Z-0c2054",
+          "covered": "2 of 3 sections with a fetched page (critic pass: 0); NOTE only 3 sections were planned, earlier evaluations planned 5",
+          "sources": 2,
+          "total_tokens": 4846,
+          "latency_s": 244.847,
+          "stop_reason": "sections_incomplete",
+          "retries": 3,
+          "note": "no report written (placeholder only): no finding survived because LLM calls were rate limited or empty"
         }
       },
       {
@@ -1026,25 +1134,45 @@
           "stop_reason": "sections_incomplete",
           "retries": 0,
           "note": "Groq daily token limit reached; no report"
+        },
+        "R2_third_evaluation": {
+          "run_id": "20261030T233745Z-d89e98",
+          "covered": "3 of 3 sections with a fetched page (critic pass: 0); NOTE only 3 sections were planned, earlier evaluations planned 5",
+          "sources": 3,
+          "total_tokens": 12757,
+          "latency_s": 192.441,
+          "stop_reason": "sections_incomplete",
+          "retries": 3,
+          "note": "no report written (placeholder only): no finding survived because LLM calls were rate limited or empty"
         }
       }
     ]
   },
-  "observations_inputs": {
-    "o1": "SLM: retry fired (3 of 5 sections sent back) and changed nothing: 0 improved, 3 unchanged, 0 worse; pages 0 -> 0, findings 0 -> 0; cost 16 steps, 28316 tokens, 125.4 s, which pushed total time to 438.7 s of 480 s (91.4%).",
-    "o2": "Empty model replies dominate failures: SLM 26 of 27 unparseable-reply notes were two empty replies in a row, plus 9 single empty-reply retries; 3 of 5 page fetches failed (HTTP 403, timeout, HTTP 403).",
-    "o3": "CC: 0 sources, no report, 462.5 s used, 13084 tokens: Groq daily limit (used ~198.7k of 200k). The run therefore says nothing about the pipeline on this topic; the baseline and R1 also got 0 sources on this topic (n=1 each).",
-    "o4": "Sanitiser worked: no raw error text, URLs, ids or bracket tokens in either report (0 hits); all 11 citations in the SLM report are valid single-form [1]/[2], agree with the trace; 3 spot checks: 2 supported, 1 overstated.",
-    "o5": "Unverified-claim filter removed 4 claims; at least 3 of them are on the live page."
+  "report_checks_summary": {
+    "reports_written": 0,
+    "independent_check_agrees_with_trace": {
+      "small-language-models": true,
+      "carbon-capture": true
+    },
+    "citation_forms_found": "none: no citations in either file. Single [n], [5, 6], [5][6] and [5-7] forms were NOT exercised by this evaluation's data.",
+    "leaked_raw_error_text": {
+      "small-language-models": "no",
+      "carbon-capture": "no"
+    },
+    "leak_check_scope": "regex over each saved file for URLs, org_/req_/key_ ids, *Error/*Exception names, provider terms (groq, gemini, billing, TPD, TPM, 429, service tier) and non-numeric bracket tokens: zero hits. The files contain only the placeholder sentence and plain-language coverage notes ('rate limited'). The raw error text in traces is not in the reports. The traces (critic.issues, checks.research, workers.error) contain short provider reasons such as 'gemini: RateLimitError 429 x8; groq: EmptyReplyError x3'; a grep of both new traces for org_, req_, billing and console.groq found 0 hits (unlike the second evaluation's traces).",
+    "spot_checks": "not verified: no cited claims exist",
+    "unverified_claims_section": "not exercised (0 claims marked unverified, 0 omitted, no writer call)"
   },
+  "report_quality": "not measured yet (judge is R3)",
   "not_measured": [
-    "report quality / correctness (judge is R3)",
-    "retry effect when fetches succeed (all 3 retried sections had 0 pages before and after)",
-    "findings count per section for sections that were not retried (the trace stores findings only for retried sections)",
-    "claim-level support for all claims (3 cited claims spot-checked against the live pages, not the pages the worker saw)",
-    "why the weak section was not sent back to retry",
-    "why the second provider did not take over on the carbon-capture run",
-    "range and multi-citation forms in real reports ([5, 6], [5][6], [5-7] did not occur)",
-    "the effect of the step limit change 36 -> 60 in isolation (different runs, n=1 each, no controlled comparison)"
+    "report quality and correctness (judge is R3)",
+    "whether Groq's limit was per-minute or per-day, and whether Gemini's was per-minute, per-day or quota exhaustion (trace keeps 'RateLimitError 429' only)",
+    "whether the 403/429 header retry ever succeeded (only the final fetch result is traced)",
+    "latency and URL of seeded fetches (no step record)",
+    "retry effect when LLM calls succeed",
+    "the critic's LLM review, the writer, the 'Unverified claims' section and multi-form citations (none ran or occurred)",
+    "range / multi-citation forms in real reports",
+    "claim-level support (no claims)",
+    "effect of each individual fix in isolation"
   ]
 }
