@@ -1,0 +1,39 @@
+[project]
+name = "reporter"
+version = "0.1.0"
+description = "Multi-agent research reporter: topic in, cited Markdown report out, with a single-agent baseline."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "google-genai>=2.33.0",
+    "groq>=1.7.0",
+    "httpx>=0.28.0",
+    "langgraph>=1.0.0",
+    "pydantic>=2.0",
+]
+
+[project.scripts]
+reporter = "reporter.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.10.6,<0.11.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
+report = [
+    "matplotlib>=3.8",
+]

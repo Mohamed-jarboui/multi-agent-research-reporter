@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-Agent Research Reporter - build report</title>
+<meta name="description" content="Stage-by-stage report of the Multi-Agent Research Reporter: what was built, how it works, the numbers, and what broke.">
+<style>
+  :root {
+    --bg: #fbfbfa;
+    --fg: #1f2933;
+    --muted: #5b6573;
+    --card: #ffffff;
+    --line: #dde1e6;
+    --accent: #2f5fa8;
+    --good: #2f7d5b;
+    --warn: #b7791f;
+    --bad: #b23a3a;
+    --code-bg: #f1f3f5;
+    --fig-bg: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171b;
+      --fg: #e4e7eb;
+      --muted: #9aa5b1;
+      --card: #1c2025;
+      --line: #323943;
+      --accent: #7fa8e6;
+      --good: #5fbf93;
+      --warn: #e0a84a;
+      --bad: #e07a7a;
+      --code-bg: #232830;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 900px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 8px; }
+  h2 { font-size: 1.4rem; margin: 40px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.1rem; margin: 28px 0 8px; }
+  p, li { max-width: 72ch; }
+  a { color: var(--accent); }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+  .muted { color: var(--muted); }
+  .meta { color: var(--muted); font-size: 0.92rem; margin: 0 0 16px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 16px 0;
+  }
+  .warn { border-left: 4px solid var(--warn); }
+  .bad  { border-left: 4px solid var(--bad); }
+
+  /* progress bar */
+  .stages { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 12px 0 4px; padding: 0; list-style: none; }
+  .stages li { max-width: none; }
+  .stage { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: var(--card); font-size: 0.82rem; min-height: 4.4em; }
+  .stage b { display: block; font-size: 1rem; }
+  .stage .bar { height: 6px; border-radius: 3px; background: var(--line); margin-bottom: 6px; }
+  .stage.built .bar { background: var(--good); }
+  .stage.built { border-color: var(--good); }
+  @media (max-width: 560px) { .stages { grid-template-columns: 1fr; } .stage { min-height: 0; } }
+
+  /* tables */
+  .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* figures: SVGs have dark text and no background, so they sit on a light panel in both modes */
+  figure { margin: 16px 0; }
+  figure img { display: block; max-width: 100%; height: auto; background: var(--fig-bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  figcaption { color: var(--muted); font-size: 0.88rem; margin-top: 6px; }
+
+  .mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; text-align: center; }
+  .tag { display: inline-block; font-size: 0.78rem; border: 1px solid var(--line); border-radius: 999px; padding: 0 8px; color: var(--muted); }
+  .tag.planned { border-style: dashed; }
+  ul, ol { padding-left: 1.3em; }
+  li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <h1>Multi-Agent Research Reporter</h1>
+  <p class="meta">Build report &middot; last update 2026-10-29</p>
+  <p>Give it a topic: a supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited report. The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics. That comparison does not exist yet.</p>
+
+  <ul class="stages" aria-label="Stage progress">
+    <li class="stage built"><div class="bar"></div><b>R0</b>Single-agent baseline<br><span class="muted">built, PR not opened</span></li>
+    <li class="stage"><div class="bar"></div><b>R1</b>Supervisor and parallel workers<br><span class="muted">planned</span></li>
+    <li class="stage"><div class="bar"></div><b>R2</b>Critic and writer<br><span class="muted">planned</span></li>
+    <li class="stage"><div class="bar"></div><b>R3</b>Benchmark vs single agent<br><span class="muted">planned</span></li>
+    <li class="stage"><div class="bar"></div><b>R4</b>Deploy: jobs, streaming, traces<br><span class="muted">planned</span></li>
+  </ul>
+  <p class="muted" style="font-size:0.88rem">0 of 5 stages merged. R0 is built and checked locally; <code>docs/progress.json</code> still lists it as <code>todo</code> until the PR is opened. Plan: <a href="plan.md">docs/plan.md</a>.</p>
+</header>
+
+<h2 id="architecture">Overall architecture</h2>
+<p>Only the single-agent baseline exists today. Everything drawn dashed is planned for a later stage and is not built.</p>
+<pre class="mermaid">
+flowchart LR
+  T([Topic]) --> B
+  subgraph built["Built in R0"]
+    B["Baseline agent<br/>plan - think - act - check - write"]
+    TOOLS["Tools<br/>web_search, fetch_page"]
+    LLM["Provider layer<br/>Gemini, Groq, fallback"]
+    TR["Run trace<br/>runs/*.json"]
+    B --> TOOLS
+    B --> LLM
+    B --> TR
+  end
+  B --> R1([Cited report])
+
+  subgraph planned["Planned (not built)"]
+    direction LR
+    S["Supervisor<br/>R1"]
+    W["Parallel workers<br/>R1"]
+    C["Critic<br/>R2"]
+    WR["Writer<br/>R2"]
+    API["Jobs, streaming, traces API<br/>R4"]
+    S -.-> W -.-> C -.-> WR
+  end
+  T -.-> S
+  WR -.-> R2([Cited report])
+  W -.-> TOOLS
+  BM["Benchmark: multi-agent vs baseline<br/>R3"]
+  B -.-> BM
+  WR -.-> BM
+  API -.-> S
+  classDef plan stroke-dasharray: 5 4,fill:none;
+  class S,W,C,WR,API,BM plan;
+</pre>
+
+<h2 id="r0">R0 &middot; Setup and single-agent baseline <span class="tag">built, PR link added when opened</span></h2>
+
+<h3>What was built</h3>
+<ul>
+  <li>A ReAct research agent on LangGraph: it plans 3 to 5 questions about a topic, searches, reads pages, and writes a Markdown report with numbered citations and a sources list.</li>
+  <li>Two read-only tools: <code>web_search</code> (Tavily if a key is set, DuckDuckGo otherwise) and <code>fetch_page</code> (readable text, capped at 8,000 characters per page).</li>
+  <li>A provider layer copied from the eu-ai-act-copilot project (Gemini and Groq, fallback between them, retries, usage records).</li>
+  <li>Hard run budgets (15 steps, 150,000 tokens, 300 s, 0.50 USD) and a trace per run saved to <code>runs/&lt;run_id&gt;.json</code> (git-ignored).</li>
+  <li>Project scaffolding: uv project, CLI (<code>uv run reporter baseline "&lt;topic&gt;"</code>), CI for lint and tests, and the figure script behind this page. 77 tests pass and the linter is clean; the tests use fake models and fake tools, no network.</li>
+</ul>
+
+<h3>How it works</h3>
+<pre class="mermaid">
+flowchart LR
+  START([start]) --> plan
+  plan["plan<br/>3-5 questions"] --> think
+  think["think<br/>model picks a JSON action"] --> act
+  act["act<br/>run the tool, record sources"] --> check
+  check{"check<br/>stop?"}
+  check -- "no" --> think
+  check -- "yes" --> write
+  write["write<br/>cited report"] --> END([end])
+</pre>
+<p>Each turn the model answers with a JSON action (<code>web_search</code>, <code>fetch_page</code> or <code>finish</code>) and says which planned questions the page answers. The code calls the tool and records the page. <code>check</code> stops the loop when every question has at least 2 pages read, when any budget limit reaches 80%, when the model call fails, or after 3 unparseable replies in a row. A <code>finish</code> before coverage is met is refused twice, then accepted. The writer only sees the pages that were read, and the code appends the sources list itself.</p>
+
+<h3>Design decisions and rejected options</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>Decision</th><th>Rejected</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>The model replies with a JSON action; this code calls the tools.</td><td>Native tool calling.</td><td>The copied provider layer is prompt-in, text-out, so there is no tool-call channel to use. Cost: the agent must parse JSON, and unparseable replies are a failure mode it has to count.</td></tr>
+    <tr><td>Standard-library HTML parsing for <code>fetch_page</code>.</td><td>beautifulsoup.</td><td>Keeps dependencies light (slow internet). Cost: cruder text extraction.</td></tr>
+    <tr><td>A small <code>.env</code> reader in the CLI.</td><td>python-dotenv.</td><td>Same reason; it only fills variables that are not already set.</td></tr>
+    <tr><td>Stop on coverage (2 sources per question) or 80% of any budget.</td><td>Run to the limit.</td><td>Leaves room to write the report. It also means "covered" is judged by pages read, not by whether they answer the question.</td></tr>
+    <tr><td>Tavily with a DuckDuckGo fallback.</td><td>A single search provider.</td><td>Works without a key; the free tier covers the plan.</td></tr>
+    <tr><td>PDFs are rejected by <code>fetch_page</code>.</td><td>PDF text extraction.</td><td>Not built in R0. This turned out to matter (see below).</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Figures</h3>
+<figure>
+  <img src="figs/stage_progress.svg" alt="Bar chart of stage status for R0 to R4; all show todo because no PR is open yet" width="700">
+  <figcaption>Stage status as recorded in <code>docs/progress.json</code>. R0 still reads <code>todo</code> because no PR is open yet.</figcaption>
+</figure>
+<figure>
+  <img src="figs/baseline_smoke.svg" alt="Three bar panels, one per metric (tokens, cost, latency), for the two smoke-run topics" width="1000">
+  <figcaption>Tokens, cost and latency for the two counted smoke runs (n=2, one run per topic), from <code>results/baseline_smoke.json</code>. The cost panel is all zeros because the free tier is unpriced in the cost model, not because the runs were free of cost. The failed first attempt is not drawn.</figcaption>
+</figure>
+
+<h3>Numbers</h3>
+<div class="card warn">
+  <b>These are smoke runs, not a benchmark.</b> Two topics, one counted run per topic (n=1 each), plus one extra failed attempt that was re-run once. No averages or comparisons are drawn from them. The benchmark (12 topics, both systems, 2 runs each) is stage R3. Source: <code>results/baseline_smoke.json</code> and <code>results/stage_r0.json</code>, date 2026-10-29.
+</div>
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Topic</th><th>Attempt</th><th class="num">Questions covered</th><th class="num">Sources</th><th>Stop reason</th><th class="num">Tokens</th><th class="num">Latency</th><th class="num">cost_usd</th><th>Usable report?</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Small language models for on-device use</td><td>2 of 2 (counted; re-run of attempt 1)</td><td class="num">2 of 5</td><td class="num">2</td><td><code>llm_error</code></td><td class="num">27,306</td><td class="num">143.4 s</td><td class="num">0.0</td><td>Partly. Cites sources 3 and 4, which do not exist.</td></tr>
+    <tr><td>Carbon capture: current costs and limits</td><td>1 of 1 (counted)</td><td class="num">0 of 5</td><td class="num">0</td><td><code>budget_seconds</code></td><td class="num">13,986</td><td class="num">247.9 s</td><td class="num">0.0</td><td>No. Placeholder text only (178 characters).</td></tr>
+    <tr><td>Small language models (not counted)</td><td>1 (failed, re-run once)</td><td class="num">1 of 4</td><td class="num">1</td><td><code>llm_error</code></td><td class="num">28,330</td><td class="num">172.5 s</td><td class="num">0.0</td><td>No. No report produced.</td></tr>
+  </tbody>
+</table>
+</div>
+<ul>
+  <li>Sample size: 2 counted runs, 3 attempts in total. Across all 3 attempts: 69,622 tokens and 563.8 s of run time (sum of the three rows above).</li>
+  <li><code>cost_usd</code> is 0.0 because the free tier (Gemini, Groq) is unpriced in the cost model. It does not mean the runs had no cost; they were rate-limited instead.</li>
+  <li>Of the 2 counted runs, 1 has a partly usable report and 1 has none. The 2 sources in the usable one are an arXiv benchmark paper and a vendor blog post.</li>
+  <li>Token counts come from provider usage records; one call in the SLM runs had no token counts, so its tokens are counted as zero and the total is a lower bound.</li>
+  <li>Quality of the reports was not scored. No judge, no coverage score, no comparison with the multi-agent system: not measured yet.</li>
+</ul>
+
+<h3>What broke, and what was fixed</h3>
+<div class="card bad">
+  <b>The baseline did not work well in these runs.</b> It is the weak baseline the multi-agent system will be compared with, and the numbers above are that baseline on a bad day for the free tier. They should not be read as a flattering or a final measurement.
+</div>
+<div class="scroll">
+<table>
+  <thead><tr><th>What broke</th><th>Evidence</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Empty model replies from Groq <code>openai/gpt-oss-120b</code>.</td>
+      <td>Steps flagged with an empty-reply note: 7 (failed SLM attempt), 3 (counted SLM run), 4 (carbon capture run). Almost every call went to this model.</td>
+      <td>Partly fixed: an empty reply is retried once at temperature 0.7 (at temperature 0 the same empty reply came back). It reduced but did not remove the problem.</td>
+    </tr>
+    <tr>
+      <td>Rate limit: Groq answered HTTP 429 on tokens per minute (limit 8,000) after Gemini quota fell through. All providers failed.</td>
+      <td>The first SLM attempt died with <code>AllProvidersFailedError</code>; no report. Gemini handled only 3 steps of it (the plan and one think step). The counted re-run hit the same 429 at step 11.</td>
+      <td>Not fixed. The run was repeated once. The agent now writes a fallback report from the pages already read when the model fails, which is what produced the SLM report from only 2 sources.</td>
+    </tr>
+    <tr>
+      <td>Citations to sources that do not exist.</td>
+      <td>The counted SLM report cites [3] and [4] but has only 2 sources (<code>invalid_citations</code> = [4, 3]). Reading the report, it also contains grouped citations such as [5, 6], which the checker's pattern (<code>[n]</code> only) does not catch, so the true count is probably higher.</td>
+      <td>Detected and recorded in the trace, not corrected. Deterministic citation checks are planned for R2.</td>
+    </tr>
+    <tr>
+      <td>The carbon-capture run lost its time on one PDF.</td>
+      <td>One 169 s fetch of a PDF that <code>fetch_page</code> then rejects (it is <code>application/pdf</code>). Nothing readable was collected before <code>budget_seconds</code>; the report is the placeholder text.</td>
+      <td>Not fixed, not re-run. Needs a shorter fetch timeout or an early content-type check; neither is in R0.</td>
+    </tr>
+    <tr>
+      <td>Agent tried to re-read a page.</td>
+      <td>1 tool error in the counted SLM run ("you already read this page").</td>
+      <td>Handled by design: the agent refuses the repeat and the model chooses another source.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Pull request</h3>
+<p>PR link added when opened.</p>
+
+<h2 id="next">What comes next</h2>
+<ul>
+  <li><b>R1</b> Supervisor and parallel workers. <span class="tag planned">planned</span></li>
+  <li><b>R2</b> Critic and writer, with deterministic citation checks. <span class="tag planned">planned</span></li>
+  <li><b>R3</b> Benchmark on 12 topics, multi-agent against this baseline. <span class="tag planned">planned</span></li>
+  <li><b>R4</b> Deployed demo with jobs, streaming progress and traces. <span class="tag planned">planned</span></li>
+</ul>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+  (function () {
+    if (!window.mermaid) { return; }
+    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    window.mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "default", securityLevel: "strict" });
+  })();
+</script>
+</body>
+</html>

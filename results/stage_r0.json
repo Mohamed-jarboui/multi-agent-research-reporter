@@ -1,0 +1,87 @@
+{
+  "stage": "R0",
+  "branch": "stage/r0-baseline",
+  "date": "2026-10-29",
+  "tests": {
+    "passed": 77,
+    "failed": 0,
+    "source": "pytest -q run by the reporter on 2026-10-29, matching the main session's count"
+  },
+  "lint": {
+    "ruff_check": "all checks passed",
+    "source": "uv run ruff check ."
+  },
+  "files_changed": {
+    "new_untracked_files_excluding_report": 39,
+    "source_test_script_lines": 2929,
+    "note": "nothing committed yet on this branch beyond the initial commit; counts are untracked files (git ls-files -o, runs/ is git-ignored) and wc -l over src/, tests/, scripts/"
+  },
+  "runs_made": {
+    "counted_runs": 2,
+    "total_attempts": 3,
+    "failed_attempts": 1,
+    "runs_without_usable_report": 1,
+    "runs_per_topic": 1,
+    "topics": 2,
+    "earlier_builder_traces_excluded": 4,
+    "source": "results/baseline_smoke.json"
+  },
+  "totals_over_all_attempts": {
+    "total_tokens": 69622,
+    "latency_s": 563.843,
+    "cost_usd": 0.0,
+    "cost_note": "cost_usd is 0.0 because the free tier (Gemini/Groq) is unpriced in the cost model, not because the runs had no cost in general.",
+    "n_attempts": 3
+  },
+  "per_run": [
+    {
+      "topic": "state of small language models for on-device use",
+      "run_id": "20261029T184317Z-c8fd6a",
+      "attempt": "2 (re-run of attempt 1)",
+      "counted_in_final": true,
+      "stop_reason": "llm_error",
+      "total_tokens": 27306,
+      "latency_s": 143.359,
+      "cost_usd": 0.0,
+      "n_sources": 2,
+      "questions_covered": 2,
+      "n_questions": 5,
+      "report_chars": 7665,
+      "invalid_citations": [
+        4,
+        3
+      ]
+    },
+    {
+      "topic": "carbon capture: current costs and limits",
+      "run_id": "20261029T183858Z-290272",
+      "attempt": "1",
+      "counted_in_final": true,
+      "stop_reason": "budget_seconds",
+      "total_tokens": 13986,
+      "latency_s": 247.937,
+      "cost_usd": 0.0,
+      "n_sources": 0,
+      "questions_covered": 0,
+      "n_questions": 5,
+      "report_chars": 178,
+      "invalid_citations": []
+    },
+    {
+      "topic": "state of small language models for on-device use",
+      "run_id": "20261029T183557Z-f41520",
+      "attempt": "1 (failed, re-run once)",
+      "counted_in_final": false,
+      "stop_reason": "llm_error",
+      "total_tokens": 28330,
+      "latency_s": 172.547,
+      "cost_usd": 0.0,
+      "n_sources": 1,
+      "questions_covered": 1,
+      "n_questions": 4,
+      "report_chars": 0,
+      "invalid_citations": null
+    }
+  ],
+  "caveat": "Smoke runs, n=1 per topic, not a benchmark. The benchmark is stage R3."
+}
