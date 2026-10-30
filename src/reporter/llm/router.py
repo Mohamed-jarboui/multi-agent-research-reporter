@@ -209,4 +209,4 @@ class FallbackLLM:
         raise AllProvidersFailedError(
             f"all providers failed; last error: {last_error!r}",
             provider=last_error.provider if last_error else "",
-        )
+        ) from last_error

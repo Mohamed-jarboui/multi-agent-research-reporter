@@ -6,8 +6,9 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
-from reporter.budget import Budget
+from reporter.budget import Budget, MultiBudget
 
 
 def load_env_file(path: Path = Path(".env")) -> None:
@@ -35,6 +36,19 @@ def build_parser() -> argparse.ArgumentParser:
     baseline.add_argument("--max-tokens", type=int, default=defaults.max_tokens)
     baseline.add_argument("--max-seconds", type=float, default=defaults.max_seconds)
     baseline.add_argument("--max-cost", type=float, default=defaults.max_cost_usd, help="USD")
+
+    multi_defaults = MultiBudget()
+    multi = commands.add_parser("multi", help="multi-agent research run (supervisor and workers)")
+    multi.add_argument("topic", help="what to research")
+    multi.add_argument("--out", type=Path, help="also write the report to this file")
+    multi.add_argument("--runs-dir", type=Path, default=Path("runs"), help="trace folder")
+    multi.add_argument("--max-steps", type=int, default=multi_defaults.run.max_steps)
+    multi.add_argument("--max-tokens", type=int, default=multi_defaults.run.max_tokens)
+    multi.add_argument("--max-seconds", type=float, default=multi_defaults.run.max_seconds)
+    cost = multi_defaults.run.max_cost_usd
+    multi.add_argument("--max-cost", type=float, default=cost, help="USD")
+    multi.add_argument("--workers", type=int, default=multi_defaults.max_parallel_workers)
+    multi.add_argument("--llm-slots", type=int, default=multi_defaults.max_parallel_llm_calls)
     return parser
 
 
@@ -42,23 +56,38 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     load_env_file()
     # heavy imports after argument parsing so --help stays instant
-    from reporter.agent import BaselineAgent
+    from reporter.agent import BaselineAgent, MultiAgent
     from reporter.llm import build_default_llm
     from reporter.tools import default_tools
 
     try:
-        budget = Budget(
-            max_steps=args.max_steps,
-            max_tokens=args.max_tokens,
-            max_seconds=args.max_seconds,
-            max_cost_usd=args.max_cost,
-        )
+        if args.command == "multi":
+            budget = MultiBudget(
+                run=Budget(
+                    max_steps=args.max_steps,
+                    max_tokens=args.max_tokens,
+                    max_seconds=args.max_seconds,
+                    max_cost_usd=args.max_cost,
+                ),
+                max_parallel_workers=args.workers,
+                max_parallel_llm_calls=args.llm_slots,
+            )
+        else:
+            budget = Budget(
+                max_steps=args.max_steps,
+                max_tokens=args.max_tokens,
+                max_seconds=args.max_seconds,
+                max_cost_usd=args.max_cost,
+            )
         llm = build_default_llm()
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    agent = BaselineAgent(llm, default_tools(), budget, runs_dir=args.runs_dir)
+    if args.command == "multi":
+        agent: Any = MultiAgent(llm, default_tools(), budget, runs_dir=args.runs_dir)
+    else:
+        agent = BaselineAgent(llm, default_tools(), budget, runs_dir=args.runs_dir)
     try:
         result = agent.run(args.topic)
     except Exception as exc:
@@ -72,8 +101,12 @@ def main(argv: list[str] | None = None) -> int:
     sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
     print(result.report)
     totals = result.trace.totals
+    extra = ""
+    if args.command == "multi":
+        total = len(result.merged.sections)
+        extra = f" | sections {total - len(result.merged.incomplete)}/{total} complete"
     print(
-        f"\nstopped: {result.trace.stop_reason} | steps {totals.react_steps} | "
+        f"\nstopped: {result.trace.stop_reason}{extra} | steps {totals.react_steps} | "
         f"tokens {totals.total_tokens} | cost ${totals.cost_usd:.4f} | "
         f"{totals.latency_s:.1f}s | trace: {result.trace_path}",
         file=sys.stderr,

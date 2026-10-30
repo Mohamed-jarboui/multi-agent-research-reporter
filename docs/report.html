@@ -68,6 +68,8 @@
   .stage .bar { height: 6px; border-radius: 3px; background: var(--line); margin-bottom: 6px; }
   .stage.built .bar { background: var(--good); }
   .stage.built { border-color: var(--good); }
+  .stage.wip .bar { background: var(--accent); }
+  .stage.wip { border-color: var(--accent); }
   @media (max-width: 560px) { .stages { grid-template-columns: 1fr; } .stage { min-height: 0; } }
 
   /* tables */
@@ -94,25 +96,30 @@
 
 <header>
   <h1>Multi-Agent Research Reporter</h1>
-  <p class="meta">Build report &middot; last update 2026-10-29</p>
-  <p>Give it a topic: a supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited report. The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics. That comparison does not exist yet.</p>
+  <p class="meta">Build report &middot; last update 2026-10-30</p>
+  <p>Give it a topic: a supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited report. The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics. That comparison does not exist yet (it is stage R3).</p>
 
   <ul class="stages" aria-label="Stage progress">
-    <li class="stage built"><div class="bar"></div><b>R0</b>Single-agent baseline<br><span class="muted">built, PR not opened</span></li>
-    <li class="stage"><div class="bar"></div><b>R1</b>Supervisor and parallel workers<br><span class="muted">planned</span></li>
+    <li class="stage built"><div class="bar"></div><b>R0</b>Single-agent baseline<br><span class="muted">merged</span></li>
+    <li class="stage wip"><div class="bar"></div><b>R1</b>Supervisor and parallel workers<br><span class="muted">built, PR link added when opened</span></li>
     <li class="stage"><div class="bar"></div><b>R2</b>Critic and writer<br><span class="muted">planned</span></li>
     <li class="stage"><div class="bar"></div><b>R3</b>Benchmark vs single agent<br><span class="muted">planned</span></li>
     <li class="stage"><div class="bar"></div><b>R4</b>Deploy: jobs, streaming, traces<br><span class="muted">planned</span></li>
   </ul>
-  <p class="muted" style="font-size:0.88rem">0 of 5 stages merged. R0 is built and checked locally; <code>docs/progress.json</code> still lists it as <code>todo</code> until the PR is opened. Plan: <a href="plan.md">docs/plan.md</a>.</p>
+  <p class="muted" style="font-size:0.88rem">1 of 5 stages merged (R0). R1 is built and checked locally; <code>docs/progress.json</code> lists it as <code>in_progress</code> until its PR is opened. Plan: <a href="plan.md">docs/plan.md</a>.</p>
+<figure>
+    <img src="figs/stage_progress.svg" alt="Bar chart of stage status: R0 merged, R1 in progress, R2 to R4 todo" width="700">
+    <figcaption>Stage status from <code>docs/progress.json</code>.</figcaption>
+  </figure>
 </header>
 
 <h2 id="architecture">Overall architecture</h2>
-<p>Only the single-agent baseline exists today. Everything drawn dashed is planned for a later stage and is not built.</p>
+<p>The single-agent baseline (R0) and the supervisor with parallel workers (R1) exist. Everything drawn dashed is planned for a later stage and is not built.</p>
 <pre class="mermaid">
 flowchart LR
   T([Topic]) --> B
-  subgraph built["Built in R0"]
+  T --> SUP
+  subgraph r0["Built in R0"]
     B["Baseline agent<br/>plan - think - act - check - write"]
     TOOLS["Tools<br/>web_search, fetch_page"]
     LLM["Provider layer<br/>Gemini, Groq, fallback"]
@@ -123,27 +130,34 @@ flowchart LR
   end
   B --> R1([Cited report])
 
+  subgraph r1["Built in R1"]
+    SUP["Supervisor<br/>3-6 section briefs"]
+    W["Parallel workers<br/>Send fan-out, retry once"]
+    M["Merge<br/>dedupe, global source ids, digest"]
+    SUP --> W --> M
+  end
+  W --> TOOLS
+  W --> LLM
+  M --> DG([Research digest])
+
   subgraph planned["Planned (not built)"]
     direction LR
-    S["Supervisor<br/>R1"]
-    W["Parallel workers<br/>R1"]
     C["Critic<br/>R2"]
     WR["Writer<br/>R2"]
     API["Jobs, streaming, traces API<br/>R4"]
-    S -.-> W -.-> C -.-> WR
+    C -.-> WR
   end
-  T -.-> S
+  M -.-> C
   WR -.-> R2([Cited report])
-  W -.-> TOOLS
   BM["Benchmark: multi-agent vs baseline<br/>R3"]
   B -.-> BM
   WR -.-> BM
-  API -.-> S
+  API -.-> SUP
   classDef plan stroke-dasharray: 5 4,fill:none;
-  class S,W,C,WR,API,BM plan;
+  class C,WR,API,BM plan;
 </pre>
 
-<h2 id="r0">R0 &middot; Setup and single-agent baseline <span class="tag">built, PR link added when opened</span></h2>
+<h2 id="r0">R0 &middot; Setup and single-agent baseline <span class="tag">merged</span></h2>
 
 <h3>What was built</h3>
 <ul>
@@ -184,10 +198,6 @@ flowchart LR
 </div>
 
 <h3>Figures</h3>
-<figure>
-  <img src="figs/stage_progress.svg" alt="Bar chart of stage status for R0 to R4; all show todo because no PR is open yet" width="700">
-  <figcaption>Stage status as recorded in <code>docs/progress.json</code>. R0 still reads <code>todo</code> because no PR is open yet.</figcaption>
-</figure>
 <figure>
   <img src="figs/baseline_smoke.svg" alt="Three bar panels, one per metric (tokens, cost, latency), for the two smoke-run topics" width="1000">
   <figcaption>Tokens, cost and latency for the two counted smoke runs (n=2, one run per topic), from <code>results/baseline_smoke.json</code>. The cost panel is all zeros because the free tier is unpriced in the cost model, not because the runs were free of cost. The failed first attempt is not drawn.</figcaption>
@@ -255,11 +265,159 @@ flowchart LR
 </div>
 
 <h3>Pull request</h3>
+<p><a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/1">PR #1</a> (merged).</p>
+
+<h2 id="r1">R1 &middot; Supervisor and parallel workers <span class="tag">built, PR link added when opened</span></h2>
+
+<h3>What was built</h3>
+<ul>
+  <li>A supervisor: one model call turns the topic into 3 to 6 self-contained section briefs (title, goal, scope, what to exclude, expected output).</li>
+  <li>Parallel workers: LangGraph <code>Send</code> fans each brief out to a worker that runs a short search-and-read loop with the R0 tools (6 think steps, up to 4 pages) and returns structured findings that cite only pages it actually fetched. A failed worker is retried once, then marked <code>incomplete</code>.</li>
+  <li>A deterministic merge: joins the worker results into one research record with stable global source numbers and a Markdown digest. There is no model-written report yet; the writer is R2.</li>
+  <li>Shared limits: one locked run budget (36 steps, 300,000 tokens, 480 s, 0.50 USD), plus a gate that allows 2 model calls at a time and makes all workers wait after a rate limit. A new <code>reporter multi</code> command runs it.</li>
+  <li>R0 fixes carried in: <code>fetch_page</code> now checks the content type before downloading (PDFs are refused up front) and has a total time limit. 106 tests pass (29 new) and ruff is clean; tests use fake models and tools, no network.</li>
+</ul>
+
+<h3>How it works</h3>
+<pre class="mermaid">
+flowchart TD
+  S([START]) --> SUP["supervisor<br/>1 LLM call, 3-6 section briefs"]
+  SUP -->|"Send, one per brief"| W1["worker s1"]
+  SUP -->|"Send"| W2["worker s2"]
+  SUP -->|"Send"| WN["worker sN"]
+  W1 --> M["merge<br/>dedupe URLs, global ids, digest"]
+  W2 --> M
+  WN --> M
+  M --> E([END])
+</pre>
+<pre class="mermaid">
+flowchart LR
+  subgraph inside["Inside one worker (plain Python loop)"]
+    direction LR
+    TH["think"] --> AC["act: search or fetch"]
+    AC --> TH
+    TH --> FIN["finalize: findings"]
+  end
+  FIN --> OK{"at least 1 finding<br/>from fetched pages?"}
+  OK -- "yes" --> DONE(["complete"])
+  OK -- "no, attempt 1" --> RETRY["retry once with a failure note"]
+  RETRY --> TH
+  OK -- "no, attempt 2" --> INC(["incomplete"])
+</pre>
+<p>At most 3 workers run at once. Every model call goes through a gate with 2 slots, so a third worker can fetch a page while two others wait for the model. After an HTTP 429 the gate sets a shared cooldown (10 s, then 20 s, capped at 30 s) and every worker waits it out before its next call. Workers cite with small local numbers; merge assigns global numbers by section order, so the numbering does not depend on which worker finishes first. A section counts as <code>complete</code> when at least one finding survives, even if its loop stopped on <code>max_steps</code> or <code>worker_time</code>.</p>
+
+<h3>Design decisions and rejected options</h3>
+<div class="scroll">
+<table>
+  <thead><tr><th>Decision</th><th>Rejected</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>The worker loop is plain Python inside one graph node.</td><td>A LangGraph subgraph per worker.</td><td>One node gives one timing interval per section, which is easy to cap and to draw as a bar. A subgraph adds checkpoint and recursion-limit details with no gain before R4.</td></tr>
+    <tr><td>Retry inside the worker node.</td><td>LangGraph <code>RetryPolicy</code>, or a second <code>Send</code> round.</td><td><code>RetryPolicy</code> only fires on exceptions, but "0 pages fetched" is also a failure, and each attempt needs its own trace record and a note for the next one.</td></tr>
+    <tr><td>One shared locked budget meter; a gate with 2 call slots and a shared rate-limit cooldown.</td><td>A budget per worker only; letting each worker back off alone.</td><td>The free tier limits the whole run, not one worker. A shared cooldown stops 3 workers from hitting the same 429 in turn. Overshoot is bounded by the calls already in flight.</td></tr>
+    <tr><td>A deterministic digest from merge.</td><td>An LLM-written report in R1.</td><td>The writer is R2. The digest is cheap, has no invented text, and gives R2 something to check.</td></tr>
+    <tr><td>Global source numbers assigned by merge, in section order.</td><td>Workers citing URLs; numbering by completion order.</td><td>Small numbers are harder for a model to garble than URLs, unfetched sources are dropped by construction, and the numbering is the same whatever order the workers finish in.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Figures</h3>
+<figure>
+  <img src="figs/r1_worker_timeline.svg" alt="Gantt chart of worker attempts for two topics: three bars start together, later sections start as earlier ones end; most bars are red (incomplete) and retry attempts are hatched" width="900">
+  <figcaption>One bar per worker attempt, seconds since run start, from <code>results/r1_timeline.json</code> (n=1 run per topic). Green is a complete section, red is incomplete, hatched is a retry. Three workers ran at once in both runs; the later sections wait for a free worker slot.</figcaption>
+</figure>
+
+<h3>Numbers</h3>
+<div class="card warn">
+  <b>This is a smoke comparison, not a benchmark.</b> Two topics, one live run each (n=1), no re-runs. No averages, no significance. The benchmark is stage R3. The multi-agent runs and the R0 baseline runs are not measured in the same unit (sections versus questions), and the R0 small-language-model number is from its second attempt. Source: <code>results/r1_smoke.json</code> and <code>results/stage_r1.json</code>, date 2026-10-30.
+</div>
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>Topic and system</th><th class="num">Complete</th><th class="num">Sources</th><th class="num">Tokens</th><th class="num">Latency</th><th class="num">cost_usd</th><th>Stop reason</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Small language models, R1 multi</td><td class="num">3 of 5 sections</td><td class="num">4</td><td class="num">57,247</td><td class="num">299.0 s</td><td class="num">0.0</td><td><code>sections_incomplete</code></td></tr>
+    <tr><td>Small language models, R0 baseline (attempt 2)</td><td class="num">2 of 5 questions</td><td class="num">2</td><td class="num">27,306</td><td class="num">143.4 s</td><td class="num">0.0</td><td><code>llm_error</code></td></tr>
+    <tr><td>Carbon capture, R1 multi</td><td class="num">0 of 5 sections</td><td class="num">0</td><td class="num">46,337</td><td class="num">194.7 s</td><td class="num">0.0</td><td><code>sections_incomplete</code></td></tr>
+    <tr><td>Carbon capture, R0 baseline</td><td class="num">0 of 5 questions</td><td class="num">0</td><td class="num">13,986</td><td class="num">247.9 s</td><td class="num">0.0</td><td><code>budget_seconds</code></td></tr>
+  </tbody>
+</table>
+</div>
+<div class="scroll">
+<table>
+  <thead>
+    <tr><th>R1 multi, per run (n=1 each)</th><th>Small LMs</th><th>Carbon capture</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Worker attempts (5 sections planned)</td><td>6</td><td>7</td></tr>
+    <tr><td>Model calls / tool calls</td><td>34 / 17</td><td>30 / 10</td></tr>
+    <tr><td>Peak concurrent workers</td><td>3</td><td>3</td></tr>
+    <tr><td>Effective parallelism (sum of worker durations / worker-phase wall time)</td><td>2.50 (644.2 s / 257.4 s)</td><td>2.84 (526.2 s / 185.4 s)</td></tr>
+    <tr><td>Rate-limit waits, summed across workers</td><td>8 waits, 89.9 s</td><td>13 waits, 93.7 s</td></tr>
+    <tr><td>Steps with an empty-reply note</td><td>12 of 34 calls</td><td>22 of 30 calls</td></tr>
+    <tr><td>Longest tool call</td><td>7.88 s (<code>fetch_page</code>)</td><td>2.79 s (<code>web_search</code>)</td></tr>
+    <tr><td>Tool calls over 20 s / PDF fetch errors</td><td>0 / 0</td><td>0 / 0</td></tr>
+    <tr><td>Run budget used: steps / tokens / seconds</td><td>29 of 36 / 57,247 of 300,000 / 299.0 of 480</td><td>29 of 36 / 46,337 of 300,000 / 194.7 of 480</td></tr>
+    <tr><td>Worker stop reasons</td><td>max_steps 3, worker_time 2, model_output_unparseable 1</td><td>worker_time 2, budget_steps 2, max_steps 1, provider_error 1, model_output_unparseable 1</td></tr>
+  </tbody>
+</table>
+</div>
+<ul>
+  <li><b>The results are mixed.</b> On small language models multi completed 3 of 5 sections with 4 sources, against 2 of 5 questions and 2 sources for the baseline, but it used about twice the tokens (57,247 against 27,306) and twice the time (299.0 s against 143.4 s). On carbon capture both systems got nothing usable: 0 sources, and the multi run never called <code>fetch_page</code> (10 tool calls, all searches).</li>
+  <li><b>Workers did overlap.</b> Peak 3 at once in both runs. The speed-up is limited by the 2 model-call slots and by rate-limit waits (89.9 s and 93.7 s summed across workers; the waits overlap in time, so these are not a share of wall time).</li>
+  <li><b>Digest quality and citation validity of the multi digests: not measured yet.</b> No judge and no citation checker ran in this stage. The 3 "complete" small-language-model sections are complete only in the sense that at least one finding cites a fetched page, and all three stopped on <code>max_steps</code> or <code>worker_time</code>.</li>
+  <li><code>cost_usd</code> is 0.0 because the free tier (Gemini, Groq) is unpriced in the cost model, not because the runs were free of cost. 8 calls in the small-language-model run and 1 in the carbon-capture run had no token counts, so token totals are lower bounds.</li>
+  <li>Digests: <code>examples/multi_r1/small-language-models.md</code> and <code>examples/multi_r1/carbon-capture.md</code> (the second has no sources and is not usable).</li>
+</ul>
+
+<h3>What broke, and what was fixed</h3>
+<div class="card bad">
+  <b>The multi-agent system did not beat the baseline in these runs.</b> It did what it was built for (parallel workers, retries, bounded budgets), but on the free tier the model limits decided the outcome more than the design did. One run produced a partly usable digest and one did not.
+</div>
+<div class="scroll">
+<table>
+  <thead><tr><th>What broke</th><th>Evidence</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Empty Groq replies, more than in R0.</td>
+      <td>Steps with an empty-reply note: 12 of 34 calls (small LMs) and 22 of 30 (carbon capture). Unparseable-reply notes: 10 and 18.</td>
+      <td>Not fixed. Only mitigated by the R0 retry at a higher temperature and the per-worker retry. A likely cause of the carbon-capture failure; not proven.</td>
+    </tr>
+    <tr>
+      <td>A Groq tokens-per-minute 429 killed a worker.</td>
+      <td>Carbon-capture section s2 ended with <code>provider_error</code> (<code>AllProvidersFailedError</code> wrapping a 429 for <code>openai/gpt-oss-120b</code>), after the gate's one retry.</td>
+      <td>Not fixed. The shared cooldown softens it but the 429 persisted past one retry. Not re-run.</td>
+    </tr>
+    <tr>
+      <td>The step budget cut sections short.</td>
+      <td>Carbon capture: s4 and s5 stopped on <code>budget_steps</code> (shared run budget at 29 of 36 steps; the 80% stop point is 28.8) before any page was fetched. Tokens, seconds and cost were far below their limits. Retries spend steps too.</td>
+      <td>Not fixed. The step limit is a starting default, not a tuned value. Whether to raise it is an open question for R3.</td>
+    </tr>
+    <tr>
+      <td>Retries did not recover sections.</td>
+      <td>3 retry attempts (s4 in small LMs; s1 and s3 in carbon capture), all ended <code>incomplete</code>. Their durations: 8.6 s, 9.6 s and 100.3 s.</td>
+      <td>Working as designed (retry once, then incomplete), but not useful in these runs.</td>
+    </tr>
+    <tr>
+      <td>Carbon capture: no page read at all.</td>
+      <td>0 sources, 10 tool calls, all searches. The digest has no findings.</td>
+      <td>Reported as is, no re-run (the run did not crash, so the one-time re-run allowance was not used).</td>
+    </tr>
+    <tr>
+      <td>The R0 PDF time sink.</td>
+      <td>Longest tool call 7.88 s and 2.79 s; 0 calls over 20 s; 0 PDF errors. One <code>fetch_page</code> failure remained (an IEEE page with no readable text).</td>
+      <td>Fixed: the content type is checked before the download and a total deadline applies.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<p class="muted">Not measured: per-call start times (only worker start and end are traced), so slot contention is inferred from the rate-limit waits, not measured directly.</p>
+
+<h3>Pull request</h3>
 <p>PR link added when opened.</p>
 
 <h2 id="next">What comes next</h2>
 <ul>
-  <li><b>R1</b> Supervisor and parallel workers. <span class="tag planned">planned</span></li>
   <li><b>R2</b> Critic and writer, with deterministic citation checks. <span class="tag planned">planned</span></li>
   <li><b>R3</b> Benchmark on 12 topics, multi-agent against this baseline. <span class="tag planned">planned</span></li>
   <li><b>R4</b> Deployed demo with jobs, streaming progress and traces. <span class="tag planned">planned</span></li>

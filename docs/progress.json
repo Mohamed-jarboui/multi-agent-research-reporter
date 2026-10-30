@@ -4,15 +4,15 @@
       "id": "R0",
       "name": "Setup and single-agent baseline",
       "branch": "stage/r0-baseline",
-      "status": "pr_open",
+      "status": "merged",
       "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/1"
     },
     {
       "id": "R1",
       "name": "Supervisor and parallel workers",
       "branch": null,
-      "status": "todo",
-      "pr_url": null
+      "status": "pr_open",
+      "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/2"
     },
     {
       "id": "R2",

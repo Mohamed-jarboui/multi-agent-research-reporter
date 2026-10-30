@@ -17,16 +17,16 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
-from typing import Any, Protocol, TypedDict
+from typing import Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
 from reporter.agent import prompts
+from reporter.agent.llm_call import LLM, generate_charged
 from reporter.agent.parsing import cited_numbers, extract_json, strip_sources_section
 from reporter.budget import Budget, BudgetMeter
-from reporter.llm.base import Generation, ProviderError, Tier
-from reporter.pricing import call_cost_usd
+from reporter.llm.base import Generation, ProviderError
 from reporter.tools import Page, Tool, call_tool, describe
 from reporter.trace import RUNS_DIR, SourceRecord, StepRecord, ToolCallRecord, Trace, new_run_id
 
@@ -37,23 +37,7 @@ WRITE_CHARS_PER_SOURCE = 3_000  # page text given to the writer, per source
 OLD_OBSERVATION_CHARS = 200  # older tool results are shortened in the prompt
 HISTORY_ITEMS = 6
 MAX_CONSECUTIVE_PARSE_FAILURES = 3
-MAX_EMPTY_REPLY_ATTEMPTS = 2
 MAX_FINISH_REFUSALS = 2  # "finish" before coverage is met is refused this many times
-RETRY_TEMPERATURE = 0.7  # a retry at temperature 0 would repeat the same empty reply
-
-
-class LLM(Protocol):
-    """What the agent needs from a model: FallbackLLM satisfies it, and so do test fakes."""
-
-    def generate(
-        self,
-        prompt: str,
-        *,
-        system: str | None = None,
-        tier: Tier = "large",
-        temperature: float = 0.0,
-        max_output_tokens: int | None = None,
-    ) -> Generation: ...
 
 
 class Decision(BaseModel):
@@ -349,34 +333,9 @@ class BaselineAgent:
         return StepRecord(index=len(self._trace.steps) + 1, kind=kind)  # type: ignore[arg-type]
 
     def _generate(self, step: StepRecord, prompt: str, system: str, max_tokens: int) -> Generation:
-        """Call the model and charge the step and the budget for it.
-
-        An empty reply is retried once at a higher temperature (gpt-oss on Groq often returns
-        only reasoning at temperature 0, measured on 2026-10-29); both calls are charged
-        to the same step, so the trace shows what the step really cost.
-        """
-        for attempt in range(MAX_EMPTY_REPLY_ATTEMPTS):
-            started = self._clock()
-            try:
-                gen = self.llm.generate(
-                    prompt,
-                    system=system,
-                    tier="large",
-                    temperature=0.0 if attempt == 0 else RETRY_TEMPERATURE,
-                    max_output_tokens=max_tokens,
-                )
-            finally:
-                step.llm_latency_s = round(step.llm_latency_s + self._clock() - started, 3)
-            cost = call_cost_usd(gen.model, gen.input_tokens, gen.output_tokens)
-            step.model = gen.model
-            step.input_tokens = _add(step.input_tokens, gen.input_tokens, first=attempt == 0)
-            step.output_tokens = _add(step.output_tokens, gen.output_tokens, first=attempt == 0)
-            step.cost_usd = _add(step.cost_usd, cost, first=attempt == 0)
-            self._meter.add_call((gen.input_tokens or 0) + (gen.output_tokens or 0), cost or 0.0)
-            if gen.text.strip():
-                break
-            step.note = "model returned an empty reply" + (" twice" if attempt else "; retried")
-        return gen
+        return generate_charged(
+            self.llm, step, prompt, system, max_tokens, self._meter, clock=self._clock
+        )
 
     def _render_questions(self, state: State, *, with_counts: bool = True) -> str:
         lines = []
@@ -406,15 +365,6 @@ class BaselineAgent:
     def _render_budget(self) -> str:
         used = self._meter.fractions()
         return ", ".join(f"{name} {fraction:.0%}" for name, fraction in used.items())
-
-
-def _add(total: float | None, new: float | None, *, first: bool) -> float | None:
-    """Sum a per-call figure into a step total; None (not reported) stays None unless known."""
-    if first:
-        return new
-    if total is None or new is None:
-        return None
-    return total + new
 
 
 def _history_item(step: int, action: str, tool_input: dict[str, Any], observation: str) -> dict:
