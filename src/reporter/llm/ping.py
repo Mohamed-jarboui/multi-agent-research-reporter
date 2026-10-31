@@ -50,6 +50,15 @@ class PingResult:
         return " ".join(parts)
 
 
+def _reason(exc: ProviderError) -> str:
+    """Class and status; for a missing setting also its message, which names the variable only."""
+    from reporter.llm.openai_compat import ProviderConfigError
+
+    if isinstance(exc, ProviderConfigError):
+        return f"{exc.short()}: {exc}"
+    return exc.short()
+
+
 def ping_provider(
     name: str, provider: Provider | None, clock: Callable[[], float] = time.perf_counter
 ) -> PingResult:
@@ -65,7 +74,7 @@ def ping_provider(
         return PingResult(
             name,
             "failed",
-            exc.short(),
+            _reason(exc),
             exc.limit if isinstance(exc, RateLimitError) else None,
             exc.retry_after_s if isinstance(exc, RateLimitError) else None,
             clock() - start,

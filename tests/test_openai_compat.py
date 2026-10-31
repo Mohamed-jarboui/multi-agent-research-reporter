@@ -261,3 +261,26 @@ def test_preflight_ignores_the_gateway_unless_opted_in(monkeypatch):
     monkeypatch.setenv("REPORTER_EXTRA_PROVIDERS", "agentrouter")
     assert gateway_enabled() is True
     assert "agentrouter" in build_providers(gateway=gateway_enabled())
+
+
+def test_ping_line_names_the_missing_variable_but_no_value(monkeypatch):
+    from reporter.llm.ping import ping_provider
+
+    monkeypatch.setenv("AGENTROUTER_API_KEY", "sk-not-a-real-key-123456")
+    monkeypatch.delenv("AGENTROUTER_MODEL", raising=False)
+    try:
+        OpenAICompatProvider()
+    except ProviderConfigError as exc:
+        misconfigured = exc
+    else:  # pragma: no cover
+        raise AssertionError("expected a config error")
+
+    class Broken:
+        name = "agentrouter"
+
+        def generate(self, *args, **kwargs):
+            raise misconfigured
+
+    line = ping_provider("agentrouter", Broken()).line()
+    assert "AGENTROUTER_MODEL is not set" in line
+    assert "sk-not-a-real-key" not in line
