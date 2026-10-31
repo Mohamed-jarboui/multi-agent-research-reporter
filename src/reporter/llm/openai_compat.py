@@ -8,6 +8,7 @@ exception, a log line or a trace.
 from __future__ import annotations
 
 import os
+import re
 from collections.abc import Iterator
 from typing import Any
 
@@ -34,6 +35,62 @@ MODEL_VARIABLE = "AGENTROUTER_MODEL"
 BASE_URL_VARIABLE = "AGENTROUTER_BASE_URL"
 
 _MODEL_HINTS = ("no available channel", "model not found", "model_not_found", "does not exist")
+
+
+# Closed set of hints, first match wins. Only the token ever leaves this module, never the body.
+_HINT_RULES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    (
+        "invalid_token",
+        (
+            "invalid token",
+            "invalid api key",
+            "incorrect api key",
+            "token not found",
+            "无效的令牌",
+            "令牌无效",
+            "未提供令牌",
+        ),
+    ),
+    ("token_disabled_or_expired", ("disabled", "expired", "已禁用", "禁用", "已过期", "过期")),
+    (
+        "no_credit",
+        (
+            "insufficient quota",
+            "insufficient balance",
+            "quota exhausted",
+            "额度不足",
+            "余额不足",
+            "配额",
+        ),
+    ),
+    (
+        "client_not_allowed",
+        (
+            "unauthorized client",
+            "client not allowed",
+            "not supported client",
+            "不支持的客户端",
+            "非法客户端",
+            "only for claude code",
+            "仅限",
+        ),
+    ),
+    ("model_not_allowed", ("model not allowed", "no access to model", "无权访问", "分组")),
+    ("model_unavailable", ("no available channel", "model not found", "无可用渠道")),
+    ("rate_limited", ("rate limit", "too many requests", "请求过于频繁")),
+    ("ip_blocked", ("禁止访问", "blocked", "forbidden")),
+)
+_IP_WORD = re.compile(r"(?<![a-z])ip(?![a-z])")
+_MAX_SCAN = 2000
+
+
+def classify_hint(text: str) -> str:
+    """Map an error body to one fixed token. Allow-list only: nothing from `text` is returned."""
+    low = text[:_MAX_SCAN].lower().replace("_", " ")
+    for token, phrases in _HINT_RULES:
+        if any(p in low for p in phrases):
+            return token
+    return "ip_blocked" if _IP_WORD.search(low) else "unknown"
 
 
 class ProviderConfigError(ProviderError):
@@ -124,6 +181,11 @@ class OpenAICompatProvider:
     def _error(self, response: httpx.Response) -> ProviderError:
         status = response.status_code
         message = _error_text(response)  # classification only; never stored or re-raised
+        error = self._classify(response, status, message)
+        error.hint = classify_hint(message)
+        return error
+
+    def _classify(self, response: httpx.Response, status: int, message: str) -> ProviderError:
         if status == 429:
             limit, retry = classify_groq(message)
             header = response.headers.get("retry-after", "")
@@ -179,10 +241,13 @@ class OpenAICompatProvider:
 
 
 def _error_text(response: httpx.Response) -> str:
+    """Message/code/type strings of a JSON error body, or the plain text (classification only)."""
     try:
         data = response.json()
-        err = data.get("error", data)
-        text = err.get("message") if isinstance(err, dict) else err
-        return text if isinstance(text, str) else ""
-    except (ValueError, AttributeError):
-        return ""
+    except ValueError:
+        return response.text[:_MAX_SCAN]
+    err = data.get("error", data) if isinstance(data, dict) else data
+    if isinstance(err, dict):
+        parts = [err.get(k) for k in ("message", "code", "type")]
+        return " ".join(p for p in parts if isinstance(p, str))
+    return err if isinstance(err, str) else ""

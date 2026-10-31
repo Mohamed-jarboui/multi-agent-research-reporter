@@ -160,8 +160,102 @@ def test_ping_line_formats():
         provider(lambda r: httpx.Response(401, json=LEAKY)),
         clock=iter([0.0, 0.5]).__next__,
     )
-    assert bad.line() == "agentrouter: failed AuthError 401 (0.5s)"
+    assert bad.line() == "agentrouter: failed AuthError 401 hint=unknown (0.5s)"
     assert ping_provider("agentrouter", None).line() == "agentrouter: not configured"
+
+
+HINT_CASES = [
+    ("invalid_token", 401, "Invalid token"),
+    ("invalid_token", 401, "Incorrect API key provided"),
+    ("invalid_token", 401, "token not found"),
+    ("invalid_token", 401, "无效的令牌"),
+    ("invalid_token", 401, "未提供令牌"),
+    ("token_disabled_or_expired", 401, "This token has expired"),
+    ("token_disabled_or_expired", 403, "该令牌已被禁用"),
+    ("no_credit", 402, "Insufficient quota"),
+    ("no_credit", 403, "user quota is not enough: 余额不足"),
+    ("no_credit", 403, "额度不足"),
+    ("client_not_allowed", 403, "Unauthorized client detected"),
+    ("client_not_allowed", 403, "不支持的客户端"),
+    ("client_not_allowed", 403, "This key is only for Claude Code"),
+    ("model_not_allowed", 403, "No access to model x"),
+    ("model_not_allowed", 403, "该分组无权访问此模型"),
+    ("model_unavailable", 503, "No available channel for model x"),
+    ("model_unavailable", 404, "model not found"),
+    ("model_unavailable", 503, "无可用渠道"),
+    ("rate_limited", 429, "Too many requests"),
+    ("rate_limited", 429, "请求过于频繁"),
+    ("ip_blocked", 403, "Your IP is not allowed"),
+    ("ip_blocked", 403, "禁止访问"),
+    ("ip_blocked", 403, "Forbidden"),
+    ("unknown", 500, "something odd happened"),
+]
+
+
+def hint_of(status, body=None, **kwargs):
+    def handler(request):
+        if body is None:
+            return httpx.Response(status, **kwargs)
+        return httpx.Response(status, json=body)
+
+    with pytest.raises(Exception) as info:
+        provider(handler).generate("hi")
+    return info.value.hint
+
+
+@pytest.mark.parametrize(("token", "status", "text"), HINT_CASES)
+def test_hint_categories_from_json_error_bodies(token, status, text):
+    assert hint_of(status, {"error": {"message": text}}) == token
+
+
+def test_hint_reads_code_and_type_and_flat_message():
+    assert hint_of(403, {"error": {"message": "x", "code": "insufficient_quota"}}) == "no_credit"
+    assert hint_of(403, {"error": {"message": "x", "type": "Insufficient Quota"}}) == "no_credit"
+    assert hint_of(401, {"message": "Invalid API key"}) == "invalid_token"
+
+
+@pytest.mark.parametrize(
+    ("token", "text"),
+    [
+        ("invalid_token", "invalid token"),
+        ("no_credit", "额度不足"),
+        ("unknown", "<html>oops</html>"),
+    ],
+)
+def test_hint_from_plain_text_bodies(token, text):
+    assert hint_of(401, text=text) == token
+
+
+@pytest.mark.parametrize("status", [401, 403, 429, 500])
+def test_hint_empty_or_odd_body_is_unknown(status):
+    assert hint_of(status, text="") == "unknown"
+    assert hint_of(status, ["a list"]) == "unknown"
+
+
+def test_hint_never_carries_key_or_prompt_text_to_the_ping_line():
+    prompt = "PROMPT-TEXT " * 200
+    body = {"error": {"message": f"Invalid token {KEY} {prompt}", "code": KEY}}
+    clock = iter([0.0, 0.5]).__next__
+    result = ping_provider(
+        "agentrouter", provider(lambda r: httpx.Response(401, json=body)), clock=clock
+    )
+    assert result.hint == "invalid_token"
+    assert result.line() == "agentrouter: failed AuthError 401 hint=invalid_token (0.5s)"
+    with pytest.raises(AuthError) as info:
+        provider(lambda r: httpx.Response(401, json=body)).generate("hi")
+    error = info.value
+    assert error.hint in HINTS
+    for text in (str(error), repr(error), error.short(), result.line()):
+        assert KEY not in text and "PROMPT" not in text
+
+
+HINTS = {t for t, _, _ in HINT_CASES} | {"unknown"}
+
+
+def test_hint_is_always_in_the_closed_set_and_absent_on_success():
+    assert {t for t, _, _ in HINT_CASES} <= HINTS
+    ok = ping_provider("agentrouter", provider(lambda r: reply()), clock=iter([0.0, 1.0]).__next__)
+    assert ok.hint is None and "hint" not in ok.line()
 
 
 def clear_env(monkeypatch):

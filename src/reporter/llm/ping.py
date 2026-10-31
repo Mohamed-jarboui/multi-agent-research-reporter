@@ -30,6 +30,7 @@ class PingResult:
     reason: str = ""  # class and HTTP status, e.g. "RateLimitError 429"
     limit: str | None = None
     retry_after_s: float | None = None
+    hint: str | None = None  # closed-set cause token (gateway only)
     latency_s: float = 0.0
 
     @property
@@ -46,6 +47,8 @@ class PingResult:
             parts.append(f"limit={self.limit}")
         if self.retry_after_s is not None:
             parts.append(f"retry_after={self.retry_after_s:g}s")
+        if self.hint:
+            parts.append(f"hint={self.hint}")
         parts.append(f"({self.latency_s:.1f}s)")
         return " ".join(parts)
 
@@ -77,6 +80,7 @@ def ping_provider(
             _reason(exc),
             exc.limit if isinstance(exc, RateLimitError) else None,
             exc.retry_after_s if isinstance(exc, RateLimitError) else None,
+            exc.hint,
             clock() - start,
         )
     except Exception as exc:  # an unexpected SDK error: the class name only, never its text
