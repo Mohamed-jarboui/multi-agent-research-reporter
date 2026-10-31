@@ -1,0 +1,64 @@
+{
+  "runs": [
+    {
+      "topic": "state of small language models for on-device use",
+      "run_id": "20261030T233306Z-0c2054",
+      "sections": [
+        {
+          "section": "Background and current state",
+          "section_id": "s1",
+          "verdict_before": "fail",
+          "verdict_after": "fail",
+          "retried": true,
+          "kept_retry": false
+        },
+        {
+          "section": "Numbers and evidence",
+          "section_id": "s2",
+          "verdict_before": "fail",
+          "verdict_after": "fail",
+          "retried": true,
+          "kept_retry": false
+        },
+        {
+          "section": "Limits, risks and outlook",
+          "section_id": "s3",
+          "verdict_before": "fail",
+          "verdict_after": "fail",
+          "retried": true,
+          "kept_retry": true
+        }
+      ]
+    },
+    {
+      "topic": "carbon capture: current costs and limits",
+      "run_id": "20261030T233745Z-d89e98",
+      "sections": [
+        {
+          "section": "Economic Landscape of Carbon Capture (2020‑2026)",
+          "section_id": "s1",
+          "verdict_before": "fail",
+          "verdict_after": "fail",
+          "retried": true,
+          "kept_retry": false
+        },
+        {
+          "section": "Technical Performance Limits of Carbon Capture Technologies",
+          "section_id": "s2",
+          "verdict_before": "fail",
+          "verdict_after": "fail",
+          "retried": true,
+          "kept_retry": false
+        },
+        {
+          "section": "Policy, Market, and Environmental Context",
+          "section_id": "s3",
+          "verdict_before": "fail",
+          "verdict_after": "fail",
+          "retried": true,
+          "kept_retry": false
+        }
+      ]
+    }
+  ]
+}

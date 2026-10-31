@@ -20,7 +20,24 @@ MAX_DOWNLOAD_BYTES = 1_500_000  # stop reading a response after this many bytes
 MAX_PAGE_CHARS = 8_000  # readable text kept per page
 OBSERVATION_CHARS = 3_500  # what the model sees in its next step
 MAX_DOWNLOAD_SECONDS = 20.0  # total time for one download (the httpx timeout is per read)
+BLOCKED_STATUSES = (403, 429)
+BROWSER_HEADERS = {  # sent on the one retry after a 403/429
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
 MIN_TEXT_CHARS = 200  # below this a page is treated as empty (JavaScript shell, bot wall)
+
+
+class _Blocked(Exception):
+    """A 403/429 answer; the caller decides whether to retry."""
+
+    def __init__(self, status: int) -> None:
+        super().__init__(status)
+        self.status = status
 
 
 class FetchInput(BaseModel):
@@ -145,8 +162,24 @@ class FetchPage:
         return ToolOutput(observation=observation, pages=[page])
 
     def _download(self, url: str) -> tuple[str, str]:
+        """Download once; on 403/429 retry once with browser-like headers."""
         try:
-            with self._client.stream("GET", url) as response:
+            return self._download_once(url, None)
+        except _Blocked as first:
+            try:
+                return self._download_once(url, BROWSER_HEADERS)
+            except _Blocked as again:
+                status = again.status or first.status
+        raise ToolError(
+            f"{url} answered HTTP {status} twice (the site blocks automated readers). "
+            "Do not retry this site: pick a different search result. Pick another source."
+        )
+
+    def _download_once(self, url: str, headers: dict[str, str] | None) -> tuple[str, str]:
+        try:
+            with self._client.stream("GET", url, headers=headers) as response:
+                if response.status_code in BLOCKED_STATUSES:
+                    raise _Blocked(response.status_code)
                 if response.status_code >= 400:
                     raise ToolError(
                         f"{url} answered HTTP {response.status_code}. Pick another source."

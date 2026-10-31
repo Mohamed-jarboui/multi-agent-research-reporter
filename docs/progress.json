@@ -11,15 +11,15 @@
       "id": "R1",
       "name": "Supervisor and parallel workers",
       "branch": null,
-      "status": "pr_open",
+      "status": "merged",
       "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/2"
     },
     {
       "id": "R2",
       "name": "Critic and writer",
       "branch": null,
-      "status": "todo",
-      "pr_url": null
+      "status": "pr_open",
+      "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3"
     },
     {
       "id": "R3",

@@ -21,9 +21,16 @@ EmbedTask = Literal["document", "query"]
 class ProviderError(Exception):
     """Base class for every error a provider is allowed to raise."""
 
-    def __init__(self, message: str, *, provider: str = "") -> None:
+    def __init__(self, message: str, *, provider: str = "", status: int | None = None) -> None:
         super().__init__(message)
         self.provider = provider
+        self.status = status  # HTTP status when there is one
+        self.limit: str | None = None  # which limit a 429 hit (see llm.limits); never raw text
+        self.retry_after_s: float | None = None  # the provider's suggested wait, when given
+
+    def short(self) -> str:
+        """Class and status only: safe for traces and reports (no message, ids or URLs)."""
+        return type(self).__name__ + (f" {self.status}" if self.status else "")
 
 
 class RateLimitError(ProviderError):
@@ -32,6 +39,10 @@ class RateLimitError(ProviderError):
 
 class ServerError(ProviderError):
     """HTTP 5xx, timeouts and connection failures."""
+
+
+class EmptyReplyError(ServerError):
+    """The call succeeded but the reply had no text (a reasoning model used all its tokens)."""
 
 
 class AuthError(ProviderError):
@@ -54,17 +65,29 @@ class AllProvidersFailedError(ProviderError):
     """Every provider was tried (or skipped) and none succeeded."""
 
 
-def error_from_status(status: int | None, message: str, *, provider: str) -> ProviderError:
-    """Map an HTTP status code to the matching ProviderError."""
+def error_from_status(
+    status: int | None,
+    message: str,
+    *,
+    provider: str,
+    limit: str | None = None,
+    retry_after_s: float | None = None,
+) -> ProviderError:
+    """Map an HTTP status code to the matching ProviderError (a 429 also carries its limit)."""
     if status == 429:
-        return RateLimitError(message, provider=provider)
-    if status in (401, 403):
-        return AuthError(message, provider=provider)
-    if status == 404:
-        return NotFoundError(message, provider=provider)
-    if status is not None and 400 <= status < 500:
-        return BadRequestError(message, provider=provider)
-    return ServerError(message, provider=provider)
+        error: ProviderError = RateLimitError(message, provider=provider)
+        error.limit = limit or "unknown"
+        error.retry_after_s = retry_after_s
+    elif status in (401, 403):
+        error = AuthError(message, provider=provider)
+    elif status == 404:
+        error = NotFoundError(message, provider=provider)
+    elif status is not None and 400 <= status < 500:
+        error = BadRequestError(message, provider=provider)
+    else:
+        error = ServerError(message, provider=provider)
+    error.status = status
+    return error
 
 
 @dataclass(frozen=True)

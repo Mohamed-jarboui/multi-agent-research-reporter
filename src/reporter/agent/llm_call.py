@@ -10,7 +10,7 @@ from __future__ import annotations
 import threading
 import time
 from collections.abc import Callable
-from typing import Protocol
+from typing import Any, Protocol
 
 from reporter.budget import BudgetExhausted, BudgetMeter
 from reporter.llm.base import Generation, ProviderError, RateLimitError, Tier
@@ -35,6 +35,12 @@ class LLM(Protocol):
         temperature: float = 0.0,
         max_output_tokens: int | None = None,
     ) -> Generation: ...
+
+
+def llm_summary(llm: object) -> dict[str, Any]:
+    """The router's per-provider summary for `trace.llm` ({} for a model without one)."""
+    summary = getattr(llm, "summary", None)
+    return summary() if callable(summary) else {}
 
 
 def is_rate_limit(error: BaseException) -> bool:

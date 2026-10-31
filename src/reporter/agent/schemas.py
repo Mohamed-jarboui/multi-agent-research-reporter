@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import operator
-from typing import Annotated, Literal, TypedDict
+from typing import Annotated, Literal, NotRequired, TypedDict
 
 from pydantic import BaseModel, Field
 
@@ -43,6 +43,10 @@ class WorkerResult(BaseModel):
     attempts: int = 1
     stop_reason: str = ""
     error: str | None = None
+    # what a retry can use: search results never fetched, failed fetches, earlier queries
+    untried_urls: list[str] = Field(default_factory=list)
+    failed_fetches: list[dict[str, str]] = Field(default_factory=list)
+    queries: list[str] = Field(default_factory=list)
 
 
 class SectionOut(BaseModel):
@@ -52,6 +56,8 @@ class SectionOut(BaseModel):
     findings: list[Finding]  # source_ids are global
     attempts: int = 0
     error: str | None = None
+    n_pages: int = 0  # pages fetched for this section
+    stop_reason: str = ""  # why the worker stopped researching (max_steps, worker_time, ...)
 
 
 class MergedResearch(BaseModel):
@@ -63,12 +69,48 @@ class MergedResearch(BaseModel):
     dropped_citations: int = 0
 
 
+Verdict = Literal["pass", "weak", "fail", "unreviewed"]
+VERDICT_RANK: dict[str, int] = {"fail": 0, "weak": 1, "unreviewed": 2, "pass": 3}
+
+
+class Issue(BaseModel):
+    rubric: int = 0  # 1 sourced, 2 supported, 3 no contradiction, 4 coverage; 0 = other
+    issue: str
+    evidence: str = ""
+    origin: Literal["deterministic", "critic"] = "critic"
+
+
+class SectionReview(BaseModel):
+    section_id: str
+    verdict: Verdict
+    issues: list[Issue] = Field(default_factory=list)
+
+
+class Contradiction(BaseModel):
+    section_ids: list[str]
+    issue: str
+    evidence: str = ""
+
+
+class Review(BaseModel):
+    """What the checks and the critic said about the merged research."""
+
+    sections: dict[str, SectionReview] = Field(default_factory=dict)
+    contradictions: list[Contradiction] = Field(default_factory=list)
+    coverage_gaps: list[str] = Field(default_factory=list)
+    critic_status: Literal["ok", "failed", "skipped"] = "skipped"
+
+
 class State(TypedDict, total=False):
     topic: str
     sections: list[SectionBrief]
     results: Annotated[list[WorkerResult], operator.add]
+    retry_results: Annotated[list[WorkerResult], operator.add]
     merged: MergedResearch | None
     digest: str
+    review: Review | None
+    retry_ids: list[str]
+    report: str
 
 
 class WorkerInput(TypedDict):
@@ -76,3 +118,5 @@ class WorkerInput(TypedDict):
 
     brief: SectionBrief
     index: int
+    feedback: NotRequired[str]  # critic issues, for a retry
+    seeds: NotRequired[list[str]]  # untried search results of the first attempt

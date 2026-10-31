@@ -19,6 +19,7 @@ from reporter.llm.base import (
     UnsupportedOperationError,
     error_from_status,
 )
+from reporter.llm.limits import classify_groq
 
 # Overridable via the constructor. Checked against `available_models()` on 2026-10-29: the
 # llama-3.x names used before were not offered by this key, these two chat models were.
@@ -26,6 +27,16 @@ DEFAULT_MODELS: dict[Tier, str] = {
     "small": "openai/gpt-oss-20b",
     "large": "openai/gpt-oss-120b",
 }
+
+
+REASONING_HEADROOM = 600  # extra completion tokens so thinking cannot eat the whole answer
+LOW_TEMPERATURE = (
+    0.5  # below this, gpt-oss on Groq answered with reasoning only (measured 2026-10-29)
+)
+
+
+def is_reasoning_model(model: str) -> bool:
+    return "gpt-oss" in model
 
 
 class GroqProvider:
@@ -49,8 +60,25 @@ class GroqProvider:
         # retries are the router's job; the timeout stops a stalled call from hanging a request
         self._client = groq_sdk.Groq(api_key=key, max_retries=0, timeout=timeout_s)
         self._models = models or DEFAULT_MODELS
-        # Reasoning models (gpt-oss) spend output tokens thinking; "low" keeps that small.
-        self._extra = {"reasoning_effort": reasoning_effort} if reasoning_effort else {}
+        self._effort = reasoning_effort
+
+    def _params(self, model: str, temperature: float, max_tokens: int | None) -> dict:
+        """Request options. gpt-oss spends completion tokens thinking and, at a low temperature,
+        often returned only reasoning (R0, 2026-10-29): so for it the temperature is left to the
+        server default when low, reasoning effort is "low", reasoning is not returned, and the
+        token limit gets headroom.
+        """
+        params: dict = {"temperature": temperature, "max_tokens": max_tokens}
+        if self._effort:
+            params["reasoning_effort"] = self._effort
+        if is_reasoning_model(model):
+            params.setdefault("reasoning_effort", "low")
+            params["include_reasoning"] = False
+            if temperature < LOW_TEMPERATURE:
+                del params["temperature"]
+            if max_tokens is not None:
+                params["max_tokens"] = max_tokens + REASONING_HEADROOM
+        return params
 
     def generate(
         self,
@@ -70,9 +98,7 @@ class GroqProvider:
             response = self._client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=temperature,
-                max_tokens=max_output_tokens,
-                **self._extra,
+                **self._params(model, temperature, max_output_tokens),
             )
         except Exception as exc:
             raise _translate(exc) from exc
@@ -104,10 +130,8 @@ class GroqProvider:
             stream = self._client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=temperature,
-                max_tokens=max_output_tokens,
                 stream=True,
-                **self._extra,
+                **self._params(model, temperature, max_output_tokens),
             )
             for chunk in stream:
                 piece = chunk.choices[0].delta.content if chunk.choices else None
@@ -139,7 +163,10 @@ class GroqProvider:
 
 def _translate(exc: Exception) -> ProviderError:
     if isinstance(exc, groq_sdk.APIStatusError):
-        return error_from_status(exc.status_code, str(exc), provider=GroqProvider.name)
+        limit, retry = classify_groq(str(exc)) if exc.status_code == 429 else (None, None)
+        return error_from_status(
+            exc.status_code, str(exc), provider=GroqProvider.name, limit=limit, retry_after_s=retry
+        )
     if isinstance(exc, groq_sdk.APIConnectionError):  # includes APITimeoutError
         return ServerError(str(exc), provider=GroqProvider.name)
     raise exc

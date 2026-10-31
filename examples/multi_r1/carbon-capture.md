@@ -12,7 +12,7 @@ INCOMPLETE: no usable finding for this section (no page was fetched (stopped: ma
 
 *Status: incomplete; confidence: low.*
 
-INCOMPLETE: no usable finding for this section (AllProvidersFailedError: all providers failed; last error: RateLimitError("Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01ke7ddyf9f2kbkm9rsempm1te` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5756, Requested 2627. Please try again in 2.8725s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}")).
+INCOMPLETE: no usable finding for this section (AllProvidersFailedError: all providers failed; last error: RateLimitError("Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_REDACTED` service tier `on_demand` on tokens per minute (TPM): Limit 8000, Used 5756, Requested 2627. Please try again in 2.8725s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}")).
 
 ## Economic Viability and Market Context
 

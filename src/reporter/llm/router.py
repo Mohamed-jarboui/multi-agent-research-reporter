@@ -5,13 +5,14 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Iterator
-from typing import TypeVar
+from typing import Any, TypeVar
 
 from reporter.llm.base import (
     AllProvidersFailedError,
     AuthError,
     Embedding,
     EmbedTask,
+    EmptyReplyError,
     Generation,
     NotFoundError,
     Provider,
@@ -73,6 +74,8 @@ class FallbackLLM:
         self._sleep = sleep
         self._clock = clock
         self.usage: list[Usage] = []
+        self.failures: list[dict[str, Any]] = []  # one short record per failed provider attempt
+        self.empty_replies = 0  # calls that succeeded with no text (each counted once)
 
     def generate(
         self,
@@ -84,13 +87,17 @@ class FallbackLLM:
         max_output_tokens: int | None = None,
     ) -> Generation:
         def call(provider: Provider) -> Generation:
-            return provider.generate(
+            gen = provider.generate(
                 prompt,
                 system=system,
                 tier=tier,
                 temperature=temperature,
                 max_output_tokens=max_output_tokens,
             )
+            if not gen.text.strip():  # a retryable provider-level failure, counted once
+                self.empty_replies += 1
+                raise EmptyReplyError("empty reply", provider=provider.name)
+            return gen
 
         def usage_of(provider: Provider, result: Generation | None, t: float, err: str | None):
             return Usage(
@@ -182,6 +189,7 @@ class FallbackLLM:
         usage_of: Callable[[Provider, T | None, float, str | None], Usage],
     ) -> T:
         last_error: ProviderError | None = None
+        first_failure = len(self.failures)
         for provider in self.providers:
             for attempt in range(self.max_attempts):
                 start = self._clock()
@@ -194,6 +202,16 @@ class FallbackLLM:
                 except ProviderError as exc:
                     elapsed = self._clock() - start
                     self.usage.append(usage_of(provider, None, elapsed, repr(exc)))
+                    record: dict[str, Any] = {
+                        "provider": provider.name,
+                        "reason": exc.short(),
+                        "attempt": str(attempt + 1),
+                    }
+                    if isinstance(exc, RateLimitError):
+                        record["limit"] = exc.limit or "unknown"
+                        if exc.retry_after_s is not None:
+                            record["retry_after_s"] = exc.retry_after_s
+                    self.failures.append(record)
                     last_error = exc
                     if is_retryable(exc) and attempt < self.max_attempts - 1:
                         self._sleep(self.backoff_base_s * 2**attempt)
@@ -207,6 +225,42 @@ class FallbackLLM:
                 if not should_fallback(last_error):
                     raise last_error
         raise AllProvidersFailedError(
-            f"all providers failed; last error: {last_error!r}",
+            "all providers failed (" + self._reasons_since(first_failure) + ")",
             provider=last_error.provider if last_error else "",
         ) from last_error
+
+    def _reasons_since(self, first: int) -> str:
+        """Short per-provider reasons of one failing call, e.g. 'gemini: RateLimitError 429 x3;
+        groq: EmptyReplyError x3'. Never includes raw messages."""
+        counts: dict[tuple[str, str, str | None], int] = {}
+        for record in self.failures[first:]:
+            key = (record["provider"], record["reason"], record.get("limit"))
+            counts[key] = counts.get(key, 0) + 1
+        return (
+            "; ".join(
+                f"{p}: {r} x{c}" + (f" ({limit})" if limit else "")
+                for (p, r, limit), c in counts.items()
+            )
+            or "no provider tried"
+        )
+
+    def summary(self) -> dict[str, object]:
+        """Per-provider calls, failures, 429s by limit type and empty replies, for the run trace."""
+        calls: dict[str, int] = {}
+        failures: dict[str, dict[str, int]] = {}
+        limits: dict[str, dict[str, int]] = {}
+        for u in self.usage:
+            calls[u.provider] = calls.get(u.provider, 0) + 1
+        for r in self.failures:
+            by = failures.setdefault(r["provider"], {})
+            by[r["reason"]] = by.get(r["reason"], 0) + 1
+            if "limit" in r:
+                kinds = limits.setdefault(r["provider"], {})
+                kinds[r["limit"]] = kinds.get(r["limit"], 0) + 1
+        return {
+            "providers": [p.name for p in self.providers],
+            "calls": calls,
+            "failures": failures,
+            "limits": limits,  # 429s by provider and limit type, e.g. per_day_tokens
+            "empty_replies": self.empty_replies,
+        }

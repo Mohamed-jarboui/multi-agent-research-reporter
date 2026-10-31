@@ -23,7 +23,7 @@ from langgraph.graph import END, START, StateGraph
 from pydantic import BaseModel, Field
 
 from reporter.agent import prompts
-from reporter.agent.llm_call import LLM, generate_charged
+from reporter.agent.llm_call import LLM, generate_charged, llm_summary
 from reporter.agent.parsing import cited_numbers, extract_json, strip_sources_section
 from reporter.budget import Budget, BudgetMeter
 from reporter.llm.base import Generation, ProviderError
@@ -128,6 +128,7 @@ class BaselineAgent:
             self._trace.report = final["report"]
             return RunResult(final["report"], self._trace, self._trace_path)
         finally:
+            self._trace.llm = llm_summary(self.llm)
             self._trace.finish(self._meter.elapsed_s)
             self.last_trace_path = self._trace.save(self._runs_dir)
 

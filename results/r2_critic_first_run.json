@@ -1,0 +1,98 @@
+{
+  "runs": [
+    {
+      "topic": "state of small language models for on-device use",
+      "run_id": "20261030T164954Z-2252e1",
+      "sections": [
+        {
+          "section": "Hardware Landscape for On‑Device LLMs",
+          "section_id": "s1",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Model Architectures and Size Trade‑offs",
+          "section_id": "s2",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Software Stacks and Optimization Techniques",
+          "section_id": "s3",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Benchmarking and Real‑World Performance",
+          "section_id": "s4",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Use‑Case Landscape and Future Directions",
+          "section_id": "s5",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        }
+      ],
+      "note": "no section was retried in this run; verdict_after null means not applicable"
+    },
+    {
+      "topic": "carbon capture: current costs and limits",
+      "run_id": "20261030T165422Z-7e6fec",
+      "sections": [
+        {
+          "section": "Technology Overview and Cost Landscape",
+          "section_id": "s1",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Performance Limits and Technical Barriers",
+          "section_id": "s2",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Economic Viability and Market Constraints",
+          "section_id": "s3",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Policy Landscape and Future Cost Trajectories",
+          "section_id": "s4",
+          "verdict_before": "weak",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        },
+        {
+          "section": "Environmental and Societal Implications of Scaling Carbon Capture",
+          "section_id": "s5",
+          "verdict_before": "fail",
+          "verdict_after": null,
+          "retried": false,
+          "kept_retry": false
+        }
+      ],
+      "note": "no section was retried in this run; verdict_after null means not applicable"
+    }
+  ]
+}
