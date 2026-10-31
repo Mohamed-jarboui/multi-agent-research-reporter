@@ -39,7 +39,7 @@ from reporter.agent.critic import (
     retry_candidates,
     run_critic,
 )
-from reporter.agent.llm_call import LLM, LLMGate, generate_charged
+from reporter.agent.llm_call import LLM, LLMGate, generate_charged, llm_summary
 from reporter.agent.parsing import extract_json, strip_sources_section
 from reporter.agent.schemas import (
     Finding,
@@ -352,9 +352,7 @@ class MultiAgent:
                 final["digest"],
             )
         finally:
-            summary = getattr(self.llm, "summary", None)
-            if callable(summary):
-                trace.llm = summary()
+            trace.llm = llm_summary(self.llm)
             trace.finish(meter.elapsed_s)
             self.last_trace_path = trace.save(self._runs_dir)
 

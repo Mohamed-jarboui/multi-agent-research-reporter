@@ -19,6 +19,7 @@ from reporter.llm.base import (
     UnsupportedOperationError,
     error_from_status,
 )
+from reporter.llm.limits import classify_groq
 
 # Overridable via the constructor. Checked against `available_models()` on 2026-10-29: the
 # llama-3.x names used before were not offered by this key, these two chat models were.
@@ -162,7 +163,10 @@ class GroqProvider:
 
 def _translate(exc: Exception) -> ProviderError:
     if isinstance(exc, groq_sdk.APIStatusError):
-        return error_from_status(exc.status_code, str(exc), provider=GroqProvider.name)
+        limit, retry = classify_groq(str(exc)) if exc.status_code == 429 else (None, None)
+        return error_from_status(
+            exc.status_code, str(exc), provider=GroqProvider.name, limit=limit, retry_after_s=retry
+        )
     if isinstance(exc, groq_sdk.APIConnectionError):  # includes APITimeoutError
         return ServerError(str(exc), provider=GroqProvider.name)
     raise exc

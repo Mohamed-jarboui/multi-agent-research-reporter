@@ -25,6 +25,8 @@ class ProviderError(Exception):
         super().__init__(message)
         self.provider = provider
         self.status = status  # HTTP status when there is one
+        self.limit: str | None = None  # which limit a 429 hit (see llm.limits); never raw text
+        self.retry_after_s: float | None = None  # the provider's suggested wait, when given
 
     def short(self) -> str:
         """Class and status only: safe for traces and reports (no message, ids or URLs)."""
@@ -63,10 +65,19 @@ class AllProvidersFailedError(ProviderError):
     """Every provider was tried (or skipped) and none succeeded."""
 
 
-def error_from_status(status: int | None, message: str, *, provider: str) -> ProviderError:
-    """Map an HTTP status code to the matching ProviderError."""
+def error_from_status(
+    status: int | None,
+    message: str,
+    *,
+    provider: str,
+    limit: str | None = None,
+    retry_after_s: float | None = None,
+) -> ProviderError:
+    """Map an HTTP status code to the matching ProviderError (a 429 also carries its limit)."""
     if status == 429:
         error: ProviderError = RateLimitError(message, provider=provider)
+        error.limit = limit or "unknown"
+        error.retry_after_s = retry_after_s
     elif status in (401, 403):
         error = AuthError(message, provider=provider)
     elif status == 404:

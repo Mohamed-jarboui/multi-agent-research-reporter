@@ -21,6 +21,7 @@ from reporter.llm.base import (
     Tier,
     error_from_status,
 )
+from reporter.llm.limits import classify_gemini
 
 # Overridable via the constructor. gemini-2.5-* answers 404 "no longer available to new users" on
 # this key though the model list shows it; these two were tested with a real call on 2026-10-29.
@@ -147,7 +148,14 @@ class GeminiProvider:
 
 def _translate(exc: Exception) -> ProviderError:
     if isinstance(exc, genai_errors.APIError):
-        return error_from_status(exc.code, str(exc), provider=GeminiProvider.name)
+        limit, retry = (
+            classify_gemini(getattr(exc, "details", None), str(exc))
+            if exc.code == 429
+            else (None, None)
+        )
+        return error_from_status(
+            exc.code, str(exc), provider=GeminiProvider.name, limit=limit, retry_after_s=retry
+        )
     if isinstance(exc, httpx.TransportError | TimeoutError | ConnectionError):
         return ServerError(str(exc), provider=GeminiProvider.name)
     raise exc
