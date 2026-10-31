@@ -6,6 +6,8 @@ from typing import Any, ClassVar, Protocol
 
 from pydantic import BaseModel, ValidationError
 
+from reporter import otel
+
 
 class ToolError(Exception):
     """A tool failed in a way the agent can act on. The message is shown to the model, so it says
@@ -49,6 +51,14 @@ def describe(tool: Tool) -> str:
 
 
 def call_tool(tool: Tool, raw_input: Any) -> ToolOutput:
+    """Run the tool inside a `tool:<name>` span (name and ok only; no input is recorded)."""
+    with otel.span(f"tool:{tool.name}", kind="tool", attributes={"tool.name": tool.name}) as sp:
+        output = _call_tool(tool, raw_input)
+        sp.set_attribute("tool.ok", not output.error)
+        return output
+
+
+def _call_tool(tool: Tool, raw_input: Any) -> ToolOutput:
     """Validate `raw_input`, run the tool and turn every failure into an informative observation.
 
     Never raises: the agent must always get text back so it can adapt.

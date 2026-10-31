@@ -106,6 +106,7 @@ class GroqProvider:
         return Generation(
             text=response.choices[0].message.content or "",
             model=model,
+            provider=self.name,
             input_tokens=usage.prompt_tokens if usage else None,
             output_tokens=usage.completion_tokens if usage else None,
         )
@@ -150,6 +151,7 @@ class GroqProvider:
             final=Generation(
                 text="".join(parts),
                 model=model,
+                provider=self.name,
                 input_tokens=getattr(usage, "prompt_tokens", None),
                 output_tokens=getattr(usage, "completion_tokens", None),
             )

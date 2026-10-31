@@ -27,3 +27,6 @@ Thumbs.db
 
 # Agent runs (raw traces)
 runs/
+
+# Service data when /data is not available (see REPORTER_DATA_DIR)
+var/

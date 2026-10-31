@@ -12,6 +12,7 @@ is the fallback when the writer fails and the output with `critic=False, writer=
 
 from __future__ import annotations
 
+import functools
 import time
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, replace
@@ -23,7 +24,18 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 from pydantic import BaseModel, ValidationError, field_validator
 
+from reporter import otel
 from reporter.agent import prompts
+from reporter.agent.checkpoint import (
+    CheckpointStore,
+    JobCancelled,
+    RunHooks,
+    Snapshot,
+    decode_output,
+    encode_output,
+    events_for,
+    merge_counts,
+)
 from reporter.agent.checks import (
     check_citations,
     deterministic_reviews,
@@ -282,7 +294,13 @@ class MultiAgent:
         cost_fn: Callable[[str, int | None, int | None], float | None] = call_cost_usd,
         critic: bool = True,
         writer: bool = True,
+        on_call: Callable[[int], None] | None = None,
     ) -> None:
+        self._on_call = on_call
+        self._store: CheckpointStore | None = None
+        self._hooks: RunHooks | None = None
+        self._base_llm: dict[str, Any] = {}
+        self._job_ctx: Any = None
         self.use_critic = critic
         self.use_writer = writer
         self.llm = llm
@@ -299,20 +317,51 @@ class MultiAgent:
 
     # ------------------------------------------------------------------ public
 
-    def run(self, topic: str) -> MultiRunResult:
-        """Research `topic`. The trace is saved even when the run fails."""
-        meter = BudgetMeter(self.budget.run, self._clock)
-        trace = Trace(
-            run_id=new_run_id(),
-            system="multi",
-            topic=topic,
-            started_at=datetime.now(UTC).isoformat(timespec="seconds"),
-            budget=asdict(self.budget),
-            concurrency={
-                "max_parallel_workers": self.budget.max_parallel_workers,
-                "max_parallel_llm_calls": self.budget.max_parallel_llm_calls,
-            },
-        )
+    @property
+    def meter(self) -> BudgetMeter:
+        """The meter of the current (or last) run."""
+        return self._ctx.meter
+
+    def run(
+        self,
+        topic: str,
+        *,
+        run_id: str | None = None,
+        store: CheckpointStore | None = None,
+        hooks: RunHooks | None = None,
+    ) -> MultiRunResult:
+        """Research `topic`. The trace is saved even when the run fails.
+
+        With a `store` (the service), every node is checkpointed, and a store that already holds
+        a snapshot makes this a resume: the meter and the trace continue from it and the finished
+        nodes are replayed from the store instead of run again. Without one, nothing changes.
+        """
+        meter = BudgetMeter(self.budget.run, self._clock, on_call=self._on_call)
+        snapshot = store.load_snapshot() if store is not None else None
+        if snapshot is not None:
+            trace = Trace.model_validate_json(snapshot.trace_json)
+            meter.restore(snapshot.meter)
+            trace.resumes.append(
+                {
+                    "from_key": snapshot.last_key,
+                    "resumed_at": datetime.now(UTC).isoformat(timespec="seconds"),
+                    "attempt": len(trace.resumes) + 1,
+                }
+            )
+        else:
+            trace = Trace(
+                run_id=run_id or new_run_id(),
+                system="multi",
+                topic=topic,
+                started_at=datetime.now(UTC).isoformat(timespec="seconds"),
+                budget=asdict(self.budget),
+                concurrency={
+                    "max_parallel_workers": self.budget.max_parallel_workers,
+                    "max_parallel_llm_calls": self.budget.max_parallel_llm_calls,
+                },
+            )
+        self._store, self._hooks = store, hooks
+        self._base_llm = snapshot.llm if snapshot is not None else {}
         self._ctx = WorkerContext(
             topic=topic,
             today=self._today,
@@ -336,10 +385,25 @@ class MultiAgent:
             "report": "",
         }
         config: Any = {"max_concurrency": self.budget.max_parallel_workers}
+        # One root span per run segment (a resumed job has two or more). It is passed to every
+        # node and worker explicitly, so the parent links do not depend on thread context.
+        job_span = otel.get_tracer().start_span(
+            "job",
+            attributes={
+                otel.OBSERVATION_TYPE: "agent",
+                otel.SESSION_ID: trace.run_id,
+                otel.TRACE_NAME: "report",
+                "reporter.resumed": snapshot is not None,
+            },
+        )
+        self._job_ctx = otel.job_context(job_span)
         try:
             final = self._graph.invoke(initial, config)
+        except JobCancelled:
+            raise
         except Exception as exc:
             trace.error = f"{type(exc).__name__}: {exc}"
+            job_span.set_attribute("error.type", type(exc).__name__)
             raise
         else:
             trace.report = final["report"]
@@ -352,21 +416,72 @@ class MultiAgent:
                 final["digest"],
             )
         finally:
-            trace.llm = llm_summary(self.llm)
+            job_span.end()
+            trace.llm = merge_counts(self._base_llm, llm_summary(self.llm))
             trace.finish(meter.elapsed_s)
             self.last_trace_path = trace.save(self._runs_dir)
+
+    # ------------------------------------------------------------------- nodes
+
+    def _node(
+        self, fn: Callable[[Any], Any], key_of: Callable[[Any], str] | None = None
+    ) -> Callable[[Any], Any]:
+        """Wrap a graph node: replay it from the store when it is saved, else run and save it."""
+
+        @functools.wraps(fn)
+        def node(arg: Any) -> Any:
+            key = key_of(arg) if key_of else fn.__name__.lstrip("_")
+            return self._execute(key, lambda: fn(arg))
+
+        return node
+
+    def _execute(self, key: str, call: Callable[[], dict[str, Any]]) -> dict[str, Any]:
+        store = self._store
+        kind, _, sid = key.partition(":")
+        if kind in ("worker", "retry"):
+            name, span_kind = f"worker:{sid}", "agent"
+            attrs: dict[str, Any] = {"reporter.phase": "retry" if kind == "retry" else "research"}
+        else:
+            name, span_kind, attrs = f"node:{key}", "span", {}
+        attrs["reporter.node.key"] = key
+        with otel.span(name, kind=span_kind, parent=self._job_ctx, attributes=attrs) as sp:
+            if store is not None:
+                cached = store.load(key)
+                if cached is not None:
+                    sp.set_attribute("reporter.node.cached", True)
+                    return decode_output(cached)
+                if store.cancel_requested():
+                    raise JobCancelled(key)
+            output = call()
+            if store is not None:
+                self._commit(store, key, output)
+        if self._hooks is not None and store is not None:
+            self._hooks.after_checkpoint(key)
+        return output
+
+    def _commit(self, store: CheckpointStore, key: str, output: dict[str, Any]) -> None:
+        trace, meter = self._ctx.trace, self._ctx.meter
+        events = events_for(key, output, writer_status=str(trace.writer.get("status", "")))
+
+        def snapshot() -> Snapshot:
+            llm = merge_counts(self._base_llm, llm_summary(self.llm))
+            return Snapshot(trace.dump_json(), meter.snapshot(), llm, key)
+
+        store.commit(key, encode_output(output), snapshot, events)
 
     # ------------------------------------------------------------------- graph
 
     def _build_graph(self) -> Any:
         graph = StateGraph(State)
-        graph.add_node("supervisor", self._supervisor)
-        graph.add_node("worker", self._worker)
-        graph.add_node("merge", self._merge)
-        graph.add_node("critic", self._critic)
-        graph.add_node("retry_worker", self._retry_worker)
-        graph.add_node("regrade", self._regrade)
-        graph.add_node("writer", self._writer)
+        graph.add_node("supervisor", self._node(self._supervisor))
+        graph.add_node("worker", self._node(self._worker, lambda i: f"worker:{i['brief'].id}"))
+        graph.add_node("merge", self._node(self._merge))
+        graph.add_node("critic", self._node(self._critic))
+        graph.add_node(
+            "retry_worker", self._node(self._retry_worker, lambda i: f"retry:{i['brief'].id}")
+        )
+        graph.add_node("regrade", self._node(self._regrade))
+        graph.add_node("writer", self._node(self._writer))
         graph.add_edge(START, "supervisor")
         graph.add_conditional_edges("supervisor", self._fan_out, ["worker"])
         graph.add_edge("worker", "merge")
@@ -434,7 +549,9 @@ class MultiAgent:
         ]
 
     def _worker(self, inp: WorkerInput) -> dict[str, list[WorkerResult]]:
-        return {"results": [run_worker(self._ctx, inp["brief"], inp["index"])]}
+        result = run_worker(self._ctx, inp["brief"], inp["index"])
+        otel.current_span().set_attribute("reporter.worker.attempts", result.attempts)
+        return {"results": [result]}
 
     def _merge(self, state: State) -> State:
         merged = merge_results(state["sections"], state["results"])
@@ -533,6 +650,7 @@ class MultiAgent:
             phase="retry",
             seed_urls=inp.get("seeds", []),
         )
+        otel.current_span().set_attribute("reporter.worker.attempts", result.attempts)
         return {"retry_results": [result]}
 
     def _regrade(self, state: State) -> State:

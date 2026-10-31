@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research reporter</title>
+<style>
+  :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+  body { max-width: 46rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  form { display: flex; gap: .5rem; }
+  input[type=text] { flex: 1; padding: .5rem; font-size: 1rem; }
+  button { padding: .5rem 1rem; font-size: 1rem; }
+  #events { list-style: none; padding: 0; font-family: ui-monospace, monospace; font-size: .9rem; }
+  #events li { padding: .15rem 0; border-bottom: 1px solid #8884; }
+  #quota, #status { color: #666; font-size: .9rem; }
+  pre#report { white-space: pre-wrap; background: #8881; padding: 1rem; border-radius: .4rem; }
+</style>
+</head>
+<body>
+<h1>Research reporter</h1>
+<p>Give a topic. A supervisor plans the report, workers research the sections in parallel, a critic
+checks them and a writer assembles a cited report. The free-tier quota allows only a few runs per
+day.</p>
+<p id="quota">Loading quota...</p>
+<form id="form">
+  <input type="text" id="topic" minlength="5" maxlength="300" required
+         placeholder="e.g. state of solid-state batteries">
+  <button type="submit">Start</button>
+</form>
+<p id="status"></p>
+<ul id="events"></ul>
+<pre id="report" hidden></pre>
+<script>
+const $ = (id) => document.getElementById(id);
+let source = null;
+
+async function showQuota() {
+  try {
+    const q = await (await fetch("/quota")).json();
+    $("quota").textContent = `Today (UTC): ${q.jobs.left} of ${q.jobs.limit} runs left; ` +
+      `${q.queue.waiting} waiting. Resets at ${q.resets_at}.`;
+  } catch (e) { $("quota").textContent = "Quota unavailable."; }
+}
+
+function line(type, data) {
+  const li = document.createElement("li");
+  li.textContent = `${type} ${JSON.stringify(data)}`;
+  $("events").appendChild(li);
+}
+
+async function showResult(id) {
+  const job = await (await fetch(`/reports/${id}`)).json();
+  $("status").textContent = `${job.state}${job.message ? ": " + job.message : ""}`;
+  if (job.result) { $("report").hidden = false; $("report").textContent = job.result.report_markdown; }
+}
+
+function follow(id) {
+  if (source) source.close();
+  source = new EventSource(`/reports/${id}/events`);
+  const types = ["queued", "started", "plan", "worker_done", "critic_verdict", "retry",
+                 "written", "quota", "done", "failed"];
+  for (const type of types) {
+    source.addEventListener(type, (ev) => {
+      line(type, JSON.parse(ev.data));
+      if (type === "done" || type === "failed") { source.close(); showResult(id); showQuota(); }
+    });
+  }
+}
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  $("events").innerHTML = ""; $("report").hidden = true;
+  const key = crypto.randomUUID();
+  const res = await fetch("/reports", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Idempotency-Key": key },
+    body: JSON.stringify({ topic: $("topic").value }),
+  });
+  const body = await res.json();
+  if (!res.ok) { $("status").textContent = body.error.message; return; }
+  $("status").textContent = `Job ${body.id}`;
+  follow(body.id);
+});
+showQuota();
+</script>
+</body>
+</html>

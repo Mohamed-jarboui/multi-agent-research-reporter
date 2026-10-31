@@ -12,6 +12,7 @@ import time
 from collections.abc import Callable
 from typing import Any, Protocol
 
+from reporter import otel
 from reporter.budget import BudgetExhausted, BudgetMeter
 from reporter.llm.base import Generation, ProviderError, RateLimitError, Tier
 from reporter.pricing import call_cost_usd
@@ -160,29 +161,43 @@ def generate_charged(
         check_budget()
         temp = temperature if attempt == 0 else max(temperature, RETRY_TEMPERATURE)
         started = clock()
-        try:
-            if gate is None:
-                gen = llm.generate(
-                    prompt,
-                    system=system,
-                    tier="large",
-                    temperature=temp,
-                    max_output_tokens=max_tokens,
-                )
-            else:
-                gen = gate.generate(
-                    llm,
-                    prompt,
-                    system=system,
-                    temperature=temp,
-                    max_output_tokens=max_tokens,
-                    max_wait_s=max_wait_s,
-                    on_wait=on_wait,
-                    before_call=check_budget,
-                )
-        finally:
-            step.llm_latency_s = round(step.llm_latency_s + clock() - started, 3)
-        cost = cost_fn(gen.model, gen.input_tokens, gen.output_tokens)
+        with otel.span(
+            "llm.generate", kind="generation", attributes={"gen_ai.operation.name": "chat"}
+        ) as sp:
+            try:
+                if gate is None:
+                    gen = llm.generate(
+                        prompt,
+                        system=system,
+                        tier="large",
+                        temperature=temp,
+                        max_output_tokens=max_tokens,
+                    )
+                else:
+                    gen = gate.generate(
+                        llm,
+                        prompt,
+                        system=system,
+                        temperature=temp,
+                        max_output_tokens=max_tokens,
+                        max_wait_s=max_wait_s,
+                        on_wait=on_wait,
+                        before_call=check_budget,
+                    )
+            except ProviderError as exc:
+                otel.set_llm_failure(sp, exc)
+                raise
+            finally:
+                step.llm_latency_s = round(step.llm_latency_s + clock() - started, 3)
+            cost = cost_fn(gen.model, gen.input_tokens, gen.output_tokens)
+            otel.set_generation(
+                sp,
+                provider=gen.provider,
+                model=gen.model,
+                input_tokens=gen.input_tokens,
+                output_tokens=gen.output_tokens,
+                cost_usd=cost,
+            )
         step.model = gen.model
         step.input_tokens = _add(step.input_tokens, gen.input_tokens, first=attempt == 0)
         step.output_tokens = _add(step.output_tokens, gen.output_tokens, first=attempt == 0)
