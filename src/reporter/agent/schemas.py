@@ -58,6 +58,7 @@ class SectionOut(BaseModel):
     error: str | None = None
     n_pages: int = 0  # pages fetched for this section
     stop_reason: str = ""  # why the worker stopped researching (max_steps, worker_time, ...)
+    blocked_fetches: int = 0  # fetches that returned HTTP 403 or 429
 
 
 class MergedResearch(BaseModel):

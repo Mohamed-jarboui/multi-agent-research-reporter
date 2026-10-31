@@ -43,6 +43,7 @@ from reporter.agent.checks import (
     normalize_url,
     plain_reason,
     section_problem,
+    section_reason,
 )
 from reporter.agent.critic import (
     MIN_RETRY_SECONDS,
@@ -69,6 +70,7 @@ from reporter.agent.writer import (
     assemble_report,
     no_report_text,
     run_writer,
+    sanitize_body,
     usable_sections,
 )
 from reporter.budget import BudgetMeter, MultiBudget
@@ -229,6 +231,9 @@ def merge_results(sections: list[SectionBrief], results: list[WorkerResult]) -> 
                 error=result.error,
                 n_pages=len(result.pages),
                 stop_reason=result.stop_reason,
+                blocked_fetches=sum(
+                    f.get("reason") in ("HTTP 403", "HTTP 429") for f in result.failed_fetches
+                ),
             )
         )
     return merged
@@ -252,7 +257,7 @@ def render_digest(topic: str, merged: MergedResearch) -> str:
             "",
         ]
         if not section.findings:
-            reason = f" ({plain_reason(section.error, section.stop_reason)})"
+            reason = f" ({section_reason(section)})"
             lines.append(f"INCOMPLETE: no usable finding for this section{reason}.")
         for finding in section.findings:
             cites = "".join(f"[{n}]" for n in finding.source_ids)
@@ -723,8 +728,9 @@ class MultiAgent:
                 trace.writer = {"status": "fallback", "reason": failure}
                 trace.notes.append(f"writer_failed: {failure}")
             else:
+                body, removed = sanitize_body(body, merged, review)
                 report, stage = assemble_report(body, merged, review), "report"
-                trace.writer = {"status": "ok"}
+                trace.writer = {"status": "ok"} | {k: v for k, v in removed.items() if v}
         results = [*state["results"], *state.get("retry_results", [])]
         fetched = fetched_urls(trace, [p.url for r in results for p in r.pages])
         check = check_citations(strip_sources_section(report), merged.sources, fetched)
