@@ -1,4 +1,4 @@
-.PHONY: install lint test figures
+.PHONY: install lint test figures bench
 
 install:
 	uv sync
@@ -12,3 +12,7 @@ test:
 
 figures:
 	uv run --group report python scripts/make_figures.py
+
+bench:
+	uv run python evals/run_benchmark.py
+	uv run python evals/aggregate.py

@@ -1,0 +1,84 @@
+name: Benchmark
+
+# Manual only. Runs the R3 benchmark with the repository secrets and commits the results to the
+# `results` branch. Safe to run again: the run records already on that branch are kept and their
+# runs skipped, so the benchmark can be finished over several days of free-tier quota.
+on:
+  workflow_dispatch:
+    inputs:
+      max_runs:
+        description: "Stop after this many runs (empty = all pending runs)"
+        required: false
+        default: ""
+      topics:
+        description: "Topic ids separated by spaces (empty = all)"
+        required: false
+        default: ""
+      runs_per_topic:
+        description: "Runs per topic and system"
+        required: false
+        default: "2"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: benchmark
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+      MAX_RUNS: ${{ inputs.max_runs }}
+      TOPICS: ${{ inputs.topics }}
+      RUNS_PER_TOPIC: ${{ inputs.runs_per_topic }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+
+      - name: Restore earlier results from the results branch
+        run: |
+          if git ls-remote --exit-code --heads origin results >/dev/null 2>&1; then
+            git fetch --depth 1 origin results
+            git checkout FETCH_HEAD -- results || true
+          fi
+
+      - name: Run the benchmark
+        id: bench
+        continue-on-error: true
+        run: |
+          args=(--runs-per-topic "$RUNS_PER_TOPIC")
+          if [ -n "$MAX_RUNS" ]; then args+=(--max-runs "$MAX_RUNS"); fi
+          if [ -n "$TOPICS" ]; then args+=(--topics $TOPICS); fi
+          uv run python evals/run_benchmark.py "${args[@]}"
+
+      - name: Aggregate
+        if: always()
+        run: uv run python evals/aggregate.py --runs-per-topic "$RUNS_PER_TOPIC"
+
+      - name: Commit results to the results branch
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git checkout --orphan results-publish
+          git rm -rf --cached . >/dev/null
+          for path in results/benchmark.json results/benchmark_runs results/benchmark_judgements; do
+            if [ -e "$path" ]; then git add "$path"; fi
+          done
+          git commit -m "chore: benchmark results $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push --force origin results-publish:results
+
+      - name: Report the benchmark step result
+        if: steps.bench.outcome == 'failure'
+        run: |
+          echo "The benchmark stopped early (quota or failures); see the log. Results so far were saved."
+          exit 1
