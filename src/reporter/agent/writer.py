@@ -9,9 +9,9 @@ from __future__ import annotations
 import re
 
 from reporter.agent import prompts
-from reporter.agent.checks import clean_text, plain_reason
+from reporter.agent.checks import clean_text, section_reason
 from reporter.agent.llm_call import generate_charged
-from reporter.agent.parsing import strip_sources_section
+from reporter.agent.parsing import citation_numbers, strip_sources_section
 from reporter.agent.schemas import Finding, MergedResearch, Review, SectionOut
 from reporter.agent.worker import WorkerContext
 from reporter.budget import BudgetExhausted
@@ -81,7 +81,7 @@ def gap_lines(merged: MergedResearch, review: Review, *, for_prompt: bool = Fals
         title = section.brief.title
         verdict = review.sections.get(section.brief.id)
         if not section.findings:
-            reason = plain_reason(section.error, section.stop_reason)
+            reason = section_reason(section)
             lines.append(f'Missing: "{title}" has no usable findings ({reason}).')
             continue
         if verdict is not None and verdict.verdict in ("weak", "fail"):
@@ -171,8 +171,109 @@ def run_writer(
     return body, ""
 
 
+# ------------------------------------------------------------------ writer output rules
+
+_HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
+_BULLET = re.compile(r"^\s*(?:[-*+•]|\d+[.)])\s+")
+_STRAY_TOKEN = re.compile(r"\s*\[[A-Za-z_][A-Za-z_ ]{0,40}\](?!\()")  # [Critic], [budget_steps]
+_RULE = re.compile(r"^\s*(?:-{3,}|\*{3,}|_{3,})\s*$")
+_ASSURANCE = re.compile(
+    r"\b(?:all|every)\b.{0,40}\b(?:statements?|claims?|facts?|sentences?|information)\b"
+    r".{0,60}\b(?:sourced|cited|supported|backed|verified)\b",
+    re.IGNORECASE,
+)
+
+
+def _title_key(text: str) -> str:
+    words = re.findall(r"[a-z0-9]+", text.lower())
+    return " ".join(w for w in words if w != "and")
+
+
+def sanitize_body(body: str, merged: MergedResearch, review: Review) -> tuple[str, dict[str, int]]:
+    """Enforce the writer output rules in code. Returns (text, counts of what was removed).
+
+    - bracketed non-numeric tokens such as [Critic] are removed;
+    - blanket assurance lines ("all statements are sourced") are removed;
+    - a section with no usable findings is dropped (it lives in the coverage notes only);
+    - an uncited bullet under a section heading is dropped.
+    """
+    counts = {"stray_tokens": 0, "assurance_lines": 0, "dropped_sections": 0, "uncited_bullets": 0}
+    empty = {_title_key(s.brief.title) for s in merged.sections} - {
+        _title_key(s.brief.title) for s in usable_sections(merged, review)
+    }
+    # block = [heading line or None, level, kept body lines, dropped something]
+    blocks: list[list] = [[None, 0, [], False]]
+    skip_level = 0  # inside a dropped section: skip lines until a heading of this level or higher
+    skip_continuation = False
+    for raw in body.splitlines():
+        line, n = _STRAY_TOKEN.subn("", raw)
+        counts["stray_tokens"] += n
+        heading = _HEADING.match(line)
+        if heading:
+            level = len(heading.group(1))
+            if skip_level and level > skip_level:
+                continue
+            skip_level = 0
+            skip_continuation = False
+            if level >= 2 and _title_key(heading.group(2)) in empty:
+                skip_level = level
+                counts["dropped_sections"] += 1
+                continue
+            blocks.append([line, level, [], False])
+            continue
+        assurance = _ASSURANCE.search(line) is not None
+        if skip_level:
+            counts["assurance_lines"] += assurance
+            continue
+        block = blocks[-1]
+        if assurance:
+            counts["assurance_lines"] += 1
+            block[3] = True
+            while block[2] and (not block[2][-1].strip() or _RULE.match(block[2][-1])):
+                block[2].pop()
+            continue
+        if block[0] is not None and block[1] >= 2:
+            if _BULLET.match(line) and not citation_numbers(line):
+                counts["uncited_bullets"] += 1
+                block[3] = True
+                skip_continuation = True
+                continue
+            if skip_continuation and line.startswith((" ", "\t")) and not _BULLET.match(line):
+                continue
+        skip_continuation = False
+        block[2].append(line)
+    out: list[str] = []
+    for head, _level, lines, dropped in blocks:
+        if head is not None and dropped and not any(ln.strip() for ln in lines):
+            continue  # the section only had removed lines
+        out += ([head] if head is not None else []) + lines
+    return "\n".join(out).strip() + "\n", counts
+
+
+def claim_counts(merged: MergedResearch, review: Review) -> tuple[int, int, int]:
+    """(claims cited, claims left out or unverified, sections missing or weak), from the data."""
+    cited = left_out = 0
+    for section in merged.sections:
+        cited += len(verified_findings(section, review))
+        left_out += len(flagged_findings(section, review))
+    problems = 0
+    for section in merged.sections:
+        verdict = review.sections.get(section.brief.id)
+        if not section.findings or (verdict is not None and verdict.verdict in ("weak", "fail")):
+            problems += 1
+    return cited, left_out, problems
+
+
+def check_line(merged: MergedResearch, review: Review) -> str:
+    cited, left_out, problems = claim_counts(merged, review)
+    return (
+        f"{cited} claims cited, {left_out} claims left out or marked unverified, "
+        f"{problems} sections missing or weak."
+    )
+
+
 def assemble_report(body: str, merged: MergedResearch, review: Review) -> str:
-    """Body, then the code-built coverage notes and the Sources list."""
+    """Body, then the code-built coverage notes, the claim count line and the Sources list."""
     parts = [body.rstrip()]
     if unverified := unverified_lines(merged, review):
         parts.append(
@@ -182,6 +283,7 @@ def assemble_report(body: str, merged: MergedResearch, review: Review) -> str:
         )
     if notes := coverage_notes(merged, review):
         parts.append(notes)
+    parts.append(f"**Claim check:** {check_line(merged, review)}")
     parts.append("## Sources\n\n" + sources_list(merged))
     return "\n\n".join(parts) + "\n"
 

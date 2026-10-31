@@ -190,7 +190,9 @@ Markdown from the findings you are given, and from nothing else. Rules: every se
 fact ends with citations in the given numbers, like [1] or [2][3]; use only the findings given, \
 never add facts, numbers, quotes or sources; if a section is listed as missing or weak, or the \
 sources disagree, say so plainly instead of filling the gap; do not write a Sources section (it \
-is added for you)."""
+is added for you). Never write a section, bullet or sentence for a missing section (it is reported \
+separately), never write a bullet without a citation, never write bracketed tags like [Critic], \
+and never write a closing line that says the statements are sourced or verified."""
 
 WRITER_PROMPT = """Topic: {topic}
 Today's date: {today}
