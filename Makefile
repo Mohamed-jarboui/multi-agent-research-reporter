@@ -1,4 +1,4 @@
-.PHONY: install lint test figures bench
+.PHONY: install lint test figures bench serve docker
 
 install:
 	uv sync
@@ -16,3 +16,9 @@ figures:
 bench:
 	uv run python evals/run_benchmark.py
 	uv run python evals/aggregate.py
+
+serve:
+	uv run uvicorn reporter.service.app:app --host 127.0.0.1 --port 7860
+
+docker:
+	docker build -t research-reporter .

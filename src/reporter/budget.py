@@ -74,9 +74,15 @@ class BudgetMeter:
     """Counts what a run has used. Tokens a provider did not report count as zero (never guessed);
     the trace records how many calls were unreported. Safe to share between threads."""
 
-    def __init__(self, budget: Budget, clock: Callable[[], float] = time.monotonic) -> None:
+    def __init__(
+        self,
+        budget: Budget,
+        clock: Callable[[], float] = time.monotonic,
+        on_call: Callable[[int], None] | None = None,
+    ) -> None:
         self.budget = budget
         self._clock = clock
+        self._on_call = on_call  # told the tokens of every charged call (the daily cap uses it)
         self._start = clock()
         self._lock = threading.Lock()
         self.steps = 0
@@ -91,6 +97,27 @@ class BudgetMeter:
         with self._lock:
             self.tokens += tokens
             self.cost_usd += cost_usd
+        if self._on_call is not None:  # outside the lock: it may write to a database
+            self._on_call(tokens)
+
+    def snapshot(self) -> dict[str, float]:
+        """What the meter has counted, for a checkpoint (`restore` is the reverse)."""
+        with self._lock:
+            return {
+                "steps": self.steps,
+                "tokens": self.tokens,
+                "cost_usd": self.cost_usd,
+                "elapsed_s": self.elapsed_s,
+            }
+
+    def restore(self, snapshot: dict[str, float]) -> None:
+        """Continue from a snapshot: the counts, and the clock as if `elapsed_s` had passed.
+        Downtime between the crash and the restart does not count."""
+        with self._lock:
+            self.steps = int(snapshot["steps"])
+            self.tokens = int(snapshot["tokens"])
+            self.cost_usd = float(snapshot["cost_usd"])
+            self._start = self._clock() - float(snapshot["elapsed_s"])
 
     @property
     def elapsed_s(self) -> float:

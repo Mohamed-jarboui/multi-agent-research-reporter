@@ -32,8 +32,8 @@
       "id": "R4",
       "name": "Deploy with jobs, streaming and traces",
       "branch": null,
-      "status": "todo",
-      "pr_url": null
+      "status": "in_progress",
+      "pr_url": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6"
     }
   ]
 }

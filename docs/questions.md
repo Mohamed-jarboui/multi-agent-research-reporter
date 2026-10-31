@@ -25,3 +25,9 @@ One section per stage. Answer them when the project is finished.
 1. Why does the benchmark keep failed runs in every denominator, and how could dropping them make one system look better than it is?
 2. Coverage counts a must-cover point only if the quote the model returns is found in the report text. What failure does that check prevent, and what can it still miss?
 3. The judge and the writer may be the same model, and the judge is only calibrated if you rate the 6 pairs. What biases does each of those introduce, and how does the benchmark report them?
+
+## R4 · Deploy with jobs, streaming and traces
+
+1. A job crashes in the middle of the parallel worker fan-out and is resumed. Which parts of the state are restored from SQLite, which are rebuilt fresh, and why are finished workers not recomputed?
+2. What does the `Idempotency-Key` header guarantee for the same key with the same body, and for the same key with a different body? Why is the key stored only as a hash?
+3. The free tier allows only a couple of runs per day. Which mechanisms in the service keep the public demo from burning through the quota, and what does a visitor see when the quota is gone?

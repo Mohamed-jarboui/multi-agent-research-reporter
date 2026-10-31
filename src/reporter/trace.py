@@ -104,6 +104,8 @@ class Trace(BaseModel):
     writer: dict[str, Any] = Field(default_factory=dict)
     # the model router: providers, calls and failures by provider, empty replies (counted once)
     llm: dict[str, Any] = Field(default_factory=dict)
+    # service runs (R4): one entry per restart from a checkpoint
+    resumes: list[dict[str, Any]] = Field(default_factory=list)
 
     _lock: threading.Lock = PrivateAttr(default_factory=threading.Lock)
 
@@ -122,6 +124,11 @@ class Trace(BaseModel):
             self.rate_limit_waits.append(
                 {"section_id": section_id, "at_s": round(at_s, 3), "waited_s": round(waited_s, 3)}
             )
+
+    def dump_json(self) -> str:
+        """A consistent JSON copy while other threads keep adding steps."""
+        with self._lock:
+            return self.model_dump_json()
 
     def finish(self, latency_s: float) -> None:
         """Fill `totals` from the steps."""

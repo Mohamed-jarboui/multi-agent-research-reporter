@@ -90,6 +90,7 @@ class GeminiProvider:
         return Generation(
             text=response.text or "",
             model=model,
+            provider=self.name,
             input_tokens=meta.prompt_token_count if meta else None,
             output_tokens=meta.candidates_token_count if meta else None,
         )
@@ -123,6 +124,7 @@ class GeminiProvider:
             final=Generation(
                 text="".join(parts),
                 model=model,
+                provider=self.name,
                 input_tokens=meta.prompt_token_count if meta else None,
                 output_tokens=meta.candidates_token_count if meta else None,
             )

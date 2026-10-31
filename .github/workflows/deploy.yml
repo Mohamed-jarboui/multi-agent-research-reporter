@@ -1,0 +1,89 @@
+name: Deploy demo
+
+# Pushes the service to a Hugging Face Docker Space when main changes (or by hand).
+# Needs the secret HF_TOKEN (a write token). The Space id is the repository variable
+# HF_SPACE_ID ("owner/name"); the default below is only a placeholder. Without HF_TOKEN the
+# deploy step is skipped with a notice and the workflow still succeeds.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE_ID: ${{ vars.HF_SPACE_ID || 'Mohamed-jarboui/research-reporter' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the token
+        id: gate
+        run: |
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::notice::HF_TOKEN not set, deploy skipped"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Export only the files the image needs
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          rm -rf /tmp/space && mkdir -p /tmp/space
+          cp Dockerfile .dockerignore pyproject.toml uv.lock /tmp/space/
+          cp -r src /tmp/space/src
+          cp deploy/space_README.md /tmp/space/README.md
+          find /tmp/space -name __pycache__ -type d -prune -exec rm -rf {} +
+          echo "Files going to the Space:"
+          (cd /tmp/space && find . -type f | sort)
+
+      - name: Push to the Space
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          echo "::add-mask::$HF_TOKEN"
+          cd /tmp/space
+          git init -q -b main
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${GITHUB_SHA}"
+          # the token only appears in this URL, which is masked in the log
+          git push --force "https://user:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE_ID}" main \
+            2>&1 | sed "s/${HF_TOKEN}/***/g"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Wait for the Space to be healthy
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          host="$(echo "$HF_SPACE_ID" | tr '/_' '--' | tr '[:upper:]' '[:lower:]').hf.space"
+          echo "Polling https://${host}/health for up to 15 minutes"
+          for i in $(seq 1 90); do
+            if curl -fsS --max-time 10 "https://${host}/health" | grep -q '"status":"ok"'; then
+              echo "Space is healthy"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::the Space did not become healthy in 15 minutes"
+          exit 1

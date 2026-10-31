@@ -98,6 +98,7 @@ class Generation:
     model: str
     input_tokens: int | None
     output_tokens: int | None
+    provider: str = ""  # which backend answered (for traces); "" in fakes that do not say
 
 
 @dataclass(frozen=True)
