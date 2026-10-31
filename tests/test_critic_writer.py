@@ -434,7 +434,8 @@ def test_provider_error_text_never_reaches_the_report(tmp_path):
         result = run(TeamLLM(3, on_call), tmp_path, writer=writer)
         for bad in ("org_REDACTED", "console.groq", "AllProviders", "[budget", "Error code"):
             assert bad not in result.report
-        assert "rate limited" in result.report
+        assert "rate limited" not in result.report  # no fetch returned 403 or 429
+        assert "no page could be fetched" in result.report
     assert "org_REDACTED" in json.dumps(result.trace.workers[0].model_dump()) or any(
         "org_REDACTED" in (w.error or "") for w in result.trace.workers
     )  # the detail is kept in the trace
@@ -482,3 +483,140 @@ def test_a_claim_flagged_without_evidence_is_kept_but_labelled_unverified(tmp_pa
     assert "- (unverified) Part 1 fact one [1]" in result.report
     assert "1 listed as unverified" in result.report
     assert result.trace.checks["invalid_citations"] == []
+
+
+# ------------------------------------------------------------- writer output rules
+
+DIRTY_REPLY = """# R
+
+Intro with a fact [1]. Note [Critic] and [budget_steps] here.
+
+## Part 1
+
+- Cited bullet [1]
+- Uncited bullet in a good section
+
+## Part 2
+
+- Made-up bullet one
+- Made-up bullet two
+- Made-up bullet three
+
+---
+*All factual statements are sourced from the provided findings and citations.*
+"""
+
+
+def part2_down(kind, title, nth):
+    if kind == "think" and title == "Part 2":
+        return ProviderError("down")
+    if kind == "writer":
+        return DIRTY_REPLY
+
+
+def test_writer_output_is_sanitised_in_code(tmp_path):
+    result = run(TeamLLM(3, part2_down), tmp_path)
+
+    report = result.report
+    assert "[Critic]" not in report and "[budget_steps]" not in report
+    assert "Made-up bullet" not in report and "## Part 2" not in report  # missing: notes only
+    assert "Uncited bullet in a good section" not in report and "- Cited bullet [1]" in report
+    assert "All factual statements" not in report and "\n---\n" not in report
+    assert 'Missing: "Part 2"' in report
+    assert result.trace.writer == {
+        "status": "ok",
+        "stray_tokens": 2,
+        "assurance_lines": 1,
+        "dropped_sections": 1,
+        "uncited_bullets": 1,
+    }
+
+
+def test_the_report_ends_with_a_code_built_claim_count(tmp_path):
+    result = run(TeamLLM(3, part2_down), tmp_path)
+
+    # 2 sections with 2 findings each are verified; the third is missing
+    assert "**Claim check:** 4 claims cited, 0 claims left out or marked unverified, " in (
+        result.report
+    )
+    assert "1 sections missing or weak." in result.report
+
+
+def test_claim_check_counts_unverified_and_weak_sections(tmp_path):
+    result = run(RecordingLLM(3, critic_with_issue("F1")), tmp_path)
+
+    assert "5 claims cited, 1 claims left out or marked unverified, 0 sections" in result.report
+
+
+def test_sanitiser_keeps_non_section_headings_and_cited_text():
+    from reporter.agent.schemas import MergedResearch
+    from reporter.agent.writer import sanitize_body
+
+    merged = MergedResearch(sections=[section("s1", pages=2), section("s2", pages=0, findings=0)])
+    text = (
+        "# T\n\n## Limits\n\nSources disagree [1].\n\n## Ts2\n\n- nothing\n\n## Ts1\n\n- ok [1]\n"
+    )
+    out, counts = sanitize_body(text, merged, Review())
+
+    assert "## Limits" in out and "## Ts1" in out and "## Ts2" not in out
+    assert counts["dropped_sections"] == 1 and counts["uncited_bullets"] == 0
+
+
+# ------------------------------------------------------------- coverage-note reasons
+
+
+def reason_section(**kw) -> SectionOut:
+    base = section("s1", pages=0, findings=0)
+    return base.model_copy(update=kw)
+
+
+def test_reason_pages_fetched_but_no_findings_is_not_called_rate_limited():
+    from reporter.agent.checks import section_reason
+
+    err = 'RateLimitError("Error code: 429") model call failed'
+    reason = section_reason(reason_section(n_pages=2, error=err))
+
+    assert "pages were fetched but no findings could be extracted" in reason
+    assert "rate" not in reason and "429" not in reason
+
+
+def test_reason_no_pages_and_blocked_fetches_and_budget():
+    from reporter.agent.checks import section_reason
+
+    assert section_reason(reason_section(error="no page was fetched (stopped: max_steps)")) == (
+        "no page could be fetched"
+    )
+    blocked = section_reason(reason_section(blocked_fetches=2))
+    assert "refused" in blocked and "403" in blocked
+    assert "step budget" in section_reason(reason_section(stop_reason="budget_steps"))
+    assert "time budget" in section_reason(reason_section(n_pages=1, stop_reason="worker_time"))
+
+
+def test_a_real_403_or_429_fetch_is_counted_on_the_section():
+    from reporter.agent.multi import merge_results
+    from reporter.agent.schemas import WorkerResult
+
+    brief = SectionBrief(id="s1", title="T", goal="g", scope=["s"])
+    result = WorkerResult(
+        section_id="s1",
+        index=0,
+        status="incomplete",
+        failed_fetches=[
+            {"url": "https://a.example", "reason": "HTTP 429"},
+            {"url": "https://b.example", "reason": "HTTP 404"},
+            {"url": "https://c.example", "reason": "HTTP 403"},
+        ],
+    )
+    merged = merge_results([brief], [result])
+
+    assert merged.sections[0].blocked_fetches == 2
+
+
+def test_coverage_notes_use_plain_words_without_bracket_tags(tmp_path):
+    import re
+
+    result = run(TeamLLM(3, part2_down), tmp_path)
+
+    notes = result.report.split("## Coverage notes")[1].split("## Sources")[0]
+    assert "no page could be fetched" in notes
+    assert not re.search(r"\[[A-Za-z_]+\]", notes)

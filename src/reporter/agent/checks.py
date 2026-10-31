@@ -118,6 +118,32 @@ def plain_reason(*texts: str | None) -> str:
     return "research did not complete" if joined else "unknown reason"
 
 
+def section_reason(section: SectionOut) -> str:
+    """Why a section has no findings, from its pages, stop reason and error. Plain words only.
+
+    "blocked" is claimed only when a fetch really returned HTTP 403 or 429.
+    """
+    joined = f"{section.error or ''} {section.stop_reason}".lower()
+    kinds = {"step": ("budget_steps",), "token": ("budget_tokens", "worker_tokens")}
+    kinds["cost"] = ("budget_cost",)
+    kinds["time"] = ("budget_seconds", "worker_time")
+    budget = next((k for k, needles in kinds.items() if any(n in joined for n in needles)), "")
+    if section.n_pages == 0:
+        if section.blocked_fetches:
+            return "no page could be fetched; the sites refused the requests (HTTP 403 or 429)"
+        if budget:
+            return f"no page could be fetched before the {budget} budget was reached"
+        if any(n in joined for n in _REASONS[0][0]):
+            return "no page could be fetched; the model was rate limited"
+        return "no page could be fetched"
+    if budget:
+        return f"pages were fetched but the {budget} budget was reached before findings were made"
+    return (
+        "pages were fetched but no findings could be extracted "
+        "(model unavailable or unusable replies)"
+    )
+
+
 def clean_text(text: str, limit: int = 220) -> str:
     """Model-written text for a report line: no URLs or [internal_tokens], one line, shortened."""
     text = _ANY_URL.sub("", text)
