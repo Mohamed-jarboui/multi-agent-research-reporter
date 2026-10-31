@@ -19,3 +19,9 @@ One section per stage. Answer them when the project is finished.
 1. The first evaluation showed the retry never ran, although tokens and time were barely used. Which budget was binding, why did the 70% research cut-off make it worse, and how does the new retry gate differ?
 2. The retry did run in the second evaluation (3 sections) yet improved none. Why can a retry fail to help when the section's problem is "no page fetched", and what would you change so a retry has a better chance?
 3. The citation checker now parses `[5]`, `[5, 6]`, `[5][6]` and `[5-7]`, but only `[n]` appeared in real reports. Why are the unit tests still worth having, and what would a deterministic check not catch that the critic is supposed to?
+
+## R3 · Benchmark: multi-agent vs single agent
+
+1. Why does the benchmark keep failed runs in every denominator, and how could dropping them make one system look better than it is?
+2. Coverage counts a must-cover point only if the quote the model returns is found in the report text. What failure does that check prevent, and what can it still miss?
+3. The judge and the writer may be the same model, and the judge is only calibrated if you rate the 6 pairs. What biases does each of those introduce, and how does the benchmark report them?

@@ -51,6 +51,11 @@ def build_parser() -> argparse.ArgumentParser:
     multi.add_argument("--llm-slots", type=int, default=multi_defaults.max_parallel_llm_calls)
     multi.add_argument("--no-critic", action="store_true", help="skip the critic and the retries")
     multi.add_argument("--no-writer", action="store_true", help="print the research digest only")
+    commands.add_parser(
+        "bench",
+        help="benchmark: run | aggregate | make-pairs | judge-pairs (see README)",
+        add_help=False,
+    )
     commands.add_parser("ping", help="one tiny call to each provider: is its quota available?")
     return parser
 
@@ -66,6 +71,12 @@ def run_ping(providers: Any, out: Any = None) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    raw = sys.argv[1:] if argv is None else argv
+    if raw and raw[0] == "bench":  # its own options; handled by reporter.bench
+        from reporter.bench.cli import main as bench_main
+
+        load_env_file()
+        return bench_main(raw[1:])
     args = build_parser().parse_args(argv)
     load_env_file()
     if args.command == "ping":
