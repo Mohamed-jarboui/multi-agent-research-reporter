@@ -55,6 +55,7 @@ class RunRecord(BaseModel):
     models: list[str] = Field(default_factory=list)
     tokens_by_model: dict[str, list[int]] = Field(default_factory=dict)  # model -> [in, out]
     llm: dict[str, Any] = Field(default_factory=dict)
+    gateway_used: bool = False  # any call went to the third-party gateway (agentrouter)
     citations: CitationScore | None = None
     coverage: CoverageScore | None = None
     scoring_error: str = ""

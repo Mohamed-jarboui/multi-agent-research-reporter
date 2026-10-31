@@ -245,6 +245,12 @@ def aggregate(
         "Failed runs are included in attempted counts, total tokens, total cost and cost per "
         "successful report.",
     ]
+    used = sum(1 for r in records.values() if r.gateway_used)
+    if used:
+        out["notes"].append(
+            f"{used} run(s) sent calls to the third-party gateway provider (agentrouter); "
+            "its answers are mixed into those runs' results."
+        )
     out["not_measured"] = not_measured
     return out
 

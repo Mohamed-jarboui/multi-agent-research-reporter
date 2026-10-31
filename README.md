@@ -94,6 +94,12 @@ uv run reporter baseline "topic"          # the single-agent baseline
 uv run ruff check . && uv run ruff format --check . && uv run pytest   # make lint, make test
 ```
 
+### Optional third-party gateway
+
+`agentrouter` (an OpenAI-compatible chat-completions gateway, `https://agentrouter.org/v1`) can be added as the last provider. It is a third-party proxy: the operator is unidentified and no data policy is stated, so prompts and fetched page text sent to it leave your control. It is not used by default and is not recommended for the benchmark.
+
+It joins the model chain only when all of these are set: `REPORTER_EXTRA_PROVIDERS=agentrouter`, `AGENTROUTER_API_KEY` and `AGENTROUTER_MODEL` (no default; `AGENTROUTER_BASE_URL` is optional). `uv run reporter ping` tests it whenever the key is set, even when it is not in the chain. Each benchmark run record carries `gateway_used`, and `results/benchmark.json` notes any run that used it, so results always say which provider answered.
+
 ### The service (API)
 
 ```bash
