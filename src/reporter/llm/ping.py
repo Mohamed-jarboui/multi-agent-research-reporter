@@ -16,7 +16,11 @@ from reporter.llm.base import Provider, ProviderError, RateLimitError
 PING_PROMPT = "Reply with: ok"
 PING_MAX_TOKENS = 8
 # provider name -> the environment variable that holds its key, in the order they are tried
-PROVIDER_KEYS = {"gemini": "GEMINI_API_KEY", "groq": "GROQ_API_KEY"}
+PROVIDER_KEYS = {
+    "gemini": "GEMINI_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "agentrouter": "AGENTROUTER_API_KEY",  # opt-in third-party gateway, never in the default chain
+}
 
 
 @dataclass(frozen=True)
@@ -26,6 +30,7 @@ class PingResult:
     reason: str = ""  # class and HTTP status, e.g. "RateLimitError 429"
     limit: str | None = None
     retry_after_s: float | None = None
+    hint: str | None = None  # closed-set cause token (gateway only)
     latency_s: float = 0.0
 
     @property
@@ -42,8 +47,19 @@ class PingResult:
             parts.append(f"limit={self.limit}")
         if self.retry_after_s is not None:
             parts.append(f"retry_after={self.retry_after_s:g}s")
+        if self.hint:
+            parts.append(f"hint={self.hint}")
         parts.append(f"({self.latency_s:.1f}s)")
         return " ".join(parts)
+
+
+def _reason(exc: ProviderError) -> str:
+    """Class and status; for a missing setting also its message, which names the variable only."""
+    from reporter.llm.openai_compat import ProviderConfigError
+
+    if isinstance(exc, ProviderConfigError):
+        return f"{exc.short()}: {exc}"
+    return exc.short()
 
 
 def ping_provider(
@@ -61,9 +77,10 @@ def ping_provider(
         return PingResult(
             name,
             "failed",
-            exc.short(),
+            _reason(exc),
             exc.limit if isinstance(exc, RateLimitError) else None,
             exc.retry_after_s if isinstance(exc, RateLimitError) else None,
+            exc.hint,
             clock() - start,
         )
     except Exception as exc:  # an unexpected SDK error: the class name only, never its text
@@ -77,18 +94,44 @@ def ping_all(
     return [ping_provider(name, provider, clock) for name, provider in providers.items()]
 
 
-def build_providers() -> dict[str, Provider | None]:
-    """Each provider on its own; None when its key is not set."""
+def build_providers(*, gateway: bool = True) -> dict[str, Provider | None]:
+    """Each provider on its own; None when its key is not set. gateway=False leaves the opt-in
+    gateway out entirely (the benchmark passes False unless it is opted in)."""
     found: dict[str, Provider | None] = {}
     for name, variable in PROVIDER_KEYS.items():
+        if name == "agentrouter" and not gateway:
+            continue
         if not os.environ.get(variable):
             found[name] = None
         elif name == "gemini":
             from reporter.llm.gemini import GeminiProvider
 
             found[name] = GeminiProvider()
-        else:
+        elif name == "groq":
             from reporter.llm.groq import GroqProvider
 
             found[name] = GroqProvider()
+        else:
+            found[name] = _gateway_or_failing()
     return found
+
+
+class _Misconfigured:
+    """Stands in for a gateway whose settings are incomplete: its one call raises that error."""
+
+    name = "agentrouter"
+
+    def __init__(self, error: ProviderError) -> None:
+        self._error = error
+
+    def generate(self, *args: object, **kwargs: object):
+        raise self._error
+
+
+def _gateway_or_failing() -> Provider:
+    from reporter.llm.openai_compat import OpenAICompatProvider
+
+    try:
+        return OpenAICompatProvider()
+    except ProviderError as exc:  # e.g. AGENTROUTER_MODEL missing: the ping line says so
+        return _Misconfigured(exc)  # type: ignore[return-value]

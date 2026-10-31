@@ -140,6 +140,15 @@ def classify(system: str, trace: Trace | None, error: str) -> tuple[str, str]:
     return "success", trace.stop_reason
 
 
+GATEWAY_PROVIDERS = ("agentrouter",)
+
+
+def gateway_called(llm: dict) -> bool:
+    """True when the router sent at least one call (answered or not) to a gateway provider."""
+    calls = llm.get("calls") or {}
+    return any(calls.get(name, 0) > 0 for name in GATEWAY_PROVIDERS)
+
+
 def build_record(item: PlanItem, trace: Trace | None, error: str, trace_path: Path | None):
     status, reason = classify(item.system, trace, error)
     record = RunRecord(
@@ -171,6 +180,7 @@ def build_record(item: PlanItem, trace: Trace | None, error: str, trace_path: Pa
     record.models = sorted(by_model)
     record.tokens_by_model = by_model
     record.llm = trace.llm
+    record.gateway_used = gateway_called(trace.llm)
     if status == "failed":
         record.limit = dominant_limit(trace.llm)
     else:
@@ -412,7 +422,7 @@ def build_scoring_llm(prefer: str = "auto") -> LLM:
     from reporter.llm.ping import PROVIDER_KEYS, build_providers
     from reporter.llm.router import FallbackLLM
 
-    found = {n: p for n, p in build_providers().items() if p is not None}
+    found = {n: p for n, p in build_providers(gateway=False).items() if p is not None}
     order = [prefer] if prefer in PROVIDER_KEYS else ["groq", "gemini"]
     order += [n for n in ("groq", "gemini") if n not in order]
     providers = [found[n] for n in order if n in found]
@@ -475,10 +485,11 @@ def main(argv: list[str] | None = None) -> int:
     scoring_llm: LLM | None = None
     ping_fn = None
     if not args.dry_run:
+        from reporter.llm.factory import gateway_enabled
         from reporter.llm.ping import build_providers, ping_all
 
         if not args.no_preflight:
-            ping_fn = lambda: ping_all(build_providers())  # noqa: E731
+            ping_fn = lambda: ping_all(build_providers(gateway=gateway_enabled()))  # noqa: E731
         if config.score:
             try:
                 scoring_llm = build_scoring_llm(args.judge_provider)

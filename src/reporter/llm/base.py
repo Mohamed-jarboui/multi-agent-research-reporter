@@ -27,6 +27,7 @@ class ProviderError(Exception):
         self.status = status  # HTTP status when there is one
         self.limit: str | None = None  # which limit a 429 hit (see llm.limits); never raw text
         self.retry_after_s: float | None = None  # the provider's suggested wait, when given
+        self.hint: str | None = None  # a token from a closed set (gateway only); never raw text
 
     def short(self) -> str:
         """Class and status only: safe for traces and reports (no message, ids or URLs)."""
