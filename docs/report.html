@@ -75,6 +75,7 @@
   /* tables */
   .scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+  caption { text-align: left; font-weight: 600; padding: 4px 0 6px; caption-side: top; }
   th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--muted); font-weight: 600; white-space: nowrap; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -97,18 +98,18 @@
 <header>
   <h1>Multi-Agent Research Reporter</h1>
   <p class="meta">Build report &middot; last update 2026-10-31</p>
-  <p>Give it a topic: a supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited report. The pipeline now exists up to the writer (R2). The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics. That comparison does not exist yet (it is stage R3).</p>
+  <p>Give it a topic: a supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited report. The pipeline now exists up to the writer (R2, merged), and the benchmark harness for the comparison is built and merged (R3, PR #4). The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics. That comparison does not exist yet: the benchmark has not been run (not measured yet).</p>
 
   <ul class="stages" aria-label="Stage progress">
     <li class="stage built"><div class="bar"></div><b>R0</b>Single-agent baseline<br><span class="muted">merged</span></li>
     <li class="stage built"><div class="bar"></div><b>R1</b>Supervisor and parallel workers<br><span class="muted">merged</span></li>
-    <li class="stage wip"><div class="bar"></div><b>R2</b>Critic and writer<br><span class="muted">built, PR open</span></li>
-    <li class="stage"><div class="bar"></div><b>R3</b>Benchmark vs single agent<br><span class="muted">planned</span></li>
+    <li class="stage built"><div class="bar"></div><b>R2</b>Critic and writer<br><span class="muted">merged</span></li>
+    <li class="stage wip"><div class="bar"></div><b>R3</b>Benchmark vs single agent<br><span class="muted">in progress</span></li>
     <li class="stage"><div class="bar"></div><b>R4</b>Deploy: jobs, streaming, traces<br><span class="muted">planned</span></li>
   </ul>
-  <p class="muted" style="font-size:0.88rem">2 of 5 stages merged (R0, R1). R2 is built and its PR is open (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3">#3</a>); <code>docs/progress.json</code> lists it as <code>pr_open</code>. Plan: <a href="plan.md">docs/plan.md</a>.</p>
+  <p class="muted" style="font-size:0.88rem">3 of 5 stages merged (R0, R1, R2: PRs <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/1">#1</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/2">#2</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3">#3</a>). R3 is in progress: the harness is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">#4</a>), the benchmark runs are pending; <code>docs/progress.json</code> lists it as <code>in_progress</code>. Plan: <a href="plan.md">docs/plan.md</a>.</p>
 <figure>
-    <img src="figs/stage_progress.svg" alt="Bar chart of stage status from progress.json: R0 and R1 merged, R2 PR open, R3 and R4 todo" width="700">
+    <img src="figs/stage_progress.svg" alt="Bar chart of stage status from progress.json: R0, R1 and R2 merged, R3 in progress, R4 todo" width="700">
     <figcaption>Stage status from <code>docs/progress.json</code>.</figcaption>
   </figure>
 </header>
@@ -134,7 +135,7 @@ flowchart TD
     WR["Writer<br/>body by LLM, Sources by code"]
   end
   subgraph planned["Planned, not built"]
-    BM["R3 Benchmark<br/>multi-agent vs baseline"]
+    BM["R3 Benchmark<br/>harness merged, runs pending"]
     API["R4 Jobs, streaming, traces API"]
   end
   T --> B --> R0OUT([R0 cited report])
@@ -428,7 +429,7 @@ flowchart LR
 <h3>Pull request</h3>
 <p><a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/2">PR #2</a> (merged).</p>
 
-<h2 id="r2">R2 &middot; Critic and writer <span class="tag">built, PR open</span></h2>
+<h2 id="r2">R2 &middot; Critic and writer <span class="tag">merged</span></h2>
 
 <h3>What was built</h3>
 <ul>
@@ -437,7 +438,8 @@ flowchart LR
   <li><b>One retry round</b>: up to 3 weak or failed sections go back to their worker once, with the critic's issues as feedback. The retry replaces the original only if it is strictly better.</li>
   <li><b>A writer</b> that writes the body from the findings; the code builds the numbered Sources list and a Coverage notes section. Claims the critic names as unsupported but without quoted evidence go to an "Unverified claims" section, marked (unverified); they are left out only when the critic's issue quotes evidence.</li>
   <li><b>Reliability fixes after the first two evaluations:</b> Groq <code>gpt-oss</code> now runs with default temperature, low reasoning effort, reasoning text excluded and 600 extra completion tokens; the router counts an empty reply as a retryable error and records per-provider failure reasons in <code>trace.llm</code>; <code>fetch_page</code> retries a 403 or 429 once with browser-like headers; workers keep the URLs of search results they did not open, and a retry starts by fetching the best of them; the critic reads up to 2,000 characters per source.</li>
-  <li>Every step has a fallback, and report text is sanitised (no raw provider errors or internal tokens). 155 tests pass (106 from R1, 29 from the first R2 build, 5 from the first fix, 15 from the reliability fixes) and ruff is clean, as checked by the main session. Tests use fake models and tools, no network; the reliability fixes were verified with fakes only.</li>
+  <li><b>Writer fixes after the fourth evaluation</b> (in code, not yet run live): no stray internal tokens such as <code>[Critic]</code>; accurate reasons for weak or missing sections, derived from pages, findings, stop reason and real 403 or 429 fetches; sections without findings get no prose, and uncited bullets are dropped and counted in <code>trace.writer</code>; the blanket "all factual statements are sourced" line is replaced by a code-built "Claim check: N claims cited, M left out or marked unverified, K sections missing or weak" line.</li>
+  <li>Every step has a fallback, and report text is sanitised (no raw provider errors or internal tokens). 221 tests pass in total (106 came from R1; R2 added the rest), re-run on 2026-10-31, and ruff is clean. Tests use fake models and tools, no network.</li>
 </ul>
 
 <h3>How it works</h3>
@@ -478,51 +480,80 @@ flowchart TD
 
 <h3>Figures</h3>
 <figure>
-  <img src="figs/r2_critic_before_after.svg" alt="Six panels, one per evaluation and topic, each listing the sections with their verdict before the retry and after it, coloured pass, weak or fail, with grey cells where no retry happened. In the third evaluation every section is fail before and after" width="700">
-  <figcaption>Verdict per section before and after the retry, all three evaluations, from <code>results/r2_critic_first_run.json</code>, <code>r2_critic_second_run.json</code> and <code>r2_critic.json</code> (third); page counts for retried sections come from the matching <code>results/r2_smoke*.json</code>. n=1 run per topic per evaluation, 6 panels. Grey "n/a" means the section was not retried. First evaluation: no retry at all. Second: 3 sections of the small-language-model run retried, all stayed <code>fail</code>. Third: all 6 sections retried, all stayed <code>fail</code>; the retry was kept once (pages 0 to 1) but the verdict did not move. <b>In the third evaluation every verdict is deterministic</b> (no finding existed, so the critic's LLM review never ran): it says the sections had no usable finding, not that a critic judged them.</figcaption>
+  <img src="figs/r2_critic_before_after.svg" alt="Eight panels, one per evaluation and topic, each listing the sections with their verdict before the retry and after it, coloured pass, weak or fail, with grey cells where no retry happened" width="700">
+  <figcaption>Verdict per section before and after the retry, all four evaluations, from <code>results/r2_critic_first_run.json</code>, <code>r2_critic_second_run.json</code>, <code>r2_critic_third_run.json</code> and <code>r2_critic.json</code> (fourth); page counts for retried sections come from the matching <code>results/r2_smoke*.json</code>. n=1 run per topic per evaluation, 8 panels. Grey "n/a" means the section was not retried. First evaluation: no retry. Second: 3 sections retried, all stayed <code>fail</code>. Third: all 6 sections retried, all stayed <code>fail</code>. Fourth: 5 sections retried; one <code>weak</code> section became <code>fail</code> in the retry (the original was kept), the rest stayed <code>fail</code>. Every verdict in the carbon-capture panels is deterministic (no usable finding existed, so the critic's LLM review never ran).</figcaption>
+</figure>
+<figure>
+  <img src="figs/r2_provider_availability.svg" alt="Horizontal stacked bars, one per run and provider, showing successful calls and failed calls split by reason" width="700">
+  <figcaption>Provider calls in the fourth evaluation, including failed ones, from <code>results/r2_smoke.json</code> (<code>llm_summary.providers</code>, limit types from <code>trace.llm</code>). n=1 run per topic. Gemini: 21 of 132 attempts ok; Groq: 10 of 91 ok. Failure reasons are the provider's rate-limit type, empty replies, or server errors.</figcaption>
 </figure>
 
 <h3>Numbers</h3>
 <div class="card warn">
-  <b>These are smoke runs, not a benchmark.</b> Two topics, one live run each per evaluation (n=1), 4 runs in total, no re-runs. The second evaluation ran after code changes made in response to the first (step limit 36 to 60, retry gate, sanitised text, unsupported-claim filter), so the two columns are not a controlled comparison. Sources: <code>results/r2_smoke_first_run.json</code>, <code>results/r2_smoke.json</code>, <code>results/stage_r2.json</code>, date 2026-10-30.
+  <b>These are smoke runs, not a benchmark.</b> Two topics, one live run each per evaluation (n=1), 8 runs in total, no re-runs. Code and provider quota state changed between evaluations (step limit 36 to 60 and a retry gate after the first; reliability fixes and a generic fallback plan of 3 sections before the third; limit-type diagnostics before the fourth), so the four columns are not a controlled comparison and must not be read as a trend. Model steps recorded are not model calls: in the third and fourth evaluations failed calls carry no model name or token count, so tokens are not comparable across columns. Sources: <code>results/r2_smoke_first_run.json</code>, <code>r2_smoke_second_run.json</code>, <code>r2_smoke_third_run.json</code>, <code>r2_smoke.json</code> (fourth), <code>results/stage_r2.json</code>; fourth evaluation dated 2026-10-31.
 </div>
 <div class="scroll">
 <table>
-  <thead>
-    <tr><th rowspan="2">Measure</th><th colspan="2">Small language models</th><th colspan="2">Carbon capture</th></tr>
-    <tr><th>1st eval</th><th>2nd eval</th><th>1st eval</th><th>2nd eval</th></tr>
-  </thead>
+  <caption>Small language models for on-device use (n=1 per column)</caption>
+  <thead><tr><th>Measure</th><th>1st eval</th><th>2nd eval</th><th>3rd eval</th><th>4th eval</th></tr></thead>
   <tbody>
-    <tr><td>Tokens</td><td class="num">49,767</td><td class="num">96,171</td><td class="num">56,427</td><td class="num">13,084</td></tr>
-    <tr><td>Latency</td><td class="num">253.7 s</td><td class="num">438.7 s</td><td class="num">281.9 s</td><td class="num">462.5 s</td></tr>
-    <tr><td>Model calls / tool calls</td><td class="num">30 / 10</td><td class="num">54 / 20</td><td class="num">30 / 11</td><td class="num">16 / 4</td></tr>
+    <tr><td>Run id (date)</td><td class="num">2252e1 (10-30)</td><td class="num">11233a (10-30)</td><td class="num">0c2054 (10-30)</td><td class="num">007fd0 (10-31)</td></tr>
+    <tr><td>Sections planned</td><td class="num">5</td><td class="num">5</td><td class="num">3 (generic fallback plan)</td><td class="num">3 (generic fallback plan)</td></tr>
+    <tr><td>Tokens</td><td class="num">49,767</td><td class="num">96,171</td><td class="num">4,846</td><td class="num">37,245</td></tr>
+    <tr><td>Latency</td><td class="num">253.7 s</td><td class="num">438.7 s</td><td class="num">244.8 s</td><td class="num">451.9 s (94.2% of the 480 s limit)</td></tr>
+    <tr><td>Model steps recorded / tool calls</td><td class="num">30 / 10</td><td class="num">54 / 20</td><td class="num">15 / 4</td><td class="num">30 / 19</td></tr>
     <tr><td>cost_usd</td><td class="num">0.0</td><td class="num">0.0</td><td class="num">0.0</td><td class="num">0.0</td></tr>
-    <tr><td>Run steps used</td><td class="num">26 of 36</td><td class="num">49 of 60</td><td class="num">26 of 36</td><td class="num">15 of 60 (research)</td></tr>
-    <tr><td>Critic verdicts before retry (pass / weak / fail)</td><td class="num">0 / 0 / 5</td><td class="num">1 / 1 / 3</td><td class="num">0 / 1 / 4</td><td class="num">0 / 0 / 5</td></tr>
-    <tr><td>Sections sent back for retry</td><td class="num">0</td><td class="num">3</td><td class="num">0</td><td class="num">0</td></tr>
-    <tr><td>Retry outcome (improved / unchanged / worse)</td><td class="num">n/a</td><td class="num">0 / 3 / 0</td><td class="num">n/a</td><td class="num">n/a</td></tr>
-    <tr><td>Retry gate</td><td>closed (<code>retry_skipped</code>)</td><td>open</td><td>closed (<code>retry_skipped</code>)</td><td>closed (<code>retry_skipped</code>)</td></tr>
-    <tr><td>Global sources in the report</td><td class="num">1</td><td class="num">2</td><td class="num">1</td><td class="num">0</td></tr>
-    <tr><td>Citations: invalid numbers</td><td class="num">0</td><td class="num">0 (11 citations)</td><td class="num">0</td><td class="num">no citations</td></tr>
-    <tr><td>Unfetched URLs in report</td><td class="num">1 (a billing URL)</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
-    <tr><td>Raw provider error text in report</td><td>yes</td><td>no</td><td>not measured yet</td><td>no</td></tr>
-    <tr><td>Report words (whole file)</td><td class="num">740</td><td class="num">940</td><td class="num">not measured yet</td><td class="num">89</td></tr>
-    <tr><td>Report written?</td><td>yes, 4 of 5 sections are placeholders</td><td>yes, 2 of 5 sections with text</td><td>yes, 4 of 5 sections are placeholders</td><td>no (<code>no_report</code>)</td></tr>
+    <tr><td>Run steps used</td><td class="num">26 of 36</td><td class="num">49 of 60</td><td class="num">13 of 60</td><td class="num">24 of 60</td></tr>
+    <tr><td>Critic verdicts before retry (pass / weak / fail)</td><td class="num">0 / 0 / 5</td><td class="num">1 / 1 / 3</td><td class="num">0 / 0 / 3</td><td class="num">1 / 1 / 1</td></tr>
+    <tr><td>Critic LLM review ran?</td><td>not measured yet</td><td>not measured yet</td><td>no</td><td>yes (1 call, 1 issue)</td></tr>
+    <tr><td>Sections sent back for retry</td><td class="num">0</td><td class="num">3</td><td class="num">3</td><td class="num">2</td></tr>
+    <tr><td>Retry outcome (improved / unchanged / worse)</td><td class="num">n/a</td><td class="num">0 / 3 / 0</td><td class="num">0 / 3 / 0</td><td class="num">0 / 1 / 1</td></tr>
+    <tr><td>Global sources</td><td class="num">1</td><td class="num">2</td><td class="num">2</td><td class="num">7 (5 cited)</td></tr>
+    <tr><td>Citations</td><td class="num">0 invalid</td><td class="num">11, 0 invalid</td><td class="num">no citations</td><td class="num">27 tokens, 0 invalid</td></tr>
+    <tr><td>Raw provider error text in report</td><td>yes</td><td>no</td><td>no</td><td>no</td></tr>
+    <tr><td>Report words (whole file)</td><td class="num">740</td><td class="num">940</td><td class="num">not measured yet</td><td class="num">747</td></tr>
+    <tr><td>Report written?</td><td>yes, 4 of 5 sections are placeholders</td><td>yes, 2 of 5 sections with text</td><td>no (<code>no_report</code>)</td><td>yes (writer ok)</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="scroll">
+<table>
+  <caption>Carbon capture: current costs and limits (n=1 per column)</caption>
+  <thead><tr><th>Measure</th><th>1st eval</th><th>2nd eval</th><th>3rd eval</th><th>4th eval</th></tr></thead>
+  <tbody>
+    <tr><td>Run id (date)</td><td class="num">7e6fec (10-30)</td><td class="num">7c403b (10-30)</td><td class="num">d89e98 (10-30)</td><td class="num">a332d8 (10-31)</td></tr>
+    <tr><td>Sections planned</td><td class="num">5</td><td class="num">5</td><td class="num">3</td><td class="num">4</td></tr>
+    <tr><td>Tokens</td><td class="num">56,427</td><td class="num">13,084</td><td class="num">12,757</td><td class="num">4,274</td></tr>
+    <tr><td>Latency</td><td class="num">281.9 s</td><td class="num">462.5 s</td><td class="num">192.4 s</td><td class="num">344.9 s</td></tr>
+    <tr><td>Model steps recorded / tool calls</td><td class="num">30 / 11</td><td class="num">16 / 4</td><td class="num">20 / 9</td><td class="num">17 / 5</td></tr>
+    <tr><td>cost_usd</td><td class="num">0.0</td><td class="num">0.0</td><td class="num">0.0</td><td class="num">0.0</td></tr>
+    <tr><td>Run steps used</td><td class="num">26 of 36</td><td class="num">15 of 60 (research)</td><td class="num">19 of 60</td><td class="num">16 of 60</td></tr>
+    <tr><td>Critic verdicts before retry (pass / weak / fail)</td><td class="num">0 / 1 / 4</td><td class="num">0 / 0 / 5</td><td class="num">0 / 0 / 3</td><td class="num">0 / 0 / 4</td></tr>
+    <tr><td>Critic LLM review ran?</td><td>not measured yet</td><td>no</td><td>no</td><td>no</td></tr>
+    <tr><td>Sections sent back for retry</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">3 (a 4th failed section was over the cap of 3)</td></tr>
+    <tr><td>Retry outcome (improved / unchanged / worse)</td><td class="num">n/a</td><td class="num">n/a</td><td class="num">0 / 3 / 0</td><td class="num">0 / 3 / 0</td></tr>
+    <tr><td>Global sources</td><td class="num">1</td><td class="num">0</td><td class="num">3</td><td class="num">3 (all from seeded fetches; 2 off-topic by title)</td></tr>
+    <tr><td>Citations</td><td class="num">0 invalid</td><td class="num">no citations</td><td class="num">no citations</td><td class="num">no citations</td></tr>
+    <tr><td>Raw provider error text in report</td><td class="num">not measured yet</td><td>no</td><td>no</td><td>no</td></tr>
+    <tr><td>Report words (whole file)</td><td class="num">not measured yet</td><td class="num">89</td><td class="num">not measured yet</td><td class="num">69</td></tr>
+    <tr><td>Report written?</td><td>yes, 4 of 5 sections are placeholders</td><td>no (<code>no_report</code>)</td><td>no (<code>no_report</code>)</td><td>no (<code>no_report</code>)</td></tr>
   </tbody>
 </table>
 </div>
 <ul>
-  <li><b>Retry effect.</b> In the one run where it fired (small language models, second evaluation) 3 of 5 sections were sent back: 0 improved, 3 unchanged, 0 worse (n=3 sections). The retry phase cost 16 worker steps, 28,316 tokens and 125.4 s of wall time. The three sections were all deterministic fails (0 pages, 0 findings before and after). Whether a retry helps when fetches succeed is not measured. The trace does not record why the one weak section was not retried.</li>
-  <li><b>Citations.</b> The second-evaluation small-language-model report has 11 citations, all valid ([1] 3 times, [2] 8 times), and an independent regex check agrees with the trace. Only the single form <code>[n]</code> occurred in any real report; the range and multi forms are covered by unit tests only.</li>
-  <li><b>Spot check of 3 cited claims</b> against the live pages after the run (not the pages the worker saw): 2 supported, 1 partly supported. Quality of the reports was not scored: not measured yet (the judge is R3).</li>
-  <li><b>Token use</b> rose for small language models from 49,767 to 96,171 between evaluations. n=1 each and confounded by the code changes, so no conclusion about the cost of the retry beyond the 28,316 tokens it used.</li>
+  <li><b>Fourth evaluation, small language models: the whole chain ran on live calls for the first time</b> (n=1). Critic LLM review (1 call, 1 issue), writer (ok), unverified-claim label (1 claim marked, 0 omitted). 3 sections planned, final verdicts 1 ok / 1 weak / 1 missing; 7 sources, 5 cited; 747 words, 7 headings; 27 citation tokens, 0 invalid, and an independent regex check agrees with the trace. The adjacent form <code>[1][3][4]</code> occurred in a real report for the first time (9 of the 27 tokens sit in such groups); <code>[5, 6]</code> and ranges did not occur. Seconds were the binding budget: 94.2% of 480 s used, versus 40% of steps and 12.4% of tokens.</li>
+  <li><b>Fourth evaluation, carbon capture: no report.</b> 4 sections, all missing; 3 sources, all from seeded fetches, 2 of them off-topic by title; no findings, no critic LLM call, writer <code>no_report</code>; 4,274 tokens, 344.9 s. The cause was provider limits, not the pipeline design (see provider availability below).</li>
+  <li><b>Critic and retry (fourth evaluation, n=5 sections in 2 runs):</b> 5 sections sent back; improved 0, unchanged 4, worse 1, kept retry 0. All 5 retry workers ended incomplete with "all providers failed", so this measures the quota, not the retry. The retries cost 5,668 tokens and 9 worker steps. Across evaluations 2 to 4, 0 of 14 retried sections improved their verdict. Whether a retry helps when the LLM calls succeed is not measured.</li>
+  <li><b>Provider availability</b> (new in <code>trace.llm</code>, fourth evaluation). Gemini, small language models: 51 attempts, 21 ok, 30 failed (13 per-minute request limit, 16 per-day request limit, 1 server error). Gemini, carbon capture: 81 attempts, 0 ok, 81 per-day request limit. Groq, small language models: 20 attempts, 4 ok (13 empty replies, 1 per-minute token limit, 2 server errors). Groq, carbon capture: 71 attempts, 6 ok (7 empty replies, 57 per-day token limit, 1 server error). Over both runs Gemini was ok on 21 of 132 attempts and Groq on 10 of 91. The first per-day Gemini limit record is at 07:46:04 UTC, about 4 minutes into the evaluation, after a ping at about 07:42 UTC had returned ok for both providers. The size of the daily allowances is not measured yet.</li>
+  <li><b>Spot check of 3 cited claims</b> against the live pages after the run (not the pages the worker saw), fourth evaluation: 2 supported, 1 partly supported (the claim joins facts that sit in two different sources). The 1 claim labelled unverified (a date) is consistent with the live page, which does not contain it. The second evaluation's spot check was also 2 supported, 1 partly supported (n=3). Report quality was not scored: not measured yet (the judge is R3).</li>
+  <li><b>Second evaluation retry cost</b>: the retry phase used 16 worker steps, 28,316 tokens and 125.4 s (3 sections, all unchanged).</li>
   <li><code>cost_usd</code> is 0.0 only because the free tier (Gemini, Groq) is unpriced in the cost model, not because the runs were free of cost.</li>
-  <li>Reports: <code>examples/multi/</code> (second evaluation) and <code>examples/multi_first_run/</code> (first evaluation).</li>
+  <li>Reports: <code>examples/multi/</code> (fourth evaluation; the small-language-models file still shows the writer defects listed below, which were fixed in code afterwards and not regenerated), <code>examples/multi_third_run/</code>, <code>examples/multi_second_run/</code>, <code>examples/multi_first_run/</code>.</li>
 </ul>
 
 <h3>What broke, and what was fixed</h3>
 <div class="card bad">
-  <b>The retry has not yet been shown to improve a section, and the third evaluation never reached the critic's LLM review or the writer.</b> The mechanics work where the LLM answered; the evidence that they help does not exist yet.
+  <b>The retry has not yet been shown to improve a section (0 of 14 retried sections across evaluations 2 to 4), and the writer fixes made after the fourth evaluation have not been re-run on live calls.</b> The mechanics work where the LLM answered; the evidence that they help does not exist yet.
 </div>
 <div class="scroll">
 <table>
@@ -549,9 +580,39 @@ flowchart TD
       <td>Not a pipeline result: it says nothing about the design. The "no findings" fallback did work. Not re-run. Why the second provider did not take over is not measured.</td>
     </tr>
     <tr>
+      <td>Fourth evaluation: the free-tier daily limits ran out within minutes, which decided the result.</td>
+      <td>Gemini hit its per-day request limit at 07:46:04 UTC, about 4 minutes in (16 times in the small-language-model run, 81 of 81 attempts in the carbon-capture run). Groq's per-day token limit hit 57 of 71 attempts in the carbon-capture run. Groq also returned 20 empty replies in 91 attempts. A ping at about 07:42 UTC had shown both providers ok, so a tiny ping does not show that a full run's needs are available.</td>
+      <td>Not fixed, and not a pipeline result. The limit types are now recorded, which is what made this visible. Allowance sizes: not measured yet.</td>
+    </tr>
+    <tr>
+      <td>Fourth evaluation: a stray <code>[Critic]</code> token in the written report.</td>
+      <td>A "Critic note" paragraph under "Numbers and Evidence" carried a non-numeric bracket token and duplicated a Coverage notes entry (independent leak check: 1 token).</td>
+      <td>Fixed in code afterwards (fakes only, not re-run live). <code>examples/multi/small-language-models.md</code> still shows it.</td>
+    </tr>
+    <tr>
+      <td>Fourth evaluation: "the source was rate-limited" for a section that had fetched pages.</td>
+      <td>The "Limits, Risks, and Outlook" section had 2 fetched pages but no findings; the cause in the trace was LLM provider limits, not the source.</td>
+      <td>Fixed in code afterwards: reasons are derived from pages, findings, stop reason and real 403 or 429 fetches. Not re-run live.</td>
+    </tr>
+    <tr>
+      <td>Fourth evaluation: 3 uncited bullets under a section the report itself called missing.</td>
+      <td>A "General Observations" list of 3 bullets with 0 citations, in a section with no usable finding.</td>
+      <td>Fixed in code afterwards: sections without findings get no prose, uncited bullets are dropped and counted in <code>trace.writer</code>. Not re-run live.</td>
+    </tr>
+    <tr>
+      <td>Fourth evaluation: a blanket "All factual statements are sourced" closing line, false next to those bullets.</td>
+      <td>The line was present while the uncited bullets were in the report.</td>
+      <td>Fixed in code afterwards: the line is gone, replaced by a code-built "Claim check: N claims cited, M left out or marked unverified, K sections missing or weak" line. Not re-run live.</td>
+    </tr>
+    <tr>
+      <td>Fourth evaluation: 2 of 7 sources listed but never cited; 2 of 3 carbon-capture sources off-topic.</td>
+      <td>Sources 6 and 7 are uncited in the small-language-model report. In the carbon-capture run the only sources came from seeded fetches, and two are off-topic by title (a Wikipedia year page, an eSIM product page).</td>
+      <td>Not fixed. Seeded candidate fetches are not filtered for relevance.</td>
+    </tr>
+    <tr>
       <td>Third evaluation: the free-tier LLM capacity ran out, so no report.</td>
       <td>Gemini 429 on 140 of 142 calls (it was first in the chain; the earlier "Gemini never used" was in fact 429s that the old trace did not record). Groq succeeded on 16 of 112 calls: 42 empty replies, 54 rate limits. 0 findings, 0 critic passes, 0 reports. The critic's LLM review, the writer and the unverified-claims section were never exercised.</td>
-      <td>Not fixed, and not a pipeline result. The fixes made failures visible per provider (<code>trace.llm</code>) but cannot create quota. Per-minute versus daily limit is not measured.</td>
+      <td>Not fixed, and not a pipeline result. The fixes made failures visible per provider (<code>trace.llm</code>) but cannot create quota. Per-minute versus daily limit was not recorded then; it is from the fourth evaluation on.</td>
     </tr>
     <tr>
       <td>Third evaluation: the supervisor's plan was rejected in the small-language-model run.</td>
@@ -566,7 +627,7 @@ flowchart TD
     <tr>
       <td>The unverified-claim filter looks too strict.</td>
       <td>In the small-language-model run the critic marked 4 claims unsupported and the writer left them out. At least 3 of the 4 are on the live source page (F32 weights, <code>torch.float16</code> loading, 585 downloads last month). Whether they were inside the excerpt the critic saw is not measured.</td>
-      <td>Changed in the reliability fixes: claims named without quoted evidence now appear under "Unverified claims" marked (unverified) instead of being omitted. Not exercised on a live run since. The false-positive rate cannot be quantified from n=4 claims on one page.</td>
+      <td>Changed in the reliability fixes: claims named without quoted evidence now appear under "Unverified claims" marked (unverified) instead of being omitted. Exercised live once in the fourth evaluation: 1 claim marked, 0 omitted, and the live page agrees it is unsupported (n=1). The false-positive rate cannot be quantified from this.</td>
     </tr>
     <tr>
       <td>A claim overstates its source.</td>
@@ -578,19 +639,25 @@ flowchart TD
 </div>
 
 <h3>Summary, honestly</h3>
-<p>The R2 mechanics work where the LLM answers. The strongest end-to-end evidence is the second evaluation, small language models: a written report with 11 citations, all valid, a critic verdict per section, a retry capped at one round and no leaked error text. The third evaluation (6 runs in total, n=1 per topic per evaluation) fixed the fetch layer but produced no report, because the free-tier LLMs failed on almost every call.</p>
+<p>The R2 mechanics work where the LLM answers. The strongest end-to-end evidence is now the fourth evaluation, small language models (n=1): the whole chain ran on live calls, with a critic LLM review, a written report of 747 words with 27 citation tokens, 0 invalid, and one claim labelled unverified. The same evaluation's carbon-capture run produced no report because both providers hit daily limits. Four evaluations, 8 runs, n=1 per topic per evaluation.</p>
 <div class="card bad">
-  <b>What is still not shown.</b> The critic's LLM review, the writer and the retry's benefit have not been demonstrated on working LLM calls since the first two evaluations. The retry has not improved any section (0 of 9 in the two evaluations where it ran). Report quality is not measured (the judge is R3), and the range and multi citation forms have only been tested with unit tests, not on real reports.
-  The blocker is free-tier LLM capacity (Gemini 429s, Groq empty replies and rate limits). It will matter for the R3 benchmark, which needs 12 topics x 2 systems x 2 runs. Recommendation: re-run the R2 smoke test when quota is fresh, or use a paid tier for R3, before reading anything into a comparison.
+  <b>What is still not shown.</b>
+  <ul>
+    <li><b>Now shown on live calls (small language models, n=1):</b> the critic's LLM review, the writer, and the unverified-claim label.</li>
+    <li><b>Still not shown:</b> the retry's benefit (0 of 14 retried sections improved, all limited by provider failures or empty fetches); the carbon-capture pipeline with working LLM calls; the writer fixes made after this evaluation, on live output (tested with fakes only, example reports not regenerated); report quality (the judge is R3); the range and comma-list citation forms in a real report.</li>
+  </ul>
+</div>
+<div class="card warn">
+  <b>Implication for R3.</b> The free tier allowed roughly one or two multi-agent runs per day in this evaluation (observed, n=2 runs, one of which produced a report). The R3 benchmark needs 12 topics x 2 systems x 2 runs = 48 runs, so it cannot be completed on the free tier in reasonable time. The options are many days of resumable batches (the R3 harness is resumable) or a paid key. How many days: not measured yet.
 </div>
 
 <h3>Pull request</h3>
-<p><a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3">PR #3</a> (open).</p>
+<p><a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3">PR #3</a> (merged).</p>
 
 <h2 id="next">What comes next</h2>
 <ul>
-  <li><b>R2</b> Critic and writer, with deterministic citation checks. <span class="tag">built, PR open</span></li>
-  <li><b>R3</b> Benchmark on 12 topics, multi-agent against this baseline. <span class="tag planned">planned</span></li>
+  <li><b>R2</b> Critic and writer, with deterministic citation checks. <span class="tag">merged</span></li>
+  <li><b>R3</b> Benchmark on 12 topics, multi-agent against this baseline. The resumable harness is built and merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">PR #4</a>); no benchmark run has been made, so there are no benchmark numbers yet (not measured yet). Free-tier capacity is the constraint (see the R2 section). <span class="tag">in progress</span></li>
   <li><b>R4</b> Deployed demo with jobs, streaming progress and traces. <span class="tag planned">planned</span></li>
 </ul>
 

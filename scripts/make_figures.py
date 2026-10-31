@@ -8,11 +8,14 @@ Figures (a figure is skipped, with a message, when its input is missing):
                        {"runs": [{"topic": str, "wall_s": float, "workers": [{"section": str,
                                   "start_s": float, "end_s": float, "status": str}, ...]}]}
   r2_critic_before_after.svg  critic verdict per section before and after the retry, from
-                       results/r2_critic_first_run.json, r2_critic_second_run.json, r2_critic.json
+                       results/r2_critic_first_run.json, r2_critic_second_run.json,
+                       r2_critic_third_run.json, r2_critic.json (fourth evaluation)
                        (page counts from the matching results/r2_smoke*.json):
                        {"runs": [{"topic": str, "sections": [{"section": str, "verdict_before": str,
                                   "verdict_after": str|null, "retried": bool,
                                   "kept_retry": bool}]}]}
+  r2_provider_availability.svg  per provider and run: calls ok and failed by reason, from
+                       results/r2_smoke.json runs[].llm_summary.providers
   baseline_smoke.svg   tokens, cost and latency per topic, from results/baseline_smoke.json:
                        {"runs": [{"topic": str, "total_tokens": int, "cost_usd": float,
                                   "latency_s": float}, ...]}
@@ -164,10 +167,11 @@ def r2_critic_before_after() -> Path | None:
     files = [
         ("First evaluation", ROOT / "results" / "r2_critic_first_run.json"),
         ("Second evaluation", ROOT / "results" / "r2_critic_second_run.json"),
-        ("Third evaluation", ROOT / "results" / "r2_critic.json"),
+        ("Third evaluation", ROOT / "results" / "r2_critic_third_run.json"),
+        ("Fourth evaluation", ROOT / "results" / "r2_critic.json"),
     ]
     pages = {}  # (run_id, section_id) -> (pages before, pages after) from the smoke files
-    for name in ("r2_smoke_second_run.json", "r2_smoke.json"):
+    for name in ("r2_smoke_second_run.json", "r2_smoke_third_run.json", "r2_smoke.json"):
         sp = ROOT / "results" / name
         if sp.is_file():
             for r in json.loads(sp.read_text(encoding="utf-8")).get("runs", []):
@@ -190,7 +194,14 @@ def r2_critic_before_after() -> Path | None:
         print("skip r2_critic_before_after: no critic data, not measured yet")
         return None
     n_rows = len(panels)
-    fig, axes = plt.subplots(n_rows, 1, figsize=(7, 2.5 * n_rows + 1.0), squeeze=False)
+    ratios = [len(run["sections"]) + 2.2 for _, run in panels]
+    fig, axes = plt.subplots(
+        n_rows,
+        1,
+        figsize=(7, 0.36 * sum(ratios) + 1.0),
+        squeeze=False,
+        gridspec_kw={"height_ratios": ratios},
+    )
     for ax in axes.flat:
         ax.axis("off")
     for ax, (label, run) in zip(axes.flat, panels, strict=False):
@@ -260,6 +271,60 @@ def r2_critic_before_after() -> Path | None:
     return _save(fig, "r2_critic_before_after.svg")
 
 
+def r2_provider_availability() -> Path | None:
+    path = ROOT / "results" / "r2_smoke.json"
+    if not path.is_file():
+        print("skip r2_provider_availability: results/r2_smoke.json not measured yet")
+        return None
+    rows = []  # (label, attempts, ok, [(reason, count)])
+    for run in json.loads(path.read_text(encoding="utf-8")).get("runs", []):
+        for prov, s in ((run.get("llm_summary") or {}).get("providers") or {}).items():
+            fails = dict(s.get("limit_types") or {})
+            other = dict(s.get("failure_reasons") or {})
+            other.pop("RateLimitError 429", None)
+            fails.update(other)
+            known = sum(fails.values())
+            if s["failed"] - known:
+                fails["other"] = s["failed"] - known
+            rows.append((f"{run['topic'][:22]}\n{prov}", s["attempts"], s["succeeded"], fails))
+    if not rows:
+        print("skip r2_provider_availability: no llm_summary in results/r2_smoke.json")
+        return None
+    palette = {
+        "ok": "#2f7d5b",
+        "per_minute_requests": "#e9a23b",
+        "per_minute_tokens": "#f1c27d",
+        "per_day_requests": "#b23a3a",
+        "per_day_tokens": "#7a2330",
+        "EmptyReplyError": "#7fa8e6",
+        "ServerError": "#8a8f98",
+        "other": "#c9ced6",
+    }
+    fig, ax = plt.subplots(figsize=(7, 1.3 + 0.7 * len(rows)))
+    seen = []
+    for i, (_, _, ok, fails) in enumerate(rows):
+        left = 0
+        for reason, n in [("ok", ok), *sorted(fails.items(), key=lambda kv: -kv[1])]:
+            if not n:
+                continue
+            ax.barh(i, n, left=left, color=palette.get(reason, "#c9ced6"), height=0.6)
+            if n >= 6:
+                ax.text(
+                    left + n / 2, i, str(n), ha="center", va="center", fontsize=7, color="white"
+                )
+            left += n
+            if reason not in seen:
+                seen.append(reason)
+    ax.set_yticks(range(len(rows)), [r[0] for r in rows], fontsize=8)
+    ax.invert_yaxis()
+    ax.set_xlabel("provider call attempts (including failed ones)", color=INK)
+    ax.set_title("R2 fourth evaluation: provider calls by outcome (n=1 run per topic)", fontsize=10)
+    handles = [plt.Rectangle((0, 0), 1, 1, color=palette.get(r, "#c9ced6")) for r in seen]
+    ax.legend(handles, seen, fontsize=7, frameon=False, loc="lower right", ncol=2)
+    _style(ax)
+    return _save(fig, "r2_provider_availability.svg")
+
+
 def _save(fig, name: str) -> Path:
     FIGS.mkdir(parents=True, exist_ok=True)
     out = FIGS / name
@@ -276,6 +341,7 @@ def main() -> None:
     baseline_smoke()
     r1_worker_timeline()
     r2_critic_before_after()
+    r2_provider_availability()
 
 
 if __name__ == "__main__":
