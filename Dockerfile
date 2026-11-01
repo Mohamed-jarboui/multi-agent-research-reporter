@@ -1,4 +1,6 @@
-# Demo image for the research reporter service (Hugging Face Docker Space: port 7860).
+# Image for running the research reporter service locally (port 7860).
+# The public demo no longer uses this file: Docker Spaces are a paid option on Hugging Face now,
+# so the Space uses the free Gradio SDK path (deploy/space_app.py, see docs/deploy_hf.md).
 FROM python:3.12-slim
 
 # uv from its official image; no dev dependencies in the final environment

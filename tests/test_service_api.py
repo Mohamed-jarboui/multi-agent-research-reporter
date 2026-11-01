@@ -467,6 +467,12 @@ def test_home_page_is_served(tmp_path):
     assert r.status_code == 200 and "EventSource" in r.text
 
 
+def test_unwritable_working_directory_falls_back_to_tmp(tmp_path, monkeypatch):
+    monkeypatch.setattr("reporter.service.config.os.access", lambda *_: False)
+    folder, storage = resolve_data_dir({}, tmp_path / "no-data", tmp_path / "var", tmp_path / "t")
+    assert (folder, storage) == (tmp_path / "t", "ephemeral")
+
+
 def test_without_persistent_storage_the_service_says_ephemeral(tmp_path, caplog):
     with caplog.at_level(logging.WARNING, logger="reporter"):
         folder, storage = resolve_data_dir({}, tmp_path / "no-data", tmp_path / "var")
