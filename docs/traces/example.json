@@ -1,27 +1,27 @@
 {
-  "label": "fake LLM and tools; numbers are not measurements",
-  "synthetic": true,
-  "run_id": "rpt_20261031T120000Z_08a113efd056a442",
-  "exported_at": "2026-10-31T08:51:25+00:00",
-  "n_spans": 29,
+  "label": "real run",
+  "synthetic": false,
+  "run_id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+  "exported_at": "2026-11-01T16:10:01+00:00",
+  "n_spans": 70,
   "spans": [
     {
       "name": "job",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xbe917b633029de99",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x221ce50269a5b67e",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
       "parent_id": null,
-      "start_time": "2026-10-31T08:51:18.532480Z",
-      "end_time": "2026-10-31T08:51:18.608624Z",
+      "start_time": "2026-11-01T15:58:00.212213Z",
+      "end_time": "2026-11-01T16:01:53.480959Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "agent",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "langfuse.trace.name": "report",
         "reporter.resumed": false
       },
@@ -32,7 +32,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -41,21 +41,21 @@
     {
       "name": "node:supervisor",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x2d5505fd60058258",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xd0082793088aaadd",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xbe917b633029de99",
-      "start_time": "2026-10-31T08:51:18.537482Z",
-      "end_time": "2026-10-31T08:51:18.541453Z",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T15:58:00.248949Z",
+      "end_time": "2026-11-01T15:58:20.374286Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "span",
         "reporter.node.key": "supervisor",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442"
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a"
       },
       "events": [],
       "links": [],
@@ -64,7 +64,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -73,25 +73,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xc12b6fd602751eba",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xd783834ac3531aef",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x2d5505fd60058258",
-      "start_time": "2026-10-31T08:51:18.539481Z",
-      "end_time": "2026-10-31T08:51:18.539481Z",
+      "parent_id": "0xd0082793088aaadd",
+      "start_time": "2026-11-01T15:58:00.250954Z",
+      "end_time": "2026-11-01T15:58:10.519814Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 190,
+        "gen_ai.usage.output_tokens": 266,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -100,32 +102,36 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
       }
     },
     {
-      "name": "worker:s1",
+      "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x58a5572987c753ce",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x0ecef81b116d0473",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xbe917b633029de99",
-      "start_time": "2026-10-31T08:51:18.544458Z",
-      "end_time": "2026-10-31T08:51:18.562033Z",
+      "parent_id": "0xd0082793088aaadd",
+      "start_time": "2026-11-01T15:58:10.520819Z",
+      "end_time": "2026-11-01T15:58:20.372286Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
-        "langfuse.observation.type": "agent",
-        "reporter.phase": "research",
-        "reporter.node.key": "worker:s1",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "reporter.worker.attempts": 1
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 231,
+        "gen_ai.usage.output_tokens": 249,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -134,7 +140,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -143,14 +149,14 @@
     {
       "name": "worker:s2",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xedfea0cdb40eafd7",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x8ce450e24d49b1d1",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xbe917b633029de99",
-      "start_time": "2026-10-31T08:51:18.544458Z",
-      "end_time": "2026-10-31T08:51:18.563033Z",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T15:58:20.376791Z",
+      "end_time": "2026-11-01T15:59:34.111893Z",
       "status": {
         "status_code": "UNSET"
       },
@@ -158,7 +164,7 @@
         "langfuse.observation.type": "agent",
         "reporter.phase": "research",
         "reporter.node.key": "worker:s2",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "reporter.worker.attempts": 1
       },
       "events": [],
@@ -168,34 +174,32 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
       }
     },
     {
-      "name": "llm.generate",
+      "name": "worker:s1",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x71ce900f9ddc91a6",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x8eb5d65c4f27a5ed",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x58a5572987c753ce",
-      "start_time": "2026-10-31T08:51:18.552493Z",
-      "end_time": "2026-10-31T08:51:18.553491Z",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T15:58:20.376791Z",
+      "end_time": "2026-11-01T15:59:54.898085Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
-        "langfuse.observation.type": "generation",
-        "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.observation.type": "agent",
+        "reporter.phase": "research",
+        "reporter.node.key": "worker:s1",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.worker.attempts": 2
       },
       "events": [],
       "links": [],
@@ -204,7 +208,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -213,25 +217,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xc3ebeb2595199358",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x7e930fe6ae2fe6cc",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xedfea0cdb40eafd7",
-      "start_time": "2026-10-31T08:51:18.553491Z",
-      "end_time": "2026-10-31T08:51:18.553491Z",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:58:20.386470Z",
+      "end_time": "2026-11-01T15:58:22.824048Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 456,
+        "gen_ai.usage.output_tokens": 83,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -240,30 +246,66 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
       }
     },
     {
-      "name": "tool:fetch_page",
+      "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x8ee5bcfcd21c24f8",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x86f60465d12749d5",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x58a5572987c753ce",
-      "start_time": "2026-10-31T08:51:18.554491Z",
-      "end_time": "2026-10-31T08:51:18.554491Z",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:20.388473Z",
+      "end_time": "2026-11-01T15:58:23.526304Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 454
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x541776fc0493e1fb",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:58:22.825046Z",
+      "end_time": "2026-11-01T15:58:25.418550Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "tool",
-        "tool.name": "fetch_page",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "tool.ok": true
       },
       "events": [],
@@ -273,30 +315,30 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
       }
     },
     {
-      "name": "tool:fetch_page",
+      "name": "tool:web_search",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xe550e2d33e043232",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x871ac36b64936ab8",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xedfea0cdb40eafd7",
-      "start_time": "2026-10-31T08:51:18.555492Z",
-      "end_time": "2026-10-31T08:51:18.555492Z",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:23.527305Z",
+      "end_time": "2026-11-01T15:58:25.926326Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "tool",
-        "tool.name": "fetch_page",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "tool.ok": true
       },
       "events": [],
@@ -306,7 +348,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -315,25 +357,25 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xbe39a79ea97f353d",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x072520e6a2101f5e",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x58a5572987c753ce",
-      "start_time": "2026-10-31T08:51:18.555492Z",
-      "end_time": "2026-10-31T08:51:18.555492Z",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:58:25.420520Z",
+      "end_time": "2026-11-01T15:58:28.860824Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1426
       },
       "events": [],
       "links": [],
@@ -342,7 +384,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -351,25 +393,25 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x1de8bd2cf9efb6ca",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x0066b91e2f6ef563",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xedfea0cdb40eafd7",
-      "start_time": "2026-10-31T08:51:18.556988Z",
-      "end_time": "2026-10-31T08:51:18.556988Z",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:25.927327Z",
+      "end_time": "2026-11-01T15:58:28.092299Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1593
       },
       "events": [],
       "links": [],
@@ -378,7 +420,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -387,21 +429,21 @@
     {
       "name": "tool:fetch_page",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x6ed48cea321bdff2",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x6f237b65ae678f07",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x58a5572987c753ce",
-      "start_time": "2026-10-31T08:51:18.558027Z",
-      "end_time": "2026-10-31T08:51:18.558027Z",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:28.093297Z",
+      "end_time": "2026-11-01T15:58:28.840813Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "tool",
         "tool.name": "fetch_page",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "tool.ok": true
       },
       "events": [],
@@ -411,7 +453,45 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x45436d29343c44ad",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:28.841814Z",
+      "end_time": "2026-11-01T15:58:35.420644Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1770,
+        "gen_ai.usage.output_tokens": 90,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -420,21 +500,21 @@
     {
       "name": "tool:fetch_page",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xdea5bf604ab5552f",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x0b7bfa5a7b318030",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xedfea0cdb40eafd7",
-      "start_time": "2026-10-31T08:51:18.558027Z",
-      "end_time": "2026-10-31T08:51:18.558027Z",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:58:28.861823Z",
+      "end_time": "2026-11-01T15:58:29.829797Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "tool",
         "tool.name": "fetch_page",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "tool.ok": true
       },
       "events": [],
@@ -444,7 +524,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -453,25 +533,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xcbf8c32a83d2e0d0",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x3b963ca028773ab3",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x58a5572987c753ce",
-      "start_time": "2026-10-31T08:51:18.559037Z",
-      "end_time": "2026-10-31T08:51:18.559037Z",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:58:29.830832Z",
+      "end_time": "2026-11-01T15:58:37.102326Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1701,
+        "gen_ai.usage.output_tokens": 76,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -480,7 +562,40 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x3eaf4aa5093c7c0f",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:35.421644Z",
+      "end_time": "2026-11-01T15:58:36.908448Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -489,25 +604,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x6e3e96f8a6b07ed2",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xe4f65fc91834ec03",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xedfea0cdb40eafd7",
-      "start_time": "2026-10-31T08:51:18.560034Z",
-      "end_time": "2026-10-31T08:51:18.560034Z",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:36.909415Z",
+      "end_time": "2026-11-01T15:58:43.891501Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1762,
+        "gen_ai.usage.output_tokens": 101,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -516,7 +633,40 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x40b2dbd8267d9bc2",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:58:37.103327Z",
+      "end_time": "2026-11-01T15:58:38.127477Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -525,25 +675,24 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x4b15bec662168f35",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x33ac48cfba267cf9",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x58a5572987c753ce",
-      "start_time": "2026-10-31T08:51:18.561033Z",
-      "end_time": "2026-10-31T08:51:18.561033Z",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:58:38.128468Z",
+      "end_time": "2026-11-01T15:59:04.737292Z",
       "status": {
-        "status_code": "UNSET"
+        "status_code": "ERROR"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.llm.limit_type": "per_minute_tokens",
+        "reporter.llm.retry_after_s": 1.95,
+        "error.type": "AllProvidersFailedError"
       },
       "events": [],
       "links": [],
@@ -552,7 +701,40 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x23260486c72018ce",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:43.892500Z",
+      "end_time": "2026-11-01T15:58:45.581179Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -561,25 +743,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xf6473478c0017748",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x46680cb7794a6044",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xedfea0cdb40eafd7",
-      "start_time": "2026-10-31T08:51:18.561033Z",
-      "end_time": "2026-10-31T08:51:18.561033Z",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:58:45.582181Z",
+      "end_time": "2026-11-01T15:59:16.111312Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1669,
+        "gen_ai.usage.output_tokens": 34,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -588,7 +772,430 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xcce70e7254ea1d3e",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:04.738291Z",
+      "end_time": "2026-11-01T15:59:05.488136Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x836e37ec0dbec72d",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:05.489185Z",
+      "end_time": "2026-11-01T15:59:16.006671Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1608,
+        "gen_ai.usage.output_tokens": 56,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xad90933e6517a11e",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:16.007638Z",
+      "end_time": "2026-11-01T15:59:18.165964Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x9693d829bffa8891",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:59:16.113353Z",
+      "end_time": "2026-11-01T15:59:17.484063Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x2f8224b9e93522b3",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:59:17.485027Z",
+      "end_time": "2026-11-01T15:59:20.789680Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1911,
+        "gen_ai.usage.output_tokens": 106,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x9bd20b8f442a4c73",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:18.166966Z",
+      "end_time": "2026-11-01T15:59:21.011181Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1793,
+        "gen_ai.usage.output_tokens": 38,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x080fc1f0b05b4b2a",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:59:20.790644Z",
+      "end_time": "2026-11-01T15:59:23.516689Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xebb4867b150962c6",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:21.012182Z",
+      "end_time": "2026-11-01T15:59:23.006804Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xb2013d9d7a641363",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:23.007805Z",
+      "end_time": "2026-11-01T15:59:25.189926Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1751,
+        "gen_ai.usage.output_tokens": 46,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xb430ad5b47f0dbec",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8ce450e24d49b1d1",
+      "start_time": "2026-11-01T15:59:23.517688Z",
+      "end_time": "2026-11-01T15:59:34.107848Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 2266,
+        "gen_ai.usage.output_tokens": 542,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x6c7c67ea4272f29e",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:25.190925Z",
+      "end_time": "2026-11-01T15:59:27.920686Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x210deb007c70a0eb",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x8eb5d65c4f27a5ed",
+      "start_time": "2026-11-01T15:59:27.921647Z",
+      "end_time": "2026-11-01T15:59:54.897120Z",
+      "status": {
+        "status_code": "ERROR"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.llm.limit_type": "per_minute_tokens",
+        "reporter.llm.retry_after_s": 3.3,
+        "error.type": "AllProvidersFailedError"
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -597,14 +1204,14 @@
     {
       "name": "worker:s3",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x3630afdb5b2617c4",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xffe1d35b9070d78c",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xbe917b633029de99",
-      "start_time": "2026-10-31T08:51:18.564081Z",
-      "end_time": "2026-10-31T08:51:18.578071Z",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T15:59:34.113445Z",
+      "end_time": "2026-11-01T15:59:55.945297Z",
       "status": {
         "status_code": "UNSET"
       },
@@ -612,7 +1219,209 @@
         "langfuse.observation.type": "agent",
         "reporter.phase": "research",
         "reporter.node.key": "worker:s3",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.worker.attempts": 2
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xf9fabadc8845ce20",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0xffe1d35b9070d78c",
+      "start_time": "2026-11-01T15:59:34.127228Z",
+      "end_time": "2026-11-01T15:59:42.588095Z",
+      "status": {
+        "status_code": "ERROR"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "error.type": "AllProvidersFailedError"
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x97298dbbc347b711",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0xffe1d35b9070d78c",
+      "start_time": "2026-11-01T15:59:42.589095Z",
+      "end_time": "2026-11-01T15:59:55.944299Z",
+      "status": {
+        "status_code": "ERROR"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "error.type": "AllProvidersFailedError"
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "node:merge",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x9131b3c49846c423",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T15:59:55.947302Z",
+      "end_time": "2026-11-01T15:59:55.955297Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "span",
+        "reporter.node.key": "merge",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a"
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "node:critic",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x3c4d9133f44f5ddf",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T15:59:55.956299Z",
+      "end_time": "2026-11-01T16:00:02.753980Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "span",
+        "reporter.node.key": "critic",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a"
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x1502240be1071264",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x3c4d9133f44f5ddf",
+      "start_time": "2026-11-01T15:59:55.964264Z",
+      "end_time": "2026-11-01T16:00:02.751976Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1673,
+        "gen_ai.usage.output_tokens": 559,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "worker:s3",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x3fb26c0ddd301c12",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T16:00:02.756588Z",
+      "end_time": "2026-11-01T16:00:42.423771Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "agent",
+        "reporter.phase": "retry",
+        "reporter.node.key": "retry:s3",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "reporter.worker.attempts": 1
       },
       "events": [],
@@ -622,34 +1431,32 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
       }
     },
     {
-      "name": "llm.generate",
+      "name": "worker:s1",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xb534c77203c8f06b",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x5d66842ab23d81e0",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x3630afdb5b2617c4",
-      "start_time": "2026-10-31T08:51:18.572102Z",
-      "end_time": "2026-10-31T08:51:18.572102Z",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T16:00:02.756588Z",
+      "end_time": "2026-11-01T16:01:28.657380Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
-        "langfuse.observation.type": "generation",
-        "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.observation.type": "agent",
+        "reporter.phase": "retry",
+        "reporter.node.key": "retry:s1",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.worker.attempts": 1
       },
       "events": [],
       "links": [],
@@ -658,7 +1465,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -667,21 +1474,21 @@
     {
       "name": "tool:fetch_page",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x275cad8dbff1eb18",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x0de285fe79bfd862",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x3630afdb5b2617c4",
-      "start_time": "2026-10-31T08:51:18.573105Z",
-      "end_time": "2026-10-31T08:51:18.573105Z",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:02.764600Z",
+      "end_time": "2026-11-01T16:00:04.474606Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "tool",
         "tool.name": "fetch_page",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "tool.ok": true
       },
       "events": [],
@@ -691,7 +1498,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -700,25 +1507,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xd13eaffb2cce6a75",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x25f8d5fbdb4a2dca",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x3630afdb5b2617c4",
-      "start_time": "2026-10-31T08:51:18.574100Z",
-      "end_time": "2026-10-31T08:51:18.574100Z",
+      "parent_id": "0x3fb26c0ddd301c12",
+      "start_time": "2026-11-01T16:00:02.764600Z",
+      "end_time": "2026-11-01T16:00:05.595424Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 561,
+        "gen_ai.usage.output_tokens": 72,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -727,30 +1536,68 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
       }
     },
     {
-      "name": "tool:fetch_page",
+      "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x8b47d16c0529e641",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x0ea6b57260a1dc55",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x3630afdb5b2617c4",
-      "start_time": "2026-10-31T08:51:18.575100Z",
-      "end_time": "2026-10-31T08:51:18.575100Z",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:04.475606Z",
+      "end_time": "2026-11-01T16:00:09.990635Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1590,
+        "gen_ai.usage.output_tokens": 96,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x0764e42674d0c480",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x3fb26c0ddd301c12",
+      "start_time": "2026-11-01T16:00:05.596424Z",
+      "end_time": "2026-11-01T16:00:07.887450Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "tool",
-        "tool.name": "fetch_page",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
         "tool.ok": true
       },
       "events": [],
@@ -760,7 +1607,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -769,25 +1616,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xa8b9d0fbc1f9bd1d",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xde1c18ad8824b243",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x3630afdb5b2617c4",
-      "start_time": "2026-10-31T08:51:18.576097Z",
-      "end_time": "2026-10-31T08:51:18.576097Z",
+      "parent_id": "0x3fb26c0ddd301c12",
+      "start_time": "2026-11-01T16:00:07.889455Z",
+      "end_time": "2026-11-01T16:00:09.934578Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1380,
+        "gen_ai.usage.output_tokens": 44,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -796,7 +1645,73 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x7a32071d2fc726ef",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x3fb26c0ddd301c12",
+      "start_time": "2026-11-01T16:00:09.935580Z",
+      "end_time": "2026-11-01T16:00:10.710293Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xb66b55ad75324439",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:09.991635Z",
+      "end_time": "2026-11-01T16:00:10.959007Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -805,25 +1720,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xb1fb50eb6e3d835f",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x93084634adf06122",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x3630afdb5b2617c4",
-      "start_time": "2026-10-31T08:51:18.577068Z",
-      "end_time": "2026-10-31T08:51:18.577068Z",
+      "parent_id": "0x3fb26c0ddd301c12",
+      "start_time": "2026-11-01T16:00:10.711818Z",
+      "end_time": "2026-11-01T16:00:13.346048Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1644,
+        "gen_ai.usage.output_tokens": 45,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -832,30 +1749,596 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
       }
     },
     {
-      "name": "node:merge",
+      "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x069d83138ae21aa1",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x40684047d91f418a",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xbe917b633029de99",
-      "start_time": "2026-10-31T08:51:18.579102Z",
-      "end_time": "2026-10-31T08:51:18.586592Z",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:10.961013Z",
+      "end_time": "2026-11-01T16:00:14.301165Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1837
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xb7d9ed248c9157d5",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x3fb26c0ddd301c12",
+      "start_time": "2026-11-01T16:00:13.348056Z",
+      "end_time": "2026-11-01T16:00:15.973037Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xe85a4ce36957b077",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:14.305166Z",
+      "end_time": "2026-11-01T16:00:14.915899Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x04ec42eb7f6a4e06",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:14.917902Z",
+      "end_time": "2026-11-01T16:00:18.317020Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 1962,
+        "gen_ai.usage.output_tokens": 57,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x1ac626a4e44520d7",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x3fb26c0ddd301c12",
+      "start_time": "2026-11-01T16:00:15.974036Z",
+      "end_time": "2026-11-01T16:00:42.421804Z",
+      "status": {
+        "status_code": "ERROR"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.llm.limit_type": "per_minute_tokens",
+        "reporter.llm.retry_after_s": 11.84,
+        "error.type": "AllProvidersFailedError"
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x54ba51e3de4258fc",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:18.319051Z",
+      "end_time": "2026-11-01T16:00:19.756664Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x4447168fcfe97fd9",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:19.761659Z",
+      "end_time": "2026-11-01T16:00:29.518369Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1757,
+        "gen_ai.usage.output_tokens": 625,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x4f965c19ea2c4a4c",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:29.519715Z",
+      "end_time": "2026-11-01T16:00:43.333012Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1202,
+        "gen_ai.usage.output_tokens": 93,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "worker:s2",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x98707d6a96f8b19f",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T16:00:42.424809Z",
+      "end_time": "2026-11-01T16:01:39.372216Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "agent",
+        "reporter.phase": "retry",
+        "reporter.node.key": "retry:s2",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.worker.attempts": 1
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x3941ac43864498f4",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x98707d6a96f8b19f",
+      "start_time": "2026-11-01T16:00:42.432804Z",
+      "end_time": "2026-11-01T16:00:42.991246Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x786847de9608ea64",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x98707d6a96f8b19f",
+      "start_time": "2026-11-01T16:00:42.992275Z",
+      "end_time": "2026-11-01T16:01:07.154544Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "gemini",
+        "gen_ai.request.model": "gemini-3.6-flash",
+        "gen_ai.response.model": "gemini-3.6-flash",
+        "gen_ai.usage.input_tokens": 2466,
+        "gen_ai.usage.output_tokens": 93,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:web_search",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x5559f176a192f37b",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:43.334017Z",
+      "end_time": "2026-11-01T16:00:45.218420Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "web_search",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x750127ea6dbd4dab",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:00:45.219389Z",
+      "end_time": "2026-11-01T16:01:19.711793Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1651,
+        "gen_ai.usage.output_tokens": 730,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "tool:fetch_page",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x656534c3686a4ada",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x98707d6a96f8b19f",
+      "start_time": "2026-11-01T16:01:07.156098Z",
+      "end_time": "2026-11-01T16:01:07.962015Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "tool",
+        "tool.name": "fetch_page",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "tool.ok": true
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x885a26eff9316e24",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x98707d6a96f8b19f",
+      "start_time": "2026-11-01T16:01:07.963015Z",
+      "end_time": "2026-11-01T16:01:39.371237Z",
+      "status": {
+        "status_code": "ERROR"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "reporter.llm.limit_type": "per_minute_tokens",
+        "reporter.llm.retry_after_s": 6.46,
+        "error.type": "AllProvidersFailedError"
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "llm.generate",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x4282e7f884e97f97",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x5d66842ab23d81e0",
+      "start_time": "2026-11-01T16:01:19.713792Z",
+      "end_time": "2026-11-01T16:01:28.655386Z",
+      "status": {
+        "status_code": "UNSET"
+      },
+      "attributes": {
+        "langfuse.observation.type": "generation",
+        "gen_ai.operation.name": "chat",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 2047,
+        "gen_ai.usage.output_tokens": 399,
+        "gen_ai.usage.cost": 0.0
+      },
+      "events": [],
+      "links": [],
+      "resource": {
+        "attributes": {
+          "telemetry.sdk.language": "python",
+          "telemetry.sdk.name": "opentelemetry",
+          "telemetry.sdk.version": "1.45.2",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
+          "service.name": "research-reporter"
+        },
+        "schema_url": ""
+      }
+    },
+    {
+      "name": "node:regrade",
+      "context": {
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x048d7cdebc14ea98",
+        "trace_state": "[]"
+      },
+      "kind": "SpanKind.INTERNAL",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T16:01:39.373235Z",
+      "end_time": "2026-11-01T16:01:44.227169Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "span",
-        "reporter.node.key": "merge",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442"
+        "reporter.node.key": "regrade",
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a"
       },
       "events": [],
       "links": [],
@@ -864,39 +2347,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
-          "service.name": "research-reporter"
-        },
-        "schema_url": ""
-      }
-    },
-    {
-      "name": "node:critic",
-      "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x2bcbd729ca14f561",
-        "trace_state": "[]"
-      },
-      "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xbe917b633029de99",
-      "start_time": "2026-10-31T08:51:18.588590Z",
-      "end_time": "2026-10-31T08:51:18.596623Z",
-      "status": {
-        "status_code": "UNSET"
-      },
-      "attributes": {
-        "langfuse.observation.type": "span",
-        "reporter.node.key": "critic",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442"
-      },
-      "events": [],
-      "links": [],
-      "resource": {
-        "attributes": {
-          "telemetry.sdk.language": "python",
-          "telemetry.sdk.name": "opentelemetry",
-          "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -905,25 +2356,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x8bf6dc7377df8fd7",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0x78b5faee9c4c02dc",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x2bcbd729ca14f561",
-      "start_time": "2026-10-31T08:51:18.595624Z",
-      "end_time": "2026-10-31T08:51:18.595624Z",
+      "parent_id": "0x048d7cdebc14ea98",
+      "start_time": "2026-11-01T16:01:39.384428Z",
+      "end_time": "2026-11-01T16:01:44.222124Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1362,
+        "gen_ai.usage.output_tokens": 249,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -932,7 +2385,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -941,21 +2394,21 @@
     {
       "name": "node:writer",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0x5ce9be528db7fb7d",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xb6feab9a5105e34b",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0xbe917b633029de99",
-      "start_time": "2026-10-31T08:51:18.598593Z",
-      "end_time": "2026-10-31T08:51:18.607626Z",
+      "parent_id": "0x221ce50269a5b67e",
+      "start_time": "2026-11-01T16:01:44.229114Z",
+      "end_time": "2026-11-01T16:01:53.478960Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "span",
         "reporter.node.key": "writer",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442"
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a"
       },
       "events": [],
       "links": [],
@@ -964,7 +2417,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""
@@ -973,25 +2426,27 @@
     {
       "name": "llm.generate",
       "context": {
-        "trace_id": "0x2881a9b60ec5d544437978aeca336bc1",
-        "span_id": "0xcc90f755270e57cd",
+        "trace_id": "0xf28c8c46fbcf20535bb18df7325597b2",
+        "span_id": "0xca65d0cb60471fdc",
         "trace_state": "[]"
       },
       "kind": "SpanKind.INTERNAL",
-      "parent_id": "0x5ce9be528db7fb7d",
-      "start_time": "2026-10-31T08:51:18.605645Z",
-      "end_time": "2026-10-31T08:51:18.605645Z",
+      "parent_id": "0xb6feab9a5105e34b",
+      "start_time": "2026-11-01T16:01:44.236114Z",
+      "end_time": "2026-11-01T16:01:53.473966Z",
       "status": {
         "status_code": "UNSET"
       },
       "attributes": {
         "langfuse.observation.type": "generation",
         "gen_ai.operation.name": "chat",
-        "langfuse.session.id": "rpt_20261031T120000Z_08a113efd056a442",
-        "gen_ai.request.model": "fake-model",
-        "gen_ai.response.model": "fake-model",
-        "gen_ai.usage.input_tokens": 100,
-        "gen_ai.usage.output_tokens": 50
+        "langfuse.session.id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "gen_ai.system": "groq",
+        "gen_ai.request.model": "openai/gpt-oss-120b",
+        "gen_ai.response.model": "openai/gpt-oss-120b",
+        "gen_ai.usage.input_tokens": 1095,
+        "gen_ai.usage.output_tokens": 751,
+        "gen_ai.usage.cost": 0.0
       },
       "events": [],
       "links": [],
@@ -1000,7 +2455,7 @@
           "telemetry.sdk.language": "python",
           "telemetry.sdk.name": "opentelemetry",
           "telemetry.sdk.version": "1.45.2",
-          "service.instance.id": "61eefbd0-216c-4204-9ca2-a6ce20ea2d89",
+          "service.instance.id": "8a321a1e-952a-4fa0-8a2c-2ba99bbbb880",
           "service.name": "research-reporter"
         },
         "schema_url": ""

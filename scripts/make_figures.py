@@ -16,6 +16,8 @@ Figures (a figure is skipped, with a message, when its input is missing):
                                   "kept_retry": bool}]}]}
   r2_provider_availability.svg  per provider and run: calls ok and failed by reason, from
                        results/r2_smoke.json runs[].llm_summary.providers
+  r4_span_timeline.svg  Gantt of the spans of one job, from docs/traces/example.json:
+                       {"label": str, "synthetic": bool, "n_spans": int, "spans": [OTel span dicts]}
   baseline_smoke.svg   tokens, cost and latency per topic, from results/baseline_smoke.json:
                        {"runs": [{"topic": str, "total_tokens": int, "cost_usd": float,
                                   "latency_s": float}, ...]}
@@ -325,6 +327,112 @@ def r2_provider_availability() -> Path | None:
     return _save(fig, "r2_provider_availability.svg")
 
 
+SPAN_COLOUR = {
+    "job": "#5b6573",
+    "node": "#3b6fb6",
+    "worker": "#2f7d5b",
+    "llm.generate": "#e9a23b",
+    "tool": "#7a5fb0",
+}
+
+
+def _parse_ts(value: str) -> float:
+    from datetime import datetime
+
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+
+
+def _lanes(items):
+    """Greedy lane packing for overlapping (start, end, ...) items; returns lane per item."""
+    ends: list[float] = []
+    out = []
+    for it in sorted(range(len(items)), key=lambda i: items[i][0]):
+        for lane, e in enumerate(ends):
+            if items[it][0] >= e:
+                ends[lane] = items[it][1]
+                out.append((it, lane))
+                break
+        else:
+            ends.append(items[it][1])
+            out.append((it, len(ends) - 1))
+    return dict(out), len(ends)
+
+
+def r4_span_timeline() -> Path | None:
+    path = ROOT / "docs" / "traces" / "example.json"
+    if not path.is_file():
+        print("skip r4_span_timeline: docs/traces/example.json not measured yet")
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    spans = data.get("spans") or []
+    if not spans:
+        print("skip r4_span_timeline: no spans in docs/traces/example.json")
+        return None
+    t0 = min(_parse_ts(sp["start_time"]) for sp in spans)
+    rows: dict[str, list] = {}
+    for sp in spans:
+        name = sp["name"]
+        kind = name.split(":")[0]
+        a = _parse_ts(sp["start_time"]) - t0
+        b = _parse_ts(sp["end_time"]) - t0
+        failed = sp.get("status", {}).get("status_code") == "ERROR"
+        key = name if kind in ("job", "node", "worker") else kind
+        if kind == "tool":
+            key = "tool:*"
+        rows.setdefault(key, []).append((a, b, kind, failed))
+
+    def order(k: str):
+        rank = {"job": 0, "node": 1, "worker": 2, "llm.generate": 3, "tool:*": 4}
+        kind = k.split(":")[0] if k != "tool:*" else "tool"
+        first = min(x[0] for x in rows[k])
+        return (rank.get(kind if kind != "llm.generate" else k, 5), first)
+
+    keys = sorted(rows, key=order)
+    heights = []
+    packed = {}
+    for k in keys:
+        if k in ("llm.generate", "tool:*"):
+            lanes, n = _lanes(rows[k])
+            packed[k] = lanes
+            heights.append(max(n, 1))
+        else:
+            heights.append(1)
+    total = sum(heights)
+    fig, ax = plt.subplots(figsize=(9, 1.6 + 0.3 * total))
+    y = 0.0
+    ticks, labels = [], []
+    for k, h in zip(keys, heights, strict=True):
+        for i, (a, b, kind, failed) in enumerate(rows[k]):
+            lane = packed[k][i] if k in packed else 0
+            colour = "#b23a3a" if failed else SPAN_COLOUR.get(kind, "#888888")
+            ax.barh(y + lane, max(b - a, 0.4), left=a, color=colour, height=0.8)
+        ticks.append(y + (h - 1) / 2)
+        labels.append(k if k not in packed else f"{k} ({len(rows[k])})")
+        y += h + 0.4
+    ax.set_yticks(ticks, labels, fontsize=8)
+    ax.invert_yaxis()
+    ax.set_xlabel("seconds since the first span started", color=INK)
+    n_failed = sum(1 for k in rows for x in rows[k] if x[3])
+    ax.set_title(
+        f"Spans of one job: {data.get('label', 'unlabelled')}, "
+        f"synthetic={data.get('synthetic')}, {len(spans)} spans (n=1 job)",
+        fontsize=10,
+    )
+    handles = [plt.Rectangle((0, 0), 1, 1, color=c) for c in SPAN_COLOUR.values()]
+    handles.append(plt.Rectangle((0, 0), 1, 1, color="#b23a3a"))
+    ax.legend(
+        handles,
+        [*SPAN_COLOUR, f"failed LLM call ({n_failed})"],
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.14),
+        ncol=6,
+        fontsize=8,
+        frameon=False,
+    )
+    _style(ax)
+    return _save(fig, "r4_span_timeline.svg")
+
+
 def _save(fig, name: str) -> Path:
     FIGS.mkdir(parents=True, exist_ok=True)
     out = FIGS / name
@@ -342,6 +450,7 @@ def main() -> None:
     r1_worker_timeline()
     r2_critic_before_after()
     r2_provider_availability()
+    r4_span_timeline()
 
 
 if __name__ == "__main__":
