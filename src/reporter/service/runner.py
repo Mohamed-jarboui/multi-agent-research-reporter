@@ -84,9 +84,16 @@ def build_result(run: MultiRunResult) -> dict[str, Any]:
     """The public result of a finished job."""
     review, trace = run.review, run.trace
     sections = []
+    coverage = {"sections_ok": 0, "sections_weak": 0, "sections_missing": 0}
     for section in run.merged.sections:
         sid = section.brief.id
         verdict = review.sections.get(sid) if review else None
+        if not section.findings:
+            coverage["sections_missing"] += 1
+        elif verdict is not None and verdict.verdict in ("weak", "fail"):
+            coverage["sections_weak"] += 1
+        else:
+            coverage["sections_ok"] += 1
         sections.append(
             {
                 "id": sid,
@@ -105,6 +112,7 @@ def build_result(run: MultiRunResult) -> dict[str, Any]:
             for name in ("invalid_citations", "uncited_sources", "unfetched_urls")
         },
         "sections": sections,
+        "coverage": coverage,
         "writer_status": str(trace.writer.get("status", "")),
     }
 

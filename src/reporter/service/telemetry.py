@@ -83,11 +83,64 @@ def read_spans(runs_dir: Path, run_id: str) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
 
 
+def add_placeholder_parents(spans: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """`spans` plus one synthetic parent for each parent id that is not in the list.
+
+    A segment that crashed never ended its `job` span (or its in-flight worker spans), so those
+    spans were never written and their children point to nothing. Each missing id gets a
+    placeholder spanning its children (min start to max end), marked `reporter.placeholder=true`.
+    It is named `job (crashed segment)` when its children are nodes or workers, else
+    `unfinished span (crashed segment)` (an in-flight worker); the latter is attached to the job
+    placeholder when there is exactly one.
+    """
+    known = {s["context"]["span_id"] for s in spans}
+    children: dict[str, list[dict[str, Any]]] = {}
+    for span in spans:
+        parent = span.get("parent_id")
+        if parent and parent not in known:
+            children.setdefault(parent, []).append(span)
+    made: list[dict[str, Any]] = []
+    for parent_id, kids in children.items():
+        is_job = any(k["name"].startswith(("node:", "worker:")) for k in kids)
+        session = next(
+            (k["attributes"][otel.SESSION_ID] for k in kids if otel.SESSION_ID in k["attributes"]),
+            None,
+        )
+        made.append(
+            {
+                "name": "job (crashed segment)" if is_job else "unfinished span (crashed segment)",
+                "context": {
+                    "trace_id": kids[0]["context"]["trace_id"],
+                    "span_id": parent_id,
+                    "trace_state": "[]",
+                },
+                "kind": "SpanKind.INTERNAL",
+                "parent_id": None,
+                "start_time": min(k["start_time"] for k in kids),
+                "end_time": max(k["end_time"] for k in kids),
+                "status": {"status_code": "UNSET"},
+                "attributes": {
+                    otel.OBSERVATION_TYPE: "agent" if is_job else "span",
+                    **({otel.SESSION_ID: session} if session else {}),
+                    "reporter.placeholder": True,
+                },
+                "events": [],
+                "links": [],
+            }
+        )
+    jobs = [m for m in made if m["name"] == "job (crashed segment)"]
+    if len(jobs) == 1:
+        for m in made:
+            if m is not jobs[0]:
+                m["parent_id"] = jobs[0]["context"]["span_id"]
+    return [*spans, *made]
+
+
 def export_trace(
     runs_dir: Path, run_id: str, out: Path, *, synthetic: bool, label: str | None = None
 ) -> dict[str, Any]:
     """Write one run's spans as `{label, synthetic, run_id, exported_at, spans}`."""
-    spans = read_spans(runs_dir, run_id)
+    spans = add_placeholder_parents(read_spans(runs_dir, run_id))
     spans.sort(key=lambda s: s.get("start_time") or "")
     document = {
         "label": label or (SYNTHETIC_LABEL if synthetic else "real run"),
@@ -95,6 +148,7 @@ def export_trace(
         "run_id": run_id,
         "exported_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "n_spans": len(spans),
+        "n_placeholder_spans": sum(1 for s in spans if s["attributes"].get("reporter.placeholder")),
         "spans": spans,
     }
     out.parent.mkdir(parents=True, exist_ok=True)

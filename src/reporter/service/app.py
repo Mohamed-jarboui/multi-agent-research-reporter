@@ -20,6 +20,7 @@ import os
 import re
 import threading
 import time
+import traceback
 import unicodedata
 from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
@@ -65,12 +66,16 @@ class ReportRequest(BaseModel):
     topic: str
 
 
+def _secret_values() -> list[str]:
+    """The API-key values in the environment now (read each time, never stored or logged)."""
+    values = (os.environ.get(name, "") for name in SECRET_ENV_NAMES)
+    return [v for v in values if len(v) >= 4]
+
+
 def mask_secrets(text: str) -> str:
     """`text` with the value of each API key (read from the environment) replaced by ***."""
-    for name in SECRET_ENV_NAMES:
-        value = os.environ.get(name, "")
-        if len(value) >= 4:
-            text = text.replace(value, "***")
+    for value in _secret_values():
+        text = text.replace(value, "***")
     return text
 
 
@@ -79,7 +84,12 @@ _mask_installed = False
 
 def install_key_mask() -> None:
     """Mask API keys in every log record of the process, whichever logger made it. (A filter on
-    a logger would miss records from its children; the record factory sees them all.)"""
+    a logger would miss records from its children; the record factory sees them all.)
+
+    A record is rewritten only when its formatted text holds a key: other records keep their
+    `msg` and `args`, because some formatters (uvicorn's access log) read `args` themselves. An
+    exception's text is masked too (`exc_text`, and `exc_info` is rendered into it first).
+    """
     global _mask_installed
     if _mask_installed:
         return
@@ -88,7 +98,19 @@ def install_key_mask() -> None:
 
     def factory(*args: Any, **kwargs: Any) -> logging.LogRecord:
         record = previous(*args, **kwargs)
-        record.msg, record.args = mask_secrets(record.getMessage()), ()
+        secrets = _secret_values()
+        if not secrets:
+            return record
+        try:
+            text = record.getMessage()
+        except Exception:  # a bad format string is the logging module's business, not ours
+            return record
+        if any(v in text for v in secrets):
+            record.msg, record.args = mask_secrets(text), ()
+        if record.exc_info and record.exc_info[1] is not None:
+            rendered = "".join(traceback.format_exception(*record.exc_info))
+            if any(v in rendered for v in secrets):
+                record.exc_text = mask_secrets(rendered)  # Formatter uses exc_text when set
         return record
 
     logging.setLogRecordFactory(factory)

@@ -351,6 +351,9 @@ class MultiAgent:
                     "from_key": snapshot.last_key,
                     "resumed_at": datetime.now(UTC).isoformat(timespec="seconds"),
                     "attempt": len(trace.resumes) + 1,
+                    # the root span of the segment that crashed (it never ended, so it is not in
+                    # the span file); None for a snapshot made before this was recorded
+                    "previous_job_span_id": trace.job_span_ids[-1] if trace.job_span_ids else None,
                 }
             )
         else:
@@ -402,6 +405,7 @@ class MultiAgent:
             },
         )
         self._job_ctx = otel.job_context(job_span)
+        trace.job_span_ids.append(format(job_span.get_span_context().span_id, "#018x"))
         try:
             final = self._graph.invoke(initial, config)
         except JobCancelled:

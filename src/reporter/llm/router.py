@@ -224,10 +224,15 @@ class FallbackLLM:
             if last_error is not None and not isinstance(last_error, UnsupportedOperationError):
                 if not should_fallback(last_error):
                     raise last_error
-        raise AllProvidersFailedError(
+        failed = AllProvidersFailedError(
             "all providers failed (" + self._reasons_since(first_failure) + ")",
             provider=last_error.provider if last_error else "",
-        ) from last_error
+        )
+        failed.failures = [
+            {k: str(v) for k, v in r.items() if k in ("provider", "reason", "limit")}
+            for r in self.failures[first_failure:]
+        ]
+        raise failed from last_error
 
     def _reasons_since(self, first: int) -> str:
         """Short per-provider reasons of one failing call, e.g. 'gemini: RateLimitError 429 x3;

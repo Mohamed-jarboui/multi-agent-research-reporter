@@ -65,6 +65,12 @@ class UnsupportedOperationError(ProviderError):
 class AllProvidersFailedError(ProviderError):
     """Every provider was tried (or skipped) and none succeeded."""
 
+    def __init__(self, message: str, *, provider: str = "", status: int | None = None) -> None:
+        super().__init__(message, provider=provider, status=status)
+        # One short record per failed attempt of this call ({provider, reason, limit?, ...}):
+        # class names, status codes and limit enums only, never raw text.
+        self.failures: list[dict[str, str]] = []
+
 
 def error_from_status(
     status: int | None,
