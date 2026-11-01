@@ -157,8 +157,10 @@ def generate_charged(
         if enforce_limit and (reason := meter.hard_limit_reached()):
             raise BudgetExhausted(reason)
 
+    step.calls = step.calls or 0
     for attempt in range(MAX_EMPTY_REPLY_ATTEMPTS):
         check_budget()
+        step.calls += 1  # counted only once the budget check has let the call start
         temp = temperature if attempt == 0 else max(temperature, RETRY_TEMPERATURE)
         started = clock()
         with otel.span(

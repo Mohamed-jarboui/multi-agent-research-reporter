@@ -1,0 +1,661 @@
+{
+  "stage": "R4",
+  "step": "evaluator, local variant",
+  "environment": {
+    "kind": "LOCAL run: uvicorn on this machine (uv run uvicorn reporter.service.app:app --host 127.0.0.1 --port 7860)",
+    "is_docker_image": false,
+    "is_hugging_face_space": false,
+    "is_the_deployed_demo": false,
+    "statement": "These results come from a local uvicorn process on a Windows 11 machine. They are NOT measurements of the Docker image or of the deployed Hugging Face Space, neither of which exists yet.",
+    "os": "Windows 11 Pro 10.0.26300",
+    "python": "3.12.12 (uv-managed venv)",
+    "branch": "stage/r4-local-test",
+    "data_dirs": [
+      "var/r4test1 (job 1)",
+      "var/r4test2 (crash job)"
+    ],
+    "storage_mode_reported_by_health": "persistent (because REPORTER_DATA_DIR was set to a local folder; this says nothing about /data on a Space)",
+    "run_window_utc": "2026-11-01T15:57:48.680+00:00 to 2026-11-01T16:09:08.738+00:00",
+    "providers": "real Gemini, Groq and Tavily from .env (loaded by the service; keys never read or printed by the evaluator)",
+    "settings": "service defaults: 40 steps, 150000 tokens, 360 s, 0.05 USD per run; 2 parallel workers; daily cap 2 jobs and 400000 tokens",
+    "preflight": "main session ran `reporter ping` at 15:55 UTC 2026-11-01: Gemini ok, Groq ok",
+    "topic": "state of small language models for on-device use",
+    "raw_files": "runs/r4_local/ (git-ignored): p1_result.json, p1_report.json, p1_trace.json, p2_result.json, p2_report.json, p2_trace.json, server_*.log; spans under var/r4test1/runs and var/r4test2/runs"
+  },
+  "cost_usd": 0.0,
+  "cost_note": "0.0 because the Gemini and Groq free tiers are unpriced here; the service reports trace.cost_usd = null for both jobs (some calls unpriced). Not a measured dollar cost.",
+  "real_jobs_run": 2,
+  "real_jobs_failed_to_finish": 0,
+  "quota_latch_set": false,
+  "tests": [
+    {
+      "id": "T1",
+      "name": "GET /health and GET /quota before anything",
+      "result": "pass",
+      "evidence": {
+        "health": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "storage": "persistent",
+            "version": "0.1.0"
+          }
+        },
+        "quota_before": {
+          "day": "2026-11-01",
+          "resets_at": "2026-11-02T00:00:00Z",
+          "jobs": {
+            "used": 0,
+            "limit": 2,
+            "left": 2
+          },
+          "tokens": {
+            "used": 0,
+            "limit": 400000,
+            "left": 400000
+          },
+          "queue": {
+            "running": 0,
+            "waiting": 0,
+            "max": 3
+          },
+          "latch_until": null
+        }
+      }
+    },
+    {
+      "id": "T2a",
+      "name": "Invalid bodies rejected, no job created",
+      "result": "pass",
+      "evidence": {
+        "topic_301_chars": 422,
+        "topic_3_chars": 422,
+        "unknown_field": 422,
+        "body_over_4KB": 413,
+        "bad_idempotency_key": 422,
+        "bad_id_get": 404,
+        "jobs_used_after_invalid": 0
+      },
+      "note": "topic of 301 chars -> 422 invalid_request; also 3-char topic 422, unknown field 422, bad Idempotency-Key 422, body over 4 KB 413, malformed run id on GET 404"
+    },
+    {
+      "id": "T2b",
+      "name": "Idempotency: replay, conflict, one job",
+      "result": "pass",
+      "evidence": {
+        "post1": 202,
+        "post2_same_key_same_body": 200,
+        "post2_header_Idempotent-Replayed": "true",
+        "post3_same_key_other_body": 409,
+        "same_run_id": true,
+        "run_id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "jobs_rows_in_sqlite": 1,
+        "quota_jobs_used": 1
+      }
+    },
+    {
+      "id": "T3a",
+      "name": "End to end job over SSE, then GET and GET /trace",
+      "result": "pass",
+      "evidence": {
+        "run_id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "final_state": "succeeded",
+        "reason": null,
+        "sse_http": 200,
+        "sse_content_type": "text/event-stream; charset=utf-8",
+        "events_in_order": [
+          [
+            1,
+            "queued",
+            0.26
+          ],
+          [
+            2,
+            "started",
+            0.26
+          ],
+          [
+            3,
+            "plan",
+            21.55
+          ],
+          [
+            4,
+            "worker_done",
+            95.35
+          ],
+          [
+            5,
+            "worker_done",
+            116.48
+          ],
+          [
+            6,
+            "worker_done",
+            117.5
+          ],
+          [
+            7,
+            "critic_verdict",
+            123.56
+          ],
+          [
+            8,
+            "retry",
+            163.1
+          ],
+          [
+            9,
+            "retry",
+            209.58
+          ],
+          [
+            10,
+            "retry",
+            220.64
+          ],
+          [
+            11,
+            "critic_verdict",
+            225.67
+          ],
+          [
+            12,
+            "written",
+            234.84
+          ],
+          [
+            13,
+            "done",
+            234.84
+          ]
+        ],
+        "heartbeat_comments": 11,
+        "ids_contiguous_1_to_n": true,
+        "get_report_http": 200,
+        "get_trace_http": 200
+      },
+      "note": "state succeeded, but only 1 of 3 sections is complete+pass (see job_metrics)"
+    },
+    {
+      "id": "T3b",
+      "name": "Last-Event-ID resume of the stream",
+      "result": "pass",
+      "evidence": {
+        "sent_last_event_id": 6,
+        "status": 200,
+        "received_ids": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "expected_ids": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ],
+        "pass": true,
+        "after_param_received_ids": [
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13
+        ]
+      }
+    },
+    {
+      "id": "T3c",
+      "name": "No raw provider error, key or org id in API answers",
+      "result": "pass (limited)",
+      "evidence": {
+        "scanned": "GET /reports/{id}, GET /trace, SSE payloads of both jobs",
+        "patterns": "Gemini key (AIza...), Groq key (gsk_...), Tavily key (tvly-...), org_ ids, sk- keys, Bearer tokens, RESOURCE_EXHAUSTED/rate_limit_exceeded/Traceback/googleapis/api.groq.com/generativelanguage/api_key=, the Idempotency-Key text",
+        "hits_job1": {
+          "get": {},
+          "trace": {},
+          "events": {}
+        },
+        "hits_job2": {
+          "get": {},
+          "trace": {},
+          "events": {}
+        }
+      },
+      "limits": "The scan is pattern based. The evaluator did not read .env, so it could not search for the exact key values. Spans carry only names, model names, token counts and error class names (attribute keys listed in T5)."
+    },
+    {
+      "id": "T4",
+      "name": "Forced crash after worker:s1, restart on same data dir, same run id resumes",
+      "result": "pass for the resume mechanics; the resumed job ended degraded (budget_exhausted)",
+      "evidence": {
+        "run_id": "rpt_20261101T160254Z_1f619ba6a994649c",
+        "crash_after_key": "worker:s1",
+        "process_exit_code": 75,
+        "health_after_crash": "connection refused (server down)",
+        "seconds_from_post_to_crash": 90.1,
+        "db_after_crash": {
+          "state": "running",
+          "crash_hook_fired": 1,
+          "checkpointed_keys": [
+            "supervisor",
+            "worker:s1"
+          ],
+          "events": [
+            "queued",
+            "started",
+            "plan",
+            "worker_done"
+          ],
+          "snapshot_meter": {
+            "steps": 7,
+            "tokens": 4097,
+            "cost_usd": 0.0,
+            "elapsed_s": 88.78412979999939
+          }
+        },
+        "after_restart_get": {
+          "state": "running",
+          "resume_count": 1,
+          "progress": {
+            "last_event": "started",
+            "sections_done": 1,
+            "sections_total": 5
+          }
+        },
+        "events_in_order_after_restart": [
+          [
+            1,
+            "queued",
+            0.05
+          ],
+          [
+            2,
+            "started",
+            0.05
+          ],
+          [
+            3,
+            "plan",
+            0.05
+          ],
+          [
+            4,
+            "worker_done",
+            0.05
+          ],
+          [
+            5,
+            "started",
+            0.05
+          ],
+          [
+            6,
+            "worker_done",
+            137.85
+          ],
+          [
+            7,
+            "worker_done",
+            174.24
+          ],
+          [
+            8,
+            "worker_done",
+            174.24
+          ],
+          [
+            9,
+            "worker_done",
+            181.35
+          ],
+          [
+            10,
+            "critic_verdict",
+            187.4
+          ],
+          [
+            11,
+            "retry",
+            230.12
+          ],
+          [
+            12,
+            "retry",
+            273.81
+          ],
+          [
+            13,
+            "retry",
+            275.82
+          ],
+          [
+            14,
+            "critic_verdict",
+            275.82
+          ],
+          [
+            15,
+            "written",
+            275.82
+          ],
+          [
+            16,
+            "done",
+            275.82
+          ]
+        ],
+        "started_event_resumed": [
+          {
+            "resumed": false,
+            "from_key": null
+          },
+          {
+            "resumed": true,
+            "from_key": "worker:s1"
+          }
+        ],
+        "ids_contiguous_no_duplicates": true,
+        "checkpointed_nodes_not_recomputed": {
+          "node:supervisor": "cached=true span after restart; 1 llm call under node:supervisor in total (before the crash), 0 after",
+          "worker:s1": "cached=true span after restart; its 3 llm calls are all before the crash",
+          "llm_calls_by_parent_span_before_crash": {
+            "node:supervisor": 1,
+            "worker:s1": 3,
+            "?": 3
+          },
+          "llm_calls_by_parent_span_after_restart": {
+            "worker:s2": 6,
+            "worker:s3": 9,
+            "worker:s4": 2,
+            "node:critic": 1,
+            "worker:s1": 1
+          }
+        },
+        "recomputed_after_restart": "workers s2, s3, s4, s5 (in flight, not checkpointed, at the crash) and then the critic, retry workers s1/s3/s4 and the writer",
+        "resume_count": 1,
+        "trace_resumes": 1,
+        "final_state": "degraded",
+        "final_reason": "budget_exhausted",
+        "timing_s": {
+          "post_to_crash": 90.1,
+          "restart_command_to_terminal_incl_boot": 279.8,
+          "evaluator_gap_between_crash_and_restart_command": 4.1,
+          "post_to_terminal_total_wall": 374.0,
+          "meter_elapsed_at_crash_snapshot": 88.78412979999939,
+          "meter_used_seconds_final": 364.0
+        }
+      },
+      "note": "Wall time 374.0 s = 90.1 s before the crash + about 4 s evaluator gap + 279.8 s after the restart command (includes a 3.9 s boot). The meter continued from the snapshot (88.8 s) and ended at 364.0 s, above the 360 s limit, so the run degraded with budget_exhausted and the writer fell back."
+    },
+    {
+      "id": "T5",
+      "name": "Real trace export to docs/traces/example.json",
+      "result": "pass",
+      "evidence": {
+        "command": "scripts/export_trace.py rpt_20261101T155759Z_d18c9b3c0cf2738a --real --runs-dir var/r4test1/runs",
+        "n_spans": 70,
+        "synthetic": false,
+        "label": "real run",
+        "run_id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+        "attribute_keys": [
+          "error.type",
+          "gen_ai.operation.name",
+          "gen_ai.request.model",
+          "gen_ai.response.model",
+          "gen_ai.system",
+          "gen_ai.usage.cost",
+          "gen_ai.usage.input_tokens",
+          "gen_ai.usage.output_tokens",
+          "langfuse.observation.type",
+          "langfuse.session.id",
+          "langfuse.trace.name",
+          "reporter.llm.limit_type",
+          "reporter.llm.retry_after_s",
+          "reporter.node.key",
+          "reporter.phase",
+          "reporter.resumed",
+          "reporter.worker.attempts",
+          "tool.name",
+          "tool.ok"
+        ],
+        "scan_key_org_error_patterns": "0 hits",
+        "contains_topic_text": false,
+        "contains_urls": false
+      },
+      "note": "docs/traces/example.json (synthetic) was replaced; it is modified in the working tree, not committed. It is the job-1 run (no crash)."
+    },
+    {
+      "id": "T6",
+      "name": "Service log hygiene (uvicorn access log under the key-mask record factory)",
+      "result": "FAIL (defect found)",
+      "evidence": {
+        "logging_error_blocks": {
+          "server_p1": 20,
+          "server_p2a": 2,
+          "server_p2b": 8
+        },
+        "error": "ValueError: not enough values to unpack (expected 5, got 0) in uvicorn/logging.py formatMessage",
+        "cause": "install_key_mask() in src/reporter/service/app.py sets record.args to () and record.msg to the formatted text; uvicorn's AccessFormatter reads record.args to unpack (client, method, path, version, status).",
+        "effect": "Requests are still served correctly; each uvicorn access-log line is printed as a 'Logging error' traceback instead of a log line. No key pattern was found in these logs."
+      }
+    }
+  ],
+  "job_metrics": {
+    "n_real_jobs": 2,
+    "n_failed_runs": 0,
+    "note": "n=1 per scenario; single runs, not a benchmark",
+    "job1_normal": {
+      "run_id": "rpt_20261101T155759Z_d18c9b3c0cf2738a",
+      "state": "succeeded",
+      "reason": null,
+      "writer_status": "ok",
+      "latency_s_trace": 233.3,
+      "wall_created_to_finished": "234 s (15:57:59Z to 16:01:53Z, 1 s resolution)",
+      "llm_calls": 35,
+      "failed_llm_calls_all_providers": 6,
+      "steps": 28,
+      "tokens": 48308,
+      "cost_usd": 0.0,
+      "api_trace_cost_usd": null,
+      "sections": {
+        "n": 3,
+        "complete_pass": 1,
+        "complete_weak": 1,
+        "complete_unreviewed": 0,
+        "incomplete_or_missing": 1
+      },
+      "sections_detail": [
+        [
+          "s1",
+          "complete",
+          "pass"
+        ],
+        [
+          "s2",
+          "complete",
+          "weak"
+        ],
+        [
+          "s3",
+          "incomplete",
+          "fail"
+        ]
+      ],
+      "n_sources": 6,
+      "citation_check": {
+        "invalid_citations": [],
+        "uncited_sources": [],
+        "unfetched_urls": []
+      },
+      "report_chars": 5224,
+      "resume_count": 0
+    },
+    "job2_crash_resume": {
+      "run_id": "rpt_20261101T160254Z_1f619ba6a994649c",
+      "state": "degraded",
+      "reason": "budget_exhausted",
+      "writer_status": "fallback",
+      "latency_s_trace": 364.0,
+      "wall_s_post_to_terminal": 374.0,
+      "llm_calls": 28,
+      "llm_spans_in_trace": 26,
+      "failed_llm_calls_all_providers": 8,
+      "steps": 23,
+      "tokens": 26152,
+      "cost_usd": 0.0,
+      "api_trace_cost_usd": null,
+      "sections": {
+        "n": 5,
+        "complete_pass": 0,
+        "complete_weak": 1,
+        "complete_unreviewed": 1,
+        "incomplete_or_missing": 3
+      },
+      "sections_detail": [
+        [
+          "s1",
+          "incomplete",
+          "fail"
+        ],
+        [
+          "s2",
+          "complete",
+          "weak"
+        ],
+        [
+          "s3",
+          "complete",
+          "unreviewed"
+        ],
+        [
+          "s4",
+          "incomplete",
+          "fail"
+        ],
+        [
+          "s5",
+          "incomplete",
+          "fail"
+        ]
+      ],
+      "n_sources": 5,
+      "citation_check": {
+        "invalid_citations": [],
+        "uncited_sources": [
+          1,
+          5
+        ],
+        "unfetched_urls": []
+      },
+      "resume_count": 1
+    },
+    "daily_usage_vs_trace": {
+      "job1": {
+        "daily_usage_tokens": 48308,
+        "trace_tokens": 48308
+      },
+      "job2": {
+        "daily_usage_tokens": 26152,
+        "trace_tokens": 26152
+      }
+    }
+  },
+  "providers_and_limits": {
+    "job1": {
+      "calls_by_provider": {
+        "gemini": {
+          "calls": 20,
+          "errors": 0,
+          "models": [
+            "gemini-3.6-flash"
+          ],
+          "in": 28489,
+          "out": 1903
+        },
+        "groq": {
+          "calls": 9,
+          "errors": 0,
+          "models": [
+            "openai/gpt-oss-120b"
+          ],
+          "in": 14319,
+          "out": 3597
+        },
+        "?": {
+          "calls": 6,
+          "errors": 6,
+          "models": [],
+          "in": 0,
+          "out": 0
+        }
+      },
+      "failed_calls_without_provider_attribute": 6,
+      "limit_types_on_failed_spans": {
+        "per_minute_tokens": 4,
+        "none_recorded": 2
+      },
+      "error_type_on_failed_spans": "AllProvidersFailedError"
+    },
+    "job2": {
+      "calls_by_provider": {
+        "groq": {
+          "calls": 18,
+          "errors": 0,
+          "models": [
+            "openai/gpt-oss-120b"
+          ],
+          "in": 22096,
+          "out": 4056
+        },
+        "?": {
+          "calls": 8,
+          "errors": 8,
+          "models": [],
+          "in": 0,
+          "out": 0
+        }
+      },
+      "gemini_calls": 0,
+      "failed_calls_without_provider_attribute": 8,
+      "limit_types_on_failed_spans": {
+        "per_minute_tokens": 5,
+        "none_recorded": 3
+      },
+      "error_type_on_failed_spans": "AllProvidersFailedError",
+      "why_gemini_got_no_calls": "not measured (the spans do not say why a provider was skipped)"
+    },
+    "daily_limits_hit": "none recorded: no per_day_* limit type in either trace; quota latch not set; /quota latch_until null at the end of both runs",
+    "note": "Failed LLM spans carry the router-level error class and the limit type but no provider name, so per-provider limit counts cannot be read from the spans."
+  },
+  "defects_and_deviations": [
+    "Uvicorn access-log lines raise 'Logging error' because the key-mask log record factory empties record.args (T6).",
+    "Design says a resumed job has 2+ root job spans; the exported trace has 1 job span (reporter.resumed=true). The first segment's root span never ended (os._exit), so it was never exported, and 3 pre-crash llm.generate spans point to a parent span id that is not in the file.",
+    "Job 2 trace.llm_calls is 28 but the trace has 26 llm.generate spans; job 1 is 35 and 35. The 2-call difference is not explained here.",
+    "Job 2 ended at 364.0 s on the meter against a 360 s limit (4 s over).",
+    "Job 1 is state succeeded with 2 of 3 sections not complete-and-passing (s2 weak, s3 incomplete/fail, listed as missing in the report body)."
+  ],
+  "not_measured": [
+    "Docker image build and run",
+    "Hugging Face Space deploy (HF_TOKEN not set; Space does not exist)",
+    "/data persistence and a Space restart",
+    "multiple concurrent clients / more than one SSE stream at a time",
+    "per-IP rate limiter under load (429 rate_limited, queue_full, daily_cap were not triggered)",
+    "daily cap and provider-quota latch with real quota exhaustion (neither occurred)",
+    "DELETE /reports/{id} cancel",
+    "the demo page GET /",
+    "X-Forwarded-For behind a proxy",
+    "latency or success rate over more than 1 job per scenario",
+    "any dollar cost (free tiers unpriced)"
+  ]
+}

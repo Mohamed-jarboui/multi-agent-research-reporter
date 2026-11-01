@@ -1,0 +1,67 @@
+{
+  "stage": "R4",
+  "status": "in_progress: service merged (PR #6), local test done on branch stage/r4-local-test, Space deploy pending",
+  "branch": "stage/r4-local-test",
+  "date": "2026-11-01",
+  "prs": {
+    "service": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6 (merged)",
+    "gateway_provider_side_work": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/7 (merged; opt-in, off by default)"
+  },
+  "tests": {
+    "passed": 362,
+    "failed": 0,
+    "ruff": "clean",
+    "source": "verified by the main session (not re-run by the reporter); fake LLMs and fake tools, no network",
+    "note": "the local-test fixes (tests/test_r4_local_fixes.py, 181 lines) are verified with fakes only, and the live local test ran BEFORE them"
+  },
+  "files_changed": {
+    "pr_6_merge_commit_42b93e5": "39 files changed, 5018 insertions, 52 deletions (git diff --shortstat 42b93e5~1 42b93e5)",
+    "pr_6_feature_commit_e503314": "38 files changed, 5016 insertions, 50 deletions",
+    "branch_stage_r4_local_test_committed_vs_main": "0 (no commit yet; git diff --stat main...HEAD is empty)",
+    "branch_working_tree_uncommitted": "12 modified files, 1892 insertions, 303 deletions (docs/traces/example.json accounts for 2037 changed lines), plus 2 new untracked files: results/r4_deploy.json and tests/test_r4_local_fixes.py (181 lines); this reporter step adds results/stage_r4.json, docs/figs/r4_span_timeline.svg and edits scripts/make_figures.py and docs/report.html",
+    "source": "git diff --stat and git status on 2026-11-01"
+  },
+  "environment": {
+    "kind": "LOCAL: uvicorn on Windows 11 with real Gemini, Groq and Tavily; no Docker image; no Hugging Face Space",
+    "is_the_deployed_demo": false,
+    "source": "results/r4_deploy.json"
+  },
+  "runs_made": {
+    "real_jobs": 2,
+    "failed_to_finish": 0,
+    "per_scenario_n": 1,
+    "topic": "state of small language models for on-device use",
+    "run_window_utc": "2026-11-01T15:57:48Z to 2026-11-01T16:09:08Z"
+  },
+  "local_tests": [
+    {"id": "T1", "name": "GET /health and GET /quota", "result": "pass"},
+    {"id": "T2a", "name": "Invalid bodies rejected, no job created", "result": "pass"},
+    {"id": "T2b", "name": "Idempotency: replay, conflict, one job", "result": "pass"},
+    {"id": "T3a", "name": "End to end job over SSE, then GET and GET /trace (13 events, ids 1..13)", "result": "pass"},
+    {"id": "T3b", "name": "Last-Event-ID resume of the stream (sent 6, received 7..13)", "result": "pass"},
+    {"id": "T3c", "name": "No raw provider error, key or org id in API answers (pattern scan, .env not read)", "result": "pass (limited)"},
+    {"id": "T4", "name": "Forced crash after worker:s1, restart, same run id resumes", "result": "pass for the resume mechanics; resumed job ended degraded (budget_exhausted)"},
+    {"id": "T5", "name": "Real trace export to docs/traces/example.json (70 spans, synthetic=false)", "result": "pass"},
+    {"id": "T6", "name": "Service log hygiene (uvicorn access log under the key-mask)", "result": "FAIL (defect found, fixed afterwards with fakes only)"}
+  ],
+  "job_metrics": {
+    "n_per_scenario": 1,
+    "job1_normal": {"state": "succeeded", "latency_s": 233.3, "llm_calls": 35, "failed_llm_calls": 6, "steps": 28, "tokens": 48308, "sections_complete_pass": 1, "sections_complete_weak": 1, "sections_incomplete": 1, "sections_n": 3, "sources": 6, "writer_status": "ok", "resume_count": 0},
+    "job2_crash_resume": {"state": "degraded", "reason": "budget_exhausted", "latency_s": 364.0, "llm_calls_reported": 28, "llm_spans_in_trace": 26, "failed_llm_calls": 8, "steps": 23, "tokens": 26152, "sections_complete_pass": 0, "sections_complete_weak": 1, "sections_complete_unreviewed": 1, "sections_incomplete": 3, "sections_n": 5, "sources": 5, "writer_status": "fallback", "resume_count": 1, "seconds_post_to_crash": 90.1, "seconds_restart_to_terminal": 279.8}
+  },
+  "cost": {"cost_usd": 0.0, "note": "free tiers are unpriced; the trace reports cost_usd null for both jobs; not a measured dollar cost"},
+  "fixes_after_local_test": "log masking only for records containing a key; placeholder spans for the crashed segment; provider and per-provider failure summary on failed LLM spans; per-step call counts so llm_calls equals LLM spans; result.coverage object in GET. Verified with fakes only; the exported example trace is from the pre-fix run.",
+  "not_measured": [
+    "Docker image build and run",
+    "Hugging Face Space deploy (needs HF_TOKEN, the Space, Space secrets and the HF_SPACE_ID variable)",
+    "/data persistence and a Space restart",
+    "multiple concurrent clients and more than one SSE stream",
+    "per-IP rate limiter under load (429 rate_limited, queue_full)",
+    "daily cap and provider-quota latch under real exhaustion",
+    "DELETE /reports/{id} cancel",
+    "the demo page GET /",
+    "X-Forwarded-For behind a proxy",
+    "latency or success rate over more than 1 job per scenario",
+    "any dollar cost"
+  ]
+}

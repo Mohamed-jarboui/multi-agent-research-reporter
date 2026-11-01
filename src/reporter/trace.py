@@ -38,6 +38,9 @@ class StepRecord(BaseModel):
     tool_call: ToolCallRecord | None = None
     note: str = ""
     worker: str | None = None  # section id in multi-agent runs
+    # Model calls actually started for this step (an empty-reply retry makes 2; a call refused by
+    # the budget check makes 0). None = not counted (old traces): treated as 1.
+    calls: int | None = None
 
 
 class SourceRecord(BaseModel):
@@ -106,6 +109,7 @@ class Trace(BaseModel):
     llm: dict[str, Any] = Field(default_factory=dict)
     # service runs (R4): one entry per restart from a checkpoint
     resumes: list[dict[str, Any]] = Field(default_factory=list)
+    job_span_ids: list[str] = Field(default_factory=list)  # root span id of each run segment
 
     _lock: threading.Lock = PrivateAttr(default_factory=threading.Lock)
 
@@ -134,7 +138,7 @@ class Trace(BaseModel):
         """Fill `totals` from the steps."""
         t = Totals(latency_s=round(latency_s, 3))
         for s in self.steps:
-            t.llm_calls += 1
+            t.llm_calls += 1 if s.calls is None else s.calls
             t.react_steps += s.kind == "think"
             t.tool_calls += s.tool_call is not None
             if s.input_tokens is None or s.output_tokens is None:

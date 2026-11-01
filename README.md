@@ -115,7 +115,7 @@ curl -s localhost:7860/quota                             # today's counters
 | Endpoint | Purpose |
 |---|---|
 | `POST /reports` | Start a job: 202 with `{id, state, links}`. `Idempotency-Key` (8-128 chars) makes a retry return the same job (200); the same key with another body is 409. At most 3 jobs wait; a full queue, the daily cap, a provider quota and a per-IP rate limit answer 429. |
-| `GET /reports/{id}` | `queued` (position), `running` (progress), or the result with budget and trace summary. |
+| `GET /reports/{id}` | `queued` (position), `running` (progress), or the result with budget and trace summary. `result.coverage` counts `sections_ok`, `sections_weak` and `sections_missing`: `succeeded` does not mean complete. |
 | `GET /reports/{id}/events` | SSE: `queued`, `started`, `plan`, `worker_done`, `critic_verdict`, `retry`, `written`, `quota`, then `done` or `failed`. Resume with `Last-Event-ID` or `?after=n`. |
 | `DELETE /reports/{id}` | Cancel (a running job stops at the next node). |
 | `GET /reports/{id}/trace` | The OpenTelemetry spans of a finished job. |

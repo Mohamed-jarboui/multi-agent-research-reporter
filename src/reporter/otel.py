@@ -97,8 +97,29 @@ def set_generation(
         sp.set_attribute("gen_ai.usage.cost", cost_usd)
 
 
+def failure_summary(records: list[dict[str, str]]) -> str:
+    """'gemini:RateLimitError 429 per_day_requests;groq:EmptyReplyError x2': one entry per distinct
+    (provider, class and status, limit), in order of first failure. Built from fixed tokens only."""
+    counts: dict[tuple[str, str, str], int] = {}
+    for r in records:
+        key = (r.get("provider", ""), r.get("reason", ""), r.get("limit", ""))
+        counts[key] = counts.get(key, 0) + 1
+    parts = []
+    for (provider, reason, limit), n in counts.items():
+        text = f"{provider}:{reason}" + (f" {limit}" if limit else "") + (f" x{n}" if n > 1 else "")
+        parts.append(text)
+    return ";".join(parts)
+
+
 def set_llm_failure(sp: Span, error: BaseException) -> None:
-    """Limit type and retry delay of a rate-limit error (fixed enum values, never raw text)."""
+    """Provider (the last one tried), failures by provider, limit type and retry delay of a failed
+    call. Fixed tokens only: class names, status codes and limit enums, never raw text."""
+    provider = getattr(error, "provider", "") or getattr(error.__cause__, "provider", "")
+    if provider:
+        sp.set_attribute("gen_ai.system", str(provider))
+    records = getattr(error, "failures", None)
+    if records:
+        sp.set_attribute("reporter.provider_failures", failure_summary(records))
     if not getattr(error, "limit", None) and error.__cause__ is not None:
         error = error.__cause__  # AllProvidersFailedError hides the 429 as its cause
     limit = getattr(error, "limit", None)
