@@ -1,0 +1,66 @@
+{
+  "topic_id": "slm-on-device",
+  "system": "baseline",
+  "run_index": 1,
+  "status": "failed",
+  "reason": "AllProvidersFailedError: all providers failed (gemini: RateLimitError 429 x3 (per_day_requests); groq: RateLimitError 429 x3 (per_minute_tokens))",
+  "limit": "per_day_requests",
+  "run_id": "20261101T233241Z-781803",
+  "trace_path": "runs\\benchmark\\20261101T233241Z-781803.json",
+  "finished_at": "2026-11-01T23:33:53+00:00",
+  "report": "",
+  "words": 0,
+  "tokens": 13548,
+  "input_tokens": 12369,
+  "output_tokens": 1179,
+  "cost_usd": 0.0,
+  "calls_without_token_counts": 1,
+  "calls_without_price": 1,
+  "latency_s": 71.828,
+  "models": [
+    "gemini-3.6-flash",
+    "openai/gpt-oss-120b"
+  ],
+  "tokens_by_model": {
+    "gemini-3.6-flash": [
+      114,
+      216
+    ],
+    "openai/gpt-oss-120b": [
+      12255,
+      963
+    ]
+  },
+  "llm": {
+    "providers": [
+      "gemini",
+      "groq"
+    ],
+    "calls": {
+      "gemini": 31,
+      "groq": 14
+    },
+    "failures": {
+      "gemini": {
+        "RateLimitError 429": 30
+      },
+      "groq": {
+        "RateLimitError 429": 5,
+        "EmptyReplyError": 1
+      }
+    },
+    "limits": {
+      "gemini": {
+        "per_day_requests": 30
+      },
+      "groq": {
+        "per_minute_tokens": 5
+      }
+    },
+    "empty_replies": 1
+  },
+  "gateway_used": false,
+  "citations": null,
+  "coverage": null,
+  "scoring_error": ""
+}

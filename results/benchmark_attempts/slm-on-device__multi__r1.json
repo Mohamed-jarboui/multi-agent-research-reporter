@@ -1,0 +1,61 @@
+{
+  "topic_id": "slm-on-device",
+  "system": "multi",
+  "run_index": 1,
+  "status": "failed",
+  "reason": "writer no_report: no section has a usable finding",
+  "limit": "per_day_requests",
+  "run_id": "20261101T233353Z-ccd947",
+  "trace_path": "runs\\benchmark\\20261101T233353Z-ccd947.json",
+  "finished_at": "2026-11-01T23:38:29+00:00",
+  "report": "",
+  "words": 0,
+  "tokens": 18873,
+  "input_tokens": 16473,
+  "output_tokens": 2400,
+  "cost_usd": 0.0,
+  "calls_without_token_counts": 10,
+  "calls_without_price": 10,
+  "latency_s": 276.343,
+  "models": [
+    "openai/gpt-oss-120b"
+  ],
+  "tokens_by_model": {
+    "openai/gpt-oss-120b": [
+      16473,
+      2400
+    ]
+  },
+  "llm": {
+    "providers": [
+      "gemini",
+      "groq"
+    ],
+    "calls": {
+      "gemini": 108,
+      "groq": 93
+    },
+    "failures": {
+      "gemini": {
+        "RateLimitError 429": 108
+      },
+      "groq": {
+        "RateLimitError 429": 64,
+        "EmptyReplyError": 15
+      }
+    },
+    "limits": {
+      "gemini": {
+        "per_day_requests": 108
+      },
+      "groq": {
+        "per_minute_tokens": 64
+      }
+    },
+    "empty_replies": 15
+  },
+  "gateway_used": false,
+  "citations": null,
+  "coverage": null,
+  "scoring_error": ""
+}
