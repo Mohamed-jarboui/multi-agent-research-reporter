@@ -1,6 +1,7 @@
 name: Deploy demo
 
-# Pushes the service to a Hugging Face Docker Space when main changes (or by hand).
+# Pushes the service to a Hugging Face Gradio Space when main changes (or by hand). The Docker
+# SDK is a paid option on Hugging Face now, so the Space runs the service from app.py.
 # Needs the secret HF_TOKEN (a write token). The Space id is the repository variable
 # HF_SPACE_ID ("owner/name"); the default below is only a placeholder. Without HF_TOKEN the
 # deploy step is skipped with a notice and the workflow still succeeds.
@@ -35,9 +36,10 @@ jobs:
     timeout-minutes: 30
     env:
       HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      HF_SPACE_ID: ${{ vars.HF_SPACE_ID || 'Mohamed-jarboui/research-reporter' }}
+      HF_SPACE_ID: ${{ vars.HF_SPACE_ID || 'Jarbouii/research-reporter' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
 
       - name: Check the token
         id: gate
@@ -47,13 +49,15 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Export only the files the image needs
+      - name: Export only the files the Space needs
         if: steps.gate.outputs.skip != 'true'
         run: |
           rm -rf /tmp/space && mkdir -p /tmp/space
-          cp Dockerfile .dockerignore pyproject.toml uv.lock /tmp/space/
-          cp -r src /tmp/space/src
+          cp deploy/space_app.py /tmp/space/app.py
           cp deploy/space_README.md /tmp/space/README.md
+          cp -r src /tmp/space/src
+          # runtime dependencies only, from the lock file (no dev or report group, no project)
+          uv export --locked --no-dev --no-group report --no-hashes --no-emit-project             --no-header -o /tmp/space/requirements.txt
           find /tmp/space -name __pycache__ -type d -prune -exec rm -rf {} +
           echo "Files going to the Space:"
           (cd /tmp/space && find . -type f | sort)
@@ -77,13 +81,13 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         run: |
           host="$(echo "$HF_SPACE_ID" | tr '/_' '--' | tr '[:upper:]' '[:lower:]').hf.space"
-          echo "Polling https://${host}/health for up to 15 minutes"
-          for i in $(seq 1 90); do
+          echo "Polling https://${host}/health for up to 20 minutes"
+          for i in $(seq 1 120); do
             if curl -fsS --max-time 10 "https://${host}/health" | grep -q '"status":"ok"'; then
               echo "Space is healthy"
               exit 0
             fi
             sleep 10
           done
-          echo "::error::the Space did not become healthy in 15 minutes"
+          echo "::error::the Space did not become healthy in 20 minutes"
           exit 1

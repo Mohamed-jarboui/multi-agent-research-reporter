@@ -21,14 +21,18 @@ def resolve_data_dir(
     environ: Mapping[str, str],
     persistent: Path = Path("/data"),
     fallback: Path = Path("var"),
+    temporary: Path = Path("/tmp/reporter"),
 ) -> tuple[Path, str]:
     """(folder, "persistent" | "ephemeral"): `REPORTER_DATA_DIR`, else `/data` when it can be
-    written, else `./var` with a warning (a restart there may lose the jobs)."""
+    written, else `./var` with a warning (a restart there may lose the jobs). If `./var` cannot be
+    created (a read-only working directory), `/tmp/reporter` is used instead."""
     chosen = environ.get("REPORTER_DATA_DIR", "").strip()
     if chosen:
         return Path(chosen), "persistent"
     if persistent.is_dir() and os.access(persistent, os.W_OK):
         return persistent, "persistent"
+    if not os.access(fallback if fallback.exists() else fallback.parent, os.W_OK):
+        fallback = temporary
     log.warning(
         "no persistent storage at %s: using %s; jobs may be lost on restart", persistent, fallback
     )

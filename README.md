@@ -121,25 +121,24 @@ curl -s localhost:7860/quota                             # today's counters
 | `GET /reports/{id}/trace` | The OpenTelemetry spans of a finished job. |
 | `GET /health`, `GET /quota`, `GET /` | Liveness (with `storage: persistent\|ephemeral`), daily counters, a small demo page. |
 
-Answers carry fixed reason codes and texts only: no raw provider error, key, IP or idempotency key. Settings come from the environment (`REPORTER_DATA_DIR`, `DAILY_MAX_JOBS`, `DAILY_MAX_TOKENS`, `RUN_MAX_TOKENS`, `RUN_MAX_SECONDS`, `MAX_WAITING`, `TRUST_PROXY_HOPS`, `CORS_ORIGINS`, ...; see `src/reporter/service/config.py`). Data lives in `REPORTER_DATA_DIR`, else `/data` if writable, else `./var` (then `/health` says `storage: ephemeral` and a restart can lose jobs).
+Answers carry fixed reason codes and texts only: no raw provider error, key, IP or idempotency key. Settings come from the environment (`REPORTER_DATA_DIR`, `DAILY_MAX_JOBS`, `DAILY_MAX_TOKENS`, `RUN_MAX_TOKENS`, `RUN_MAX_SECONDS`, `MAX_WAITING`, `TRUST_PROXY_HOPS`, `CORS_ORIGINS`, ...; see `src/reporter/service/config.py`). Data lives in `REPORTER_DATA_DIR`, else `/data` if writable, else `./var` (or `/tmp/reporter` if the working directory is read-only; then `/health` says `storage: ephemeral` and a restart can lose jobs).
 
-### Docker
+### Docker (local use)
 
 ```bash
 docker build -t research-reporter .
-docker run --rm -p 7860:7860 -v reporter-data:/data \
-  -e GEMINI_API_KEY -e GROQ_API_KEY -e TAVILY_API_KEY research-reporter
+docker run --rm -p 7860:7860 -v reporter-data:/data   -e GEMINI_API_KEY -e GROQ_API_KEY -e TAVILY_API_KEY research-reporter
 ```
 
-The image is `python:3.12-slim`, runs as uid 1000, one uvicorn worker (the queue, the rate limits and the quota latch live in that process), no dev dependencies. It has not been built in this repository's CI yet.
+The image is `python:3.12-slim`, runs as uid 1000, one uvicorn worker (the queue, the rate limits and the quota latch live in that process), no dev dependencies. It has not been built in this repository's CI yet. The public demo does not use it any more (see below).
 
-### Deploy to a Hugging Face Docker Space
+### Deploy to a Hugging Face Gradio Space
 
-`.github/workflows/deploy.yml` runs on every push to `main` (and by hand): lint and tests, then it copies only the files the image needs (`Dockerfile`, `pyproject.toml`, `uv.lock`, `src/`, and `deploy/space_README.md` as the Space `README.md`) to the Space and polls `/health` for up to 15 minutes. Setup, once:
+Docker Spaces are a paid option on Hugging Face now, so the demo runs on a free **Gradio SDK** Space (CPU basic). `.github/workflows/deploy.yml` runs on every push to `main` (and by hand): lint and tests, then it exports only `app.py` (from `deploy/space_app.py`, which starts the FastAPI service with uvicorn on port 7860), `requirements.txt` (generated from `uv.lock` with `uv export --no-dev`), `src/` and `README.md` (from `deploy/space_README.md`) to the Space, and polls `/health` for up to 20 minutes. Setup, once (details in [docs/deploy_hf.md](docs/deploy_hf.md)):
 
-1. Create a Docker Space on Hugging Face and set the repository variable `HF_SPACE_ID` to `owner/name`.
+1. Create a Gradio Space (template Blank, CPU basic, Public) on Hugging Face and set the repository variable `HF_SPACE_ID` to `owner/name`.
 2. Add the repository secret `HF_TOKEN` (a write token). Without it the workflow prints a notice and skips the deploy.
-3. In the Space settings add the secrets `GEMINI_API_KEY`, `GROQ_API_KEY`, `TAVILY_API_KEY`; enable persistent storage if you want a crashed job to resume after a Space restart.
+3. In the Space settings add the secrets `GEMINI_API_KEY`, `GROQ_API_KEY`, `TAVILY_API_KEY`. A free Space has no persistent disk, so jobs are lost on restart (`/health` says `storage: ephemeral`).
 
 ### Traces
 
