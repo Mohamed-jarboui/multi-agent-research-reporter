@@ -2,7 +2,7 @@
 
 Give it a topic. A supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited Markdown report. The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics (not measured yet, see [Benchmark](#benchmark)).
 
-**Demo:** demo link added after the Space is created.
+**Demo:** demo link added after the Render service is live.
 
 **Status:** stages R0 to R3 are merged; R4 (service, jobs, streaming, traces, deploy) is in review. Build plan in [docs/plan.md](docs/plan.md); progress report in [docs/report.html](docs/report.html).
 
@@ -123,22 +123,22 @@ curl -s localhost:7860/quota                             # today's counters
 
 Answers carry fixed reason codes and texts only: no raw provider error, key, IP or idempotency key. Settings come from the environment (`REPORTER_DATA_DIR`, `DAILY_MAX_JOBS`, `DAILY_MAX_TOKENS`, `RUN_MAX_TOKENS`, `RUN_MAX_SECONDS`, `MAX_WAITING`, `TRUST_PROXY_HOPS`, `CORS_ORIGINS`, ...; see `src/reporter/service/config.py`). Data lives in `REPORTER_DATA_DIR`, else `/data` if writable, else `./var` (or `/tmp/reporter` if the working directory is read-only; then `/health` says `storage: ephemeral` and a restart can lose jobs).
 
-### Docker (local use)
+### Docker (local use, and what Render runs)
 
 ```bash
 docker build -t research-reporter .
-docker run --rm -p 7860:7860 -v reporter-data:/data   -e GEMINI_API_KEY -e GROQ_API_KEY -e TAVILY_API_KEY research-reporter
+docker run --rm -e PORT=10000 -p 10000:10000 -e GEMINI_API_KEY -e GROQ_API_KEY -e TAVILY_API_KEY research-reporter
 ```
 
-The image is `python:3.12-slim`, runs as uid 1000, one uvicorn worker (the queue, the rate limits and the quota latch live in that process), no dev dependencies. It has not been built in this repository's CI yet. The public demo does not use it any more (see below).
+The image is `python:3.12-slim`, runs as uid 1000, one uvicorn worker (the queue, the rate limits and the quota latch live in that process), no dev dependencies and no gradio. It listens on `$PORT` (7860 when unset). Storage is ephemeral unless you mount a volume and set `REPORTER_DATA_DIR`. It has not been built in this repository's CI yet.
 
-### Deploy to a Hugging Face Gradio Space
+### Deploy on Render (free web service)
 
-Docker Spaces are a paid option on Hugging Face now, so the demo runs on a free **Gradio SDK** Space (CPU basic). `.github/workflows/deploy.yml` runs on every push to `main` (and by hand): lint and tests, then it exports only `app.py` (from `deploy/space_app.py`, which starts the FastAPI service with uvicorn on port 7860), `requirements.txt` (generated from `uv.lock` with `uv export --no-dev`), `src/` and `README.md` (from `deploy/space_README.md`) to the Space, and polls `/health` for up to 20 minutes. Setup, once (details in [docs/deploy_hf.md](docs/deploy_hf.md)):
+The public demo runs this image as a free Render web service (`render.yaml`): 512 MB RAM, it sleeps after 15 minutes without traffic (about 1 minute to wake), the filesystem is ephemeral (jobs and the daily-cap counters reset on restart), and 750 free hours per month. Hugging Face's free tier (ZeroGPU) refused the app ("No @spaces.GPU function detected during startup") and its CPU basic hardware is paid. Steps for the owner: [docs/deploy_render.md](docs/deploy_render.md). In short: New > Blueprint, connect the repo, branch `main`, paste the three provider keys when prompted, Deploy Blueprint.
 
-1. Create a Gradio Space (template Blank, CPU basic, Public) on Hugging Face and set the repository variable `HF_SPACE_ID` to `owner/name`.
-2. Add the repository secret `HF_TOKEN` (a write token). Without it the workflow prints a notice and skips the deploy.
-3. In the Space settings add the secrets `GEMINI_API_KEY`, `GROQ_API_KEY`, `TAVILY_API_KEY`. A free Space has no persistent disk, so jobs are lost on restart (`/health` says `storage: ephemeral`).
+### Hugging Face Gradio Space (alternative, paid CPU basic)
+
+`deploy/space_app.py` (a Gradio page at `/` plus the FastAPI service) and `.github/workflows/deploy.yml` (manual only) stay in the repository for anyone with a paid Hugging Face plan; see [docs/deploy_hf.md](docs/deploy_hf.md).
 
 ### Traces
 

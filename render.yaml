@@ -1,0 +1,35 @@
+# Render Blueprint for the public demo: one free web service built from the Dockerfile.
+# Steps for the owner: docs/deploy_render.md. The field names below follow render.com/docs
+# (Blueprint spec); verify the envVars entries in the Render dashboard when you create the Blueprint.
+services:
+  - type: web
+    name: research-reporter
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free # 0.1 CPU, 512 MB RAM, sleeps after 15 min without traffic
+    # frankfurt is closest to the owner. The region can only be chosen when the service is created.
+    region: frankfurt
+    branch: main
+    # deploy only after the GitHub checks (CI) of a commit pass. If Render cannot see the checks
+    # (no CI on the branch, or the GitHub app lacks the permission), change this to `commit`.
+    autoDeployTrigger: checksPass
+    healthCheckPath: /health
+    # No dockerCommand: the Dockerfile CMD already binds 0.0.0.0 on $PORT (Render sets 10000).
+    envVars:
+      # provider keys: Render asks for the values when the Blueprint is first created
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      # Demo caps (same as the defaults in src/reporter/service/config.py).
+      # The daily counters live in the service's ephemeral store (no persistent disk on the free
+      # plan), so they reset when the free instance restarts or spins down. The provider quotas
+      # (Gemini, Groq, Tavily free tiers) remain the real ceiling.
+      - key: DAILY_MAX_JOBS
+        value: "2"
+      - key: DAILY_MAX_TOKENS
+        value: "400000"
+      # REPORTER_TEST_HOOKS is deliberately not set: the crash hooks stay off in production.
