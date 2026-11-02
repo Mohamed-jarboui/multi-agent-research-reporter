@@ -1,0 +1,570 @@
+{
+  "stage": "R4",
+  "step": "evaluator, deployed demo (Render free)",
+  "branch": "docs/r4-render-live",
+  "environment": {
+    "host": "Render free web service (Docker image from the repo Dockerfile), region frankfurt",
+    "url": "https://research-reporter.onrender.com",
+    "free_instance": "0.1 CPU / 512 MB RAM, sleeps after 15 min idle, ephemeral storage (/health reports storage=ephemeral)",
+    "service_version": "0.1.0",
+    "client": "curl and a Python http.client SSE reader on a Windows 11 machine; Cloudflare in front of Render (response header Server: cloudflare)",
+    "test_window_utc": "2026-11-02T17:28:27Z to 2026-11-02T17:32:46Z (plus one final /health at about 17:33Z)",
+    "providers": "real Gemini, Groq, Tavily configured on the server (keys never seen by the evaluator)",
+    "raw_files": "runs/r4_render/ (git-ignored): health/quota/report/trace JSON, headers, post*.txt, sse1.jsonl, sse2_resume_after5.jsonl, sse.py",
+    "real_jobs_run": 1,
+    "real_jobs_failed_to_finish": 0,
+    "n": 1,
+    "note": "n=1: a single real job, not a benchmark. The Idempotency-Key value is not stored in this file."
+  },
+  "cost_usd": 0.0,
+  "cost_note": "0.0 because the Render free tier and the Gemini/Groq/Tavily free tiers are unpriced here. The service reports trace.cost_usd = null (unpriced calls). Not a measured dollar cost.",
+  "cold_start": {
+    "observed": false,
+    "evidence": "first GET /health took 0.343 s and GET /quota 0.517 s; the main session had called the service about 1 minute earlier (17:27 UTC), so the instance was awake. Cold-start duration: not measured."
+  },
+  "tests": [
+    {
+      "id": "H1",
+      "name": "GET /health",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "body": {
+          "status": "ok",
+          "storage": "ephemeral",
+          "version": "0.1.0"
+        },
+        "time_s": 0.343
+      }
+    },
+    {
+      "id": "H2",
+      "name": "GET /quota before the job",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "time_s": 0.517,
+        "jobs": {
+          "used": 0,
+          "limit": 2,
+          "left": 2
+        },
+        "tokens": {
+          "used": 0,
+          "limit": 400000,
+          "left": 400000
+        },
+        "queue": {
+          "running": 0,
+          "waiting": 0,
+          "max": 3
+        },
+        "latch_until": null
+      }
+    },
+    {
+      "id": "V1",
+      "name": "Invalid body rejected (topic of 2 chars)",
+      "result": "pass",
+      "evidence": {
+        "status": 422,
+        "body": {
+          "error": {
+            "code": "invalid_request",
+            "message": "The request is not valid."
+          }
+        },
+        "time_s": 0.655,
+        "job_created": false,
+        "note": "jobs used stayed 0 until the real POST; only this one invalid case was sent (other invalid forms are covered locally in results/r4_deploy.json)"
+      }
+    },
+    {
+      "id": "I1",
+      "name": "POST /reports with Idempotency-Key creates the one real job",
+      "result": "pass",
+      "evidence": {
+        "status": 202,
+        "time_s": 0.907,
+        "run_id": "rpt_20261102T172836Z_f280c5ff449fbb18",
+        "state": "queued",
+        "topic": "state of small language models for on-device use",
+        "utc": "2026-11-02T17:28:36Z"
+      }
+    },
+    {
+      "id": "I2",
+      "name": "Same key, same body: replay",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "same_run_id": true,
+        "header_idempotent_replayed": "true",
+        "state_at_replay": "running"
+      }
+    },
+    {
+      "id": "I3",
+      "name": "Same key, different body: conflict",
+      "result": "pass",
+      "evidence": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "idempotency_conflict",
+            "message": "This Idempotency-Key was already used with a different request."
+          }
+        },
+        "replay_header_present": false
+      }
+    },
+    {
+      "id": "I4",
+      "name": "Only one job exists after I1-I3",
+      "result": "pass",
+      "evidence": {
+        "quota_jobs_used_during_job": 1,
+        "quota_jobs_used_after_job": 1
+      }
+    },
+    {
+      "id": "S1",
+      "name": "SSE follows the job to a terminal event",
+      "result": "pass",
+      "evidence": {
+        "http": 200,
+        "content_type": "text/event-stream; charset=utf-8",
+        "connected_utc": "2026-11-02T17:28:51",
+        "stream_open_s": 219.53,
+        "closed_by_server_after_terminal_event": true,
+        "cut_before_terminal": false,
+        "ids_contiguous_1_to_11": true,
+        "events": [
+          {
+            "id": 1,
+            "type": "queued",
+            "t_s_after_connect": 0.42,
+            "utc": "17:28:51",
+            "data": {
+              "position": 1
+            }
+          },
+          {
+            "id": 2,
+            "type": "started",
+            "t_s_after_connect": 0.42,
+            "utc": "17:28:51",
+            "data": {
+              "resumed": false,
+              "from_key": null
+            }
+          },
+          {
+            "id": 3,
+            "type": "plan",
+            "t_s_after_connect": 12.93,
+            "utc": "17:29:04",
+            "data": {
+              "sections": [
+                {
+                  "id": "s1",
+                  "title": "Background and current state"
+                },
+                {
+                  "id": "s2",
+                  "title": "Numbers and evidence"
+                },
+                {
+                  "id": "s3",
+                  "title": "Limits, risks and outlook"
+                }
+              ]
+            }
+          },
+          {
+            "id": 4,
+            "type": "worker_done",
+            "t_s_after_connect": 81.18,
+            "utc": "17:30:12",
+            "data": {
+              "section_id": "s1",
+              "status": "complete",
+              "pages": 4,
+              "findings": 6
+            }
+          },
+          {
+            "id": 5,
+            "type": "worker_done",
+            "t_s_after_connect": 100.09,
+            "utc": "17:30:31",
+            "data": {
+              "section_id": "s2",
+              "status": "incomplete",
+              "pages": 3,
+              "findings": 0
+            }
+          },
+          {
+            "id": 6,
+            "type": "worker_done",
+            "t_s_after_connect": 154.36,
+            "utc": "17:31:25",
+            "data": {
+              "section_id": "s3",
+              "status": "complete",
+              "pages": 3,
+              "findings": 7
+            }
+          },
+          {
+            "id": 7,
+            "type": "critic_verdict",
+            "t_s_after_connect": 158.37,
+            "utc": "17:31:29",
+            "data": {
+              "stage": "first",
+              "verdicts": {
+                "s2": "fail",
+                "s1": "pass",
+                "s3": "unreviewed"
+              },
+              "retrying": [
+                "s2"
+              ]
+            }
+          },
+          {
+            "id": 8,
+            "type": "retry",
+            "t_s_after_connect": 213.52,
+            "utc": "17:32:24",
+            "data": {
+              "section_id": "s2",
+              "status": "incomplete",
+              "pages": 3,
+              "findings": 0
+            }
+          },
+          {
+            "id": 9,
+            "type": "critic_verdict",
+            "t_s_after_connect": 213.52,
+            "utc": "17:32:24",
+            "data": {
+              "stage": "after_retry",
+              "verdicts": {
+                "s2": "fail",
+                "s1": "pass",
+                "s3": "unreviewed"
+              },
+              "retrying": []
+            }
+          },
+          {
+            "id": 10,
+            "type": "written",
+            "t_s_after_connect": 219.53,
+            "utc": "17:32:30",
+            "data": {
+              "writer_status": "ok",
+              "words": 756
+            }
+          },
+          {
+            "id": 11,
+            "type": "done",
+            "t_s_after_connect": 219.53,
+            "utc": "17:32:30",
+            "data": {
+              "state": "succeeded",
+              "reason": null
+            }
+          }
+        ],
+        "heartbeat_comments": 11,
+        "heartbeat_first_last_s": [
+          27.81,
+          203.49
+        ],
+        "max_gap_between_data_events_s": 68.25,
+        "note": "events 1-2 were delivered on connect because the client connected 15 s after the POST (history replay). The stream passed through Cloudflare and Render for 219.5 s with ': hb' comments about every 15 s and was not cut. n=1."
+      }
+    },
+    {
+      "id": "S2",
+      "name": "Reconnect with Last-Event-ID from the middle",
+      "result": "pass",
+      "evidence": {
+        "sent_last_event_id": 5,
+        "received_ids": [
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ],
+        "no_duplicates_no_gaps": true,
+        "closed_after_done": true,
+        "extra_check": "GET /events?after=9 returned ids 10 and 11 only"
+      }
+    },
+    {
+      "id": "G1",
+      "name": "GET /reports/{id} after the job",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "time_s": 0.401,
+        "state": "succeeded",
+        "reason": null,
+        "writer_status": "ok",
+        "coverage": {
+          "sections_ok": 2,
+          "sections_weak": 0,
+          "sections_missing": 1
+        },
+        "sections": [
+          {
+            "id": "s1",
+            "status": "complete",
+            "verdict": "pass",
+            "issue_count": 0
+          },
+          {
+            "id": "s2",
+            "status": "incomplete",
+            "verdict": "fail",
+            "issue_count": 1
+          },
+          {
+            "id": "s3",
+            "status": "complete",
+            "verdict": "unreviewed",
+            "issue_count": 0
+          }
+        ],
+        "n_sources": 10,
+        "citation_check": {
+          "invalid_citations": [],
+          "uncited_sources": [
+            5,
+            6,
+            7,
+            10
+          ],
+          "unfetched_urls": []
+        },
+        "report_chars": 5694,
+        "budget": {
+          "limit": {
+            "max_steps": 40,
+            "max_tokens": 150000,
+            "max_seconds": 360.0,
+            "max_cost_usd": 0.05,
+            "stop_fraction": 0.7
+          },
+          "used": {
+            "steps": 29,
+            "tokens": 49499,
+            "cost_usd": 0.0,
+            "seconds": 226.0
+          }
+        },
+        "trace_summary": {
+          "llm_calls": 35,
+          "total_tokens": 49499,
+          "cost_usd": null,
+          "latency_s": 226.0,
+          "models": [
+            "gemini-3.6-flash",
+            "openai/gpt-oss-120b"
+          ],
+          "resumes": 0,
+          "url": "/reports/rpt_20261102T172836Z_f280c5ff449fbb18/trace"
+        }
+      }
+    },
+    {
+      "id": "G2",
+      "name": "GET /reports/{id}/trace",
+      "result": "pass",
+      "evidence": {
+        "status": 200,
+        "time_s": 0.724,
+        "spans": 70,
+        "span_names": {
+          "llm.generate": 35,
+          "tool:fetch_page": 18,
+          "tool:web_search": 7,
+          "worker:s2": 2,
+          "worker:s1": 1,
+          "worker:s3": 1,
+          "node:supervisor": 1,
+          "node:merge": 1,
+          "node:critic": 1,
+          "node:regrade": 1,
+          "node:writer": 1,
+          "job": 1
+        }
+      }
+    },
+    {
+      "id": "P1",
+      "name": "Pattern scan of every saved response (health, quota, report incl. Markdown, trace, SSE streams, error bodies, headers)",
+      "result": "pass",
+      "evidence": {
+        "patterns": [
+          "AIza",
+          "gsk_",
+          "tvly-",
+          "org_",
+          "Bearer",
+          "RESOURCE_EXHAUSTED",
+          "rate_limit_exceeded",
+          "Traceback",
+          "googleapis",
+          "api.groq.com"
+        ],
+        "hits": 0,
+        "also_scanned": "examples/demo/render-live.md",
+        "limits": "the scan covers only what this test requested; the Render service log was not visible to the evaluator"
+      }
+    },
+    {
+      "id": "Q1",
+      "name": "GET /quota after the job",
+      "result": "pass",
+      "evidence": {
+        "jobs": {
+          "used": 1,
+          "limit": 2,
+          "left": 1
+        },
+        "tokens_used": 49499,
+        "job_tokens_in_trace": 49499,
+        "equal": true,
+        "queue": {
+          "running": 0,
+          "waiting": 0
+        },
+        "latch_until": null,
+        "mid_job_tokens_used": 703,
+        "note": "tokens_used rises during the job (703 seen about 15 s in) and ends equal to the trace total"
+      }
+    }
+  ],
+  "job_metrics": {
+    "n": 1,
+    "run_id": "rpt_20261102T172836Z_f280c5ff449fbb18",
+    "state": "succeeded",
+    "reason": null,
+    "writer_status": "ok",
+    "resume_count": 0,
+    "latency_s_trace": 226.0,
+    "created_to_finished": "17:28:36Z to 17:32:27Z (1 s resolution, 231 s)",
+    "steps": 29,
+    "llm_calls": 35,
+    "llm_calls_ok": 30,
+    "llm_calls_failed_all_providers": 5,
+    "tool_calls": {
+      "web_search": 7,
+      "fetch_page": 18
+    },
+    "tokens": 49499,
+    "budget_limits": {
+      "max_steps": 40,
+      "max_tokens": 150000,
+      "max_seconds": 360.0,
+      "max_cost_usd": 0.05,
+      "stop_fraction": 0.7
+    },
+    "budget_fraction_used": {
+      "tokens": 0.33,
+      "seconds": 0.628,
+      "steps": 0.725
+    },
+    "cost_usd": 0.0,
+    "api_trace_cost_usd": null,
+    "coverage": {
+      "sections_ok": 2,
+      "sections_weak": 0,
+      "sections_missing": 1
+    },
+    "sections": {
+      "n": 3,
+      "complete_pass": 1,
+      "complete_unreviewed": 1,
+      "incomplete_fail": 1
+    },
+    "n_sources": 10,
+    "sources_cited": 6,
+    "uncited_sources": [
+      5,
+      6,
+      7,
+      10
+    ],
+    "invalid_citations": 0,
+    "unfetched_urls": 0,
+    "report_chars": 5694,
+    "writer_words": 756,
+    "critic_retries": 1,
+    "retry_fixed_section": false,
+    "models_used": {
+      "gemini-3.6-flash": 21,
+      "openai/gpt-oss-120b": 9,
+      "calls_failed_on_all_providers": 5
+    },
+    "report_file": "examples/demo/render-live.md"
+  },
+  "providers_and_limits": {
+    "per_attempt_failures_in_llm_spans": {
+      "gemini RateLimitError per_minute_requests": 19,
+      "groq RateLimitError per_minute_tokens": 13,
+      "groq EmptyReplyError": 7,
+      "gemini RateLimitError per_day_requests": 3,
+      "total": 42
+    },
+    "note": "counts come from the reporter.provider_failures attribute of the 5 failed llm.generate spans (the only spans with that attribute). Limit types seen: per_minute_requests, per_minute_tokens, per_day_requests. The 3 per_day_requests (Gemini) came from a single failed call. The quota latch was not set (latch_until null).",
+    "providers_with_successful_calls": [
+      "gemini",
+      "groq"
+    ],
+    "tavily": "25 tool calls (7 searches, 18 fetches), none errored"
+  },
+  "comparison_with_local_run": {
+    "local_job1_results_r4_deploy": {
+      "state": "succeeded",
+      "latency_s": 233.3,
+      "tokens": 48308,
+      "steps": 28,
+      "failed_calls": 6,
+      "sections": "1 pass, 1 weak, 1 incomplete/fail",
+      "sources": 6
+    },
+    "live": {
+      "state": "succeeded",
+      "latency_s": 226.0,
+      "tokens": 49499,
+      "steps": 29,
+      "failed_calls": 5,
+      "sections": "1 pass, 1 unreviewed, 1 incomplete/fail",
+      "sources": 10
+    },
+    "note": "two single runs of the same topic; differences are not tested for significance (n=1 each)"
+  },
+  "not_measured": [
+    "cold-start duration (instance was awake)",
+    "crash/resume on the live service (kept local: results/r4_deploy.json)",
+    "persistence across restarts (ephemeral storage)",
+    "load and concurrency",
+    "rate limiter under load (429 per-IP bucket, 429 queue_full)",
+    "daily cap under real exhaustion (429 daily_cap) and the quota latch under real exhaustion",
+    "memory use on the 512 MB instance",
+    "SSE behaviour over several jobs or from a browser client",
+    "Render service logs",
+    "cost: 0.0 because the free tier is unpriced (not a dollar measurement)"
+  ]
+}

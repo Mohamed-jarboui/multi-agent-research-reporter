@@ -2,7 +2,7 @@
 
 Give it a topic. A supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited Markdown report. The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics (not measured yet, see [Benchmark](#benchmark)).
 
-**Demo:** demo link added after the Render service is live.
+**Demo:** https://research-reporter.onrender.com (Render free tier: sleeps after 15 minutes idle, about a minute to wake; at most 2 jobs per day). Live test: `results/r4_render.json`.
 
 **Status:** stages R0 to R3 are merged; R4 (service, jobs, streaming, traces, deploy) is in review. Build plan in [docs/plan.md](docs/plan.md); progress report in [docs/report.html](docs/report.html).
 
