@@ -1,11 +1,14 @@
 {
   "stage": "R4",
-  "status": "in_progress: service merged (PR #6), local test done on branch stage/r4-local-test, Space deploy pending",
+  "status": "live: demo running on Render free web service (https://research-reporter.onrender.com); local test (2026-11-01) and one live test (2026-11-02) done; Hugging Face Space step replaced by Render",
   "branch": "stage/r4-local-test",
-  "date": "2026-11-01",
+  "date": "2026-11-02",
   "prs": {
     "service": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6 (merged)",
-    "gateway_provider_side_work": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/7 (merged; opt-in, off by default)"
+    "gateway_provider_side_work": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/7 (merged; opt-in, off by default)",
+    "gradio_space": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/9 (merged; kept in the repo for paid Hugging Face plans)",
+    "zerogpu_fix_and_render": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/11 (merged)",
+    "live_demo_link_and_deployed_test": "https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/12 (merged)"
   },
   "tests": {
     "passed": 362,
@@ -34,34 +37,183 @@
     "run_window_utc": "2026-11-01T15:57:48Z to 2026-11-01T16:09:08Z"
   },
   "local_tests": [
-    {"id": "T1", "name": "GET /health and GET /quota", "result": "pass"},
-    {"id": "T2a", "name": "Invalid bodies rejected, no job created", "result": "pass"},
-    {"id": "T2b", "name": "Idempotency: replay, conflict, one job", "result": "pass"},
-    {"id": "T3a", "name": "End to end job over SSE, then GET and GET /trace (13 events, ids 1..13)", "result": "pass"},
-    {"id": "T3b", "name": "Last-Event-ID resume of the stream (sent 6, received 7..13)", "result": "pass"},
-    {"id": "T3c", "name": "No raw provider error, key or org id in API answers (pattern scan, .env not read)", "result": "pass (limited)"},
-    {"id": "T4", "name": "Forced crash after worker:s1, restart, same run id resumes", "result": "pass for the resume mechanics; resumed job ended degraded (budget_exhausted)"},
-    {"id": "T5", "name": "Real trace export to docs/traces/example.json (70 spans, synthetic=false)", "result": "pass"},
-    {"id": "T6", "name": "Service log hygiene (uvicorn access log under the key-mask)", "result": "FAIL (defect found, fixed afterwards with fakes only)"}
+    {
+      "id": "T1",
+      "name": "GET /health and GET /quota",
+      "result": "pass"
+    },
+    {
+      "id": "T2a",
+      "name": "Invalid bodies rejected, no job created",
+      "result": "pass"
+    },
+    {
+      "id": "T2b",
+      "name": "Idempotency: replay, conflict, one job",
+      "result": "pass"
+    },
+    {
+      "id": "T3a",
+      "name": "End to end job over SSE, then GET and GET /trace (13 events, ids 1..13)",
+      "result": "pass"
+    },
+    {
+      "id": "T3b",
+      "name": "Last-Event-ID resume of the stream (sent 6, received 7..13)",
+      "result": "pass"
+    },
+    {
+      "id": "T3c",
+      "name": "No raw provider error, key or org id in API answers (pattern scan, .env not read)",
+      "result": "pass (limited)"
+    },
+    {
+      "id": "T4",
+      "name": "Forced crash after worker:s1, restart, same run id resumes",
+      "result": "pass for the resume mechanics; resumed job ended degraded (budget_exhausted)"
+    },
+    {
+      "id": "T5",
+      "name": "Real trace export to docs/traces/example.json (70 spans, synthetic=false)",
+      "result": "pass"
+    },
+    {
+      "id": "T6",
+      "name": "Service log hygiene (uvicorn access log under the key-mask)",
+      "result": "FAIL (defect found, fixed afterwards with fakes only)"
+    }
   ],
   "job_metrics": {
     "n_per_scenario": 1,
-    "job1_normal": {"state": "succeeded", "latency_s": 233.3, "llm_calls": 35, "failed_llm_calls": 6, "steps": 28, "tokens": 48308, "sections_complete_pass": 1, "sections_complete_weak": 1, "sections_incomplete": 1, "sections_n": 3, "sources": 6, "writer_status": "ok", "resume_count": 0},
-    "job2_crash_resume": {"state": "degraded", "reason": "budget_exhausted", "latency_s": 364.0, "llm_calls_reported": 28, "llm_spans_in_trace": 26, "failed_llm_calls": 8, "steps": 23, "tokens": 26152, "sections_complete_pass": 0, "sections_complete_weak": 1, "sections_complete_unreviewed": 1, "sections_incomplete": 3, "sections_n": 5, "sources": 5, "writer_status": "fallback", "resume_count": 1, "seconds_post_to_crash": 90.1, "seconds_restart_to_terminal": 279.8}
+    "job1_normal": {
+      "state": "succeeded",
+      "latency_s": 233.3,
+      "llm_calls": 35,
+      "failed_llm_calls": 6,
+      "steps": 28,
+      "tokens": 48308,
+      "sections_complete_pass": 1,
+      "sections_complete_weak": 1,
+      "sections_incomplete": 1,
+      "sections_n": 3,
+      "sources": 6,
+      "writer_status": "ok",
+      "resume_count": 0
+    },
+    "job2_crash_resume": {
+      "state": "degraded",
+      "reason": "budget_exhausted",
+      "latency_s": 364.0,
+      "llm_calls_reported": 28,
+      "llm_spans_in_trace": 26,
+      "failed_llm_calls": 8,
+      "steps": 23,
+      "tokens": 26152,
+      "sections_complete_pass": 0,
+      "sections_complete_weak": 1,
+      "sections_complete_unreviewed": 1,
+      "sections_incomplete": 3,
+      "sections_n": 5,
+      "sources": 5,
+      "writer_status": "fallback",
+      "resume_count": 1,
+      "seconds_post_to_crash": 90.1,
+      "seconds_restart_to_terminal": 279.8
+    }
   },
-  "cost": {"cost_usd": 0.0, "note": "free tiers are unpriced; the trace reports cost_usd null for both jobs; not a measured dollar cost"},
+  "cost": {
+    "cost_usd": 0.0,
+    "note": "free tiers are unpriced; the trace reports cost_usd null for both jobs; not a measured dollar cost"
+  },
   "fixes_after_local_test": "log masking only for records containing a key; placeholder spans for the crashed segment; provider and per-provider failure summary on failed LLM spans; per-step call counts so llm_calls equals LLM spans; result.coverage object in GET. Verified with fakes only; the exported example trace is from the pre-fix run.",
   "not_measured": [
-    "Docker image build and run",
-    "Hugging Face Space deploy (needs HF_TOKEN, the Space, Space secrets and the HF_SPACE_ID variable)",
-    "/data persistence and a Space restart",
-    "multiple concurrent clients and more than one SSE stream",
-    "per-IP rate limiter under load (429 rate_limited, queue_full)",
+    "crash/resume on the live service (kept local: results/r4_deploy.json)",
+    "persistence across restarts (ephemeral storage)",
+    "load and concurrency; per-IP rate limiter and full queue under load",
     "daily cap and provider-quota latch under real exhaustion",
-    "DELETE /reports/{id} cancel",
-    "the demo page GET /",
-    "X-Forwarded-For behind a proxy",
+    "memory use on the 512 MB instance",
+    "cold-start duration (the instance was awake during the live test)",
+    "SSE from a browser client and over several jobs",
+    "Render service logs",
     "latency or success rate over more than 1 job per scenario",
-    "any dollar cost"
-  ]
+    "any dollar cost (free tiers are unpriced; 0.0 is not a measurement)"
+  ],
+  "hosting_decision": {
+    "chosen": "Render free web service, Docker image built from the repository Dockerfile, region Frankfurt",
+    "instance": "0.1 CPU / 512 MB RAM, sleeps after 15 min idle, about 1 min cold start (stated, cold-start time not measured), ephemeral disk, 750 free instance hours per workspace per month",
+    "url": "https://research-reporter.onrender.com",
+    "huggingface_path": [
+      "Docker Spaces turned out to be a paid option on Hugging Face",
+      "a free account can only host Gradio Spaces on ZeroGPU",
+      "ZeroGPU refused the app: 'No @spaces.GPU function detected during startup' (the service uses no GPU)",
+      "a dummy GPU function to pass the check was ruled out"
+    ],
+    "huggingface_app_status": "the Gradio Space app stays in the repo for paid Hugging Face plans (docs/deploy_hf.md)",
+    "sources": [
+      "docs/design/r4.md (Hosting: Render free tier)",
+      "docs/deploy_render.md",
+      "docs/deploy_hf.md"
+    ]
+  },
+  "live_test": {
+    "source": "results/r4_render.json",
+    "date": "2026-11-02",
+    "window_utc": "17:28:27Z to 17:32:46Z",
+    "environment": "Render free web service, Frankfurt, Cloudflare in front; real Gemini, Groq, Tavily on the server",
+    "n_real_jobs": 1,
+    "checks": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0,
+      "ids": [
+        "H1",
+        "H2",
+        "V1",
+        "I1",
+        "I2",
+        "I3",
+        "I4",
+        "S1",
+        "S2",
+        "G1",
+        "G2",
+        "P1",
+        "Q1"
+      ]
+    },
+    "job": {
+      "state": "succeeded",
+      "latency_s": 226.0,
+      "tokens": 49499,
+      "steps": 29,
+      "llm_calls": 35,
+      "failed_llm_calls": 5,
+      "sources": 10,
+      "sources_cited": 6,
+      "invalid_citations": 0,
+      "coverage": {
+        "sections_ok": 2,
+        "sections_weak": 0,
+        "sections_missing": 1
+      },
+      "cause_of_missing": "per-minute provider rate limits",
+      "writer_words": 756,
+      "critic_retries": 1,
+      "retry_fixed_section": false
+    },
+    "sse": {
+      "stream_open_s": 219.53,
+      "heartbeat_comments": 11,
+      "heartbeat_interval": "about 15 s",
+      "max_gap_between_data_events_s": 68.25,
+      "cut_before_terminal": false,
+      "last_event_id_reconnect": "sent 5, received 6-11, no duplicates, no gaps"
+    },
+    "quota_accounting_equals_trace_total": true,
+    "secret_and_raw_error_scan_hits": 0,
+    "cost_usd": 0.0,
+    "cost_note": "0.0 because unpriced, not a dollar measurement",
+    "comparison_with_local_job1": "local 233.3 s / 48,308 tokens / 6 sources vs live 226.0 s / 49,499 tokens / 10 sources; n=1 each, not tested for significance"
+  },
+  "status_note": "tests.passed (362) was verified before the Render change; not re-run by the reporter"
 }
