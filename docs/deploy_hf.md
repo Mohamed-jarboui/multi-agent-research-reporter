@@ -1,6 +1,8 @@
 # Deploying the demo to a Hugging Face Space
 
-The workflow `.github/workflows/deploy.yml` pushes the service to an existing Hugging Face Gradio Space on every push to `main` (or by hand), then waits for `GET /health`. It does not create the Space. Without `HF_TOKEN` it skips with a notice.
+> **Status: not used for the live demo.** ZeroGPU rejected the app at startup with "No @spaces.GPU function detected during startup". We do not add a dummy GPU function, and CPU basic needs a paid plan, so the live demo is on Render ([deploy_render.md](deploy_render.md)). The Gradio Space files (`deploy/space_app.py`, `deploy/space_README.md`) and the manual-only workflow `.github/workflows/deploy.yml` remain for anyone with a paid CPU basic plan; the rest of this page describes that path.
+
+The workflow `.github/workflows/deploy.yml` pushes the service to an existing Hugging Face Gradio Space (by hand only: it has no push trigger any more), then waits for `GET /health`. It does not create the Space. Without `HF_TOKEN` it skips with a notice.
 
 All of this is free: **ZeroGPU** hardware, no persistent storage. A free account can host Gradio Spaces on ZeroGPU only: CPU basic needs a paid plan, and Docker Spaces are paid too. ZeroGPU Spaces are exclusively compatible with the Gradio SDK, so `app.py` is a genuine Gradio app (`gr.Blocks`: topic box, Start button, live status and events, the report with its coverage summary and the quota left) and our FastAPI service runs in the same process on port 7860. `/reports`, `/reports/{id}`, `/reports/{id}/events`, `/reports/{id}/trace`, `/health` and `/quota` keep working and win over the UI; the Gradio page is at `/`. The UI calls the service in-process (an httpx client wired to the ASGI app, so the same validation, rate limits and daily cap apply) and reads progress events from the job store.
 

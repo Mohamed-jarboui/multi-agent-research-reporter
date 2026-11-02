@@ -1,14 +1,15 @@
 name: Deploy demo
 
-# Pushes the service to a Hugging Face Gradio Space (ZeroGPU hardware, the free option) when main
-# changes or by hand (the ref the run is started on is checked out, so dispatching on a branch
-# deploys that branch). The Space runs app.py: a Gradio page plus our FastAPI service.
+# Pushes the service to a Hugging Face Gradio Space (needs paid hardware) by hand
+# (the ref the run is started on is checked out, so dispatching on a branch deploys that branch). The Space runs app.py: a Gradio page plus our FastAPI service.
 # Needs the secret HF_TOKEN (a write token). The Space id is the repository variable
 # HF_SPACE_ID ("owner/name"); the default below is only a placeholder. Without HF_TOKEN the
 # deploy step is skipped with a notice and the workflow still succeeds.
+# Manual only. The Hugging Face free tier (ZeroGPU) refused this app ("No @spaces.GPU function
+# detected during startup") and CPU basic needs a paid plan, so a push trigger would only fail.
+# The live demo runs on Render (render.yaml, docs/deploy_render.md). Run this by hand only for a
+# paid Hugging Face plan.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
