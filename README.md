@@ -134,9 +134,9 @@ The image is `python:3.12-slim`, runs as uid 1000, one uvicorn worker (the queue
 
 ### Deploy to a Hugging Face Gradio Space
 
-Docker Spaces are a paid option on Hugging Face now, so the demo runs on a free **Gradio SDK** Space (CPU basic). `.github/workflows/deploy.yml` runs on every push to `main` (and by hand): lint and tests, then it exports only `app.py` (from `deploy/space_app.py`, which starts the FastAPI service with uvicorn on port 7860), `requirements.txt` (generated from `uv.lock` with `uv export --no-dev`), `src/` and `README.md` (from `deploy/space_README.md`) to the Space, and polls `/health` for up to 20 minutes. Setup, once (details in [docs/deploy_hf.md](docs/deploy_hf.md)):
+Docker Spaces are a paid option on Hugging Face now, and CPU basic hardware needs a paid plan, so the demo runs on a **Gradio SDK** Space on **ZeroGPU** hardware (the free option; the app does not use a GPU and has no `@spaces.GPU` function). `.github/workflows/deploy.yml` runs on every push to `main` (and by hand): lint and tests, then it exports only `app.py` (from `deploy/space_app.py`, a Gradio page at `/` plus the FastAPI service, both served by uvicorn on port 7860), `requirements.txt` (generated from `uv.lock` with `uv export --no-dev`, without the web stack that gradio brings), `src/` and `README.md` (from `deploy/space_README.md`) to the Space, and polls `/health` for up to 20 minutes. Setup, once (details in [docs/deploy_hf.md](docs/deploy_hf.md)):
 
-1. Create a Gradio Space (template Blank, CPU basic, Public) on Hugging Face and set the repository variable `HF_SPACE_ID` to `owner/name`.
+1. Create a Gradio Space (template Blank, ZeroGPU hardware, Public) on Hugging Face and set the repository variable `HF_SPACE_ID` to `owner/name`.
 2. Add the repository secret `HF_TOKEN` (a write token). Without it the workflow prints a notice and skips the deploy.
 3. In the Space settings add the secrets `GEMINI_API_KEY`, `GROQ_API_KEY`, `TAVILY_API_KEY`. A free Space has no persistent disk, so jobs are lost on restart (`/health` says `storage: ephemeral`).
 

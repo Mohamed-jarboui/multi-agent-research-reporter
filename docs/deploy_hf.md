@@ -2,14 +2,18 @@
 
 The workflow `.github/workflows/deploy.yml` pushes the service to an existing Hugging Face Gradio Space on every push to `main` (or by hand), then waits for `GET /health`. It does not create the Space. Without `HF_TOKEN` it skips with a notice.
 
-All of this is free: CPU basic hardware, no persistent storage. Docker Spaces are a paid option on Hugging Face now (the Docker SDK shows a "Paid" badge), so the demo uses the free **Gradio SDK**: the Space runs `app.py`, which starts our FastAPI service with uvicorn on port 7860. There is no Docker build on the Space.
+All of this is free: **ZeroGPU** hardware, no persistent storage. A free account can host Gradio Spaces on ZeroGPU only: CPU basic needs a paid plan, and Docker Spaces are paid too. ZeroGPU Spaces are exclusively compatible with the Gradio SDK, so `app.py` is a genuine Gradio app (`gr.Blocks`: topic box, Start button, live status and events, the report with its coverage summary and the quota left) and our FastAPI service runs in the same process on port 7860. `/reports`, `/reports/{id}`, `/reports/{id}/events`, `/reports/{id}/trace`, `/health` and `/quota` keep working and win over the UI; the Gradio page is at `/`. The UI calls the service in-process (an httpx client wired to the ASGI app, so the same validation, rate limits and daily cap apply) and reads progress events from the job store.
+
+**No GPU code on purpose.** The app does not use a GPU, so it does not import `spaces` and has no `@spaces.GPU` function. We do not add a dummy GPU function to get past a platform check. If Hugging Face starts requiring one, the demo moves to another host instead.
+
+Space settings come from `deploy/space_README.md`: `sdk: gradio`, `sdk_version: 6.31.0` (gradio is pre-installed at that version; it resolves with our locked fastapi 0.162.0 and starlette 1.10.0), `python_version: "3.12.12"` (ZeroGPU supports 3.12.12 and 3.10.13; our code needs 3.11 or newer). `requirements.txt` is generated from `uv.lock` without the web stack (fastapi, starlette, uvicorn, pydantic, httpx, huggingface-hub, pillow, numpy and a few more): gradio brings compatible versions, and pinning ours next to the pre-installed gradio could break it.
 
 ## 1. Create the Space (on huggingface.co)
 
 1. Sign in, then open https://huggingface.co/new-space.
 2. **Space name:** `research-reporter` (any name works; you will need it in step 4). The owner's Space is `Jarbouii/research-reporter`.
 3. **SDK:** **Gradio**, template **Blank** (not Docker, which is paid).
-4. **Hardware:** CPU basic (free).
+4. **Hardware:** **ZeroGPU** (the free option on a free account; CPU basic needs a paid plan).
 5. **Visibility:** **Public**. The workflow's health check calls the Space URL without a token, so a private Space makes the deploy job fail at the last step.
 6. Click **Create Space**. Leave it empty: the workflow pushes the files.
 

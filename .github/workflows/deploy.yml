@@ -1,7 +1,8 @@
 name: Deploy demo
 
-# Pushes the service to a Hugging Face Gradio Space when main changes (or by hand). The Docker
-# SDK is a paid option on Hugging Face now, so the Space runs the service from app.py.
+# Pushes the service to a Hugging Face Gradio Space (ZeroGPU hardware, the free option) when main
+# changes or by hand (the ref the run is started on is checked out, so dispatching on a branch
+# deploys that branch). The Space runs app.py: a Gradio page plus our FastAPI service.
 # Needs the secret HF_TOKEN (a write token). The Space id is the repository variable
 # HF_SPACE_ID ("owner/name"); the default below is only a placeholder. Without HF_TOKEN the
 # deploy step is skipped with a notice and the workflow still succeeds.
@@ -56,8 +57,19 @@ jobs:
           cp deploy/space_app.py /tmp/space/app.py
           cp deploy/space_README.md /tmp/space/README.md
           cp -r src /tmp/space/src
-          # runtime dependencies only, from the lock file (no dev or report group, no project)
-          uv export --locked --no-dev --no-group report --no-hashes --no-emit-project             --no-header -o /tmp/space/requirements.txt
+          # runtime dependencies only, from the lock file (no dev or report group, no project).
+          # The web stack is left out on purpose: the Space has gradio pre-installed at the
+          # sdk_version in the README, and gradio brings its own compatible fastapi, starlette,
+          # uvicorn, pydantic, httpx, huggingface-hub, pillow, numpy and friends. Pinning ours
+          # next to them could break the pre-installed gradio.
+          skip=""
+          for pkg in fastapi starlette uvicorn pydantic pydantic-core httpx httpcore h11 anyio \
+                     huggingface-hub pillow numpy orjson pyyaml typing-extensions annotated-types \
+                     annotated-doc click; do
+            skip="$skip --no-emit-package $pkg"
+          done
+          uv export --locked --no-dev --no-group report --no-hashes --no-emit-project \
+            --no-header $skip -o /tmp/space/requirements.txt
           find /tmp/space -name __pycache__ -type d -prune -exec rm -rf {} +
           echo "Files going to the Space:"
           (cd /tmp/space && find . -type f | sort)
