@@ -97,17 +97,23 @@
 
 <header>
   <h1>Multi-Agent Research Reporter</h1>
-  <p class="meta">Build report &middot; last update 2026-11-01</p>
-  <p>Give it a topic: a supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited report. The pipeline exists up to the writer (R2, merged), the benchmark harness is built and merged (R3, PR #4), and the pipeline is wrapped in a job service (R4, PR #6 merged) that has been tested locally but not deployed. The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics. That comparison does not exist yet: the benchmark has not been run (not measured yet).</p>
+  <p class="meta">Build report &middot; last update 2026-11-02</p>
+  <p>Give it a topic: a supervisor plans the report, workers research the sections in parallel, a critic checks sources and gaps, and a writer assembles a cited report. The pipeline exists up to the writer (R2, merged), the benchmark harness is built and merged (R3, PR #4), and the pipeline is wrapped in a job service (R4) that now runs as a live demo on Render's free tier. The headline result will be a measured comparison against a single agent doing the same job: quality, cost and latency on 12 topics. That comparison does not exist yet: 0 of 24 first-pass benchmark runs are done (not measured yet).</p>
+
+  <div class="card">
+    <b>Live demo:</b> <a href="https://research-reporter.onrender.com">https://research-reporter.onrender.com</a><br>
+    Free-tier caveats: the service sleeps after 15 minutes idle and takes about 1 minute to wake up (the wake time itself is not measured yet); it accepts 2 jobs a day in total, and a job takes a few minutes (one live job: 226.0 s, n=1). Storage is ephemeral, so reports do not survive a restart. The demo and the R3 benchmark share the same free API keys, so every demo job uses up part of the benchmark's daily quota.
+  </div>
+
 
   <ul class="stages" aria-label="Stage progress">
     <li class="stage built"><div class="bar"></div><b>R0</b>Single-agent baseline<br><span class="muted">merged</span></li>
     <li class="stage built"><div class="bar"></div><b>R1</b>Supervisor and parallel workers<br><span class="muted">merged</span></li>
     <li class="stage built"><div class="bar"></div><b>R2</b>Critic and writer<br><span class="muted">merged</span></li>
-    <li class="stage wip"><div class="bar"></div><b>R3</b>Benchmark vs single agent<br><span class="muted">harness merged, benchmark not run</span></li>
-    <li class="stage wip"><div class="bar"></div><b>R4</b>Deploy: jobs, streaming, traces<br><span class="muted">service merged, local test done, Space deploy pending</span></li>
+    <li class="stage wip"><div class="bar"></div><b>R3</b>Benchmark vs single agent<br><span class="muted">harness merged, topics reviewed, 0 of 24 first-pass runs done</span></li>
+    <li class="stage built"><div class="bar"></div><b>R4</b>Deploy: jobs, streaming, traces<br><span class="muted">live (Space step replaced by Render)</span></li>
   </ul>
-  <p class="muted" style="font-size:0.88rem">3 of 5 stages merged (R0, R1, R2: PRs <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/1">#1</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/2">#2</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3">#3</a>). R3 is in progress: the harness is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">#4</a>), the benchmark runs are pending. R4 is in progress: the service is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">#6</a>) and a local test has been done on branch <code>stage/r4-local-test</code>; the Space deploy is pending. Other PRs: <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/5">#5</a> (R2 fourth evaluation, docs and results) and <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/7">#7</a> (opt-in gateway provider, off by default). <code>docs/progress.json</code> lists R3 and R4 as <code>in_progress</code>. Plan: <a href="plan.md">docs/plan.md</a>.</p>
+  <p class="muted" style="font-size:0.88rem">R0, R1 and R2 are merged (PRs <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/1">#1</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/2">#2</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/3">#3</a>). R3: the harness is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">#4</a>) and the 12 topics were reviewed on 2026-11-02 (the owner delegated the review, see <code>evals/topics_review.md</code>); 0 of 24 first-pass benchmark runs are done, because the first batch was set aside when the free quota was already used up (<code>results/benchmark_attempts/README.md</code>). R4: the service is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">#6</a>), tested locally (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/8">#8</a>), and live on Render (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/11">#11</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/12">#12</a>); the Hugging Face Space step (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/9">#9</a>) was replaced by Render. <code>docs/progress.json</code> still lists R3 and R4 as <code>in_progress</code>, which is why the chart below shows them that way. Other PRs: <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/5">#5</a> (R2 fourth evaluation), <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/7">#7</a> (opt-in gateway provider, off by default) and <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/10">#10</a> (R3 run plan and set-aside attempts). Plan: <a href="plan.md">docs/plan.md</a>.</p>
 <figure>
     <img src="figs/stage_progress.svg" alt="Bar chart of stage status from progress.json: R0, R1 and R2 merged, R3 and R4 in progress" width="700">
     <figcaption>Stage status from <code>docs/progress.json</code>.</figcaption>
@@ -115,15 +121,18 @@
 </header>
 
 <h2 id="architecture">Overall architecture</h2>
-<p>The single-agent baseline (R0), the supervisor with parallel workers (R1), the checks, critic, retry and writer (R2) and the job service around them (R4, tested locally only) exist. Everything drawn dashed is not built or not deployed yet.</p>
+<p>The single-agent baseline (R0), the supervisor with parallel workers (R1), the checks, critic, retry and writer (R2) and the job service around them (R4, live on Render) exist. Only the R3 benchmark is drawn dashed: the harness is built, the runs are not done.</p>
 <pre class="mermaid">
 flowchart TD
   T([Topic])
-  subgraph svc["Built in R4 (tested locally, not deployed)"]
+  subgraph svc["Built in R4 (live on Render)"]
     API["FastAPI<br/>POST, GET, SSE, quota, health"]
     DB[("SQLite<br/>jobs, node outputs,<br/>snapshot, events")]
     RUN["Runner thread<br/>one job at a time, resume"]
     OT["OTel spans<br/>JSONL exporter"]
+  end
+  subgraph host["Hosting"]
+    RN["Render free web service<br/>Docker, Frankfurt, sleeps after 15 min"]
   end
   subgraph r0["Built in R0"]
     B["Baseline agent<br/>plan, think, act, check, write"]
@@ -138,9 +147,8 @@ flowchart TD
     RT["Retry weak sections<br/>once, keep best"]
     WR["Writer<br/>body by LLM, Sources by code"]
   end
-  subgraph planned["Planned, not built or not run"]
+  subgraph planned["Built, not run"]
     BM["R3 Benchmark<br/>harness merged, runs pending"]
-    HF["Hugging Face Docker Space<br/>deploy pending"]
   end
   T --> B --> R0OUT([R0 cited report])
   T --> SUP --> W --> M --> CK --> CR --> RT --> WR --> R2OUT([R2 cited report<br/>with coverage notes])
@@ -154,9 +162,9 @@ flowchart TD
   RUN --> OT
   R0OUT -.-> BM
   R2OUT -.-> BM
-  HF -.-> API
+  RN --> API
   classDef plan stroke-dasharray: 5 4,fill:none;
-  class BM,HF plan;
+  class BM plan;
 </pre>
 
 <h2 id="r0">R0 &middot; Setup and single-agent baseline <span class="tag">merged</span></h2>
@@ -666,7 +674,7 @@ flowchart TD
 
 <h2 id="r3">R3 &middot; Benchmark: multi-agent vs single agent <span class="tag">in progress</span></h2>
 <div class="card warn">
-  <b>Status: harness merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">PR #4</a>), benchmark not run, results not measured yet.</b> There are no benchmark numbers in this report and no figure for R3. The comparison with the baseline, the headline result of the project, does not exist yet.
+  <b>Status: harness merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">PR #4</a>), topics reviewed, 0 of 24 first-pass runs done, results not measured yet.</b> There are no benchmark numbers in this report and no figure for R3. The comparison with the baseline, the headline result of the project, does not exist yet.
 </div>
 <h3>What was built</h3>
 <ul>
@@ -674,15 +682,19 @@ flowchart TD
   <li>Scoring: coverage of must-cover points (an LLM check that must return a quote found in the report text), deterministic citation validity, a pairwise judge, tokens, cost, p50 and p95 latency, and cost per successful report.</li>
   <li>Tools for the human calibration (pairs file and key) and a manual GitHub Actions workflow that commits results to a <code>results</code> branch. Design: <a href="design/r3.md">docs/design/r3.md</a>.</li>
 </ul>
-<h3>Why it is not run</h3>
+<h3>Topic review and run plan</h3>
 <ul>
-  <li><b>Free-tier capacity.</b> The R2 evaluations allowed roughly one or two multi-agent runs per day (observed, n=2 runs, one produced a report). The grid is 48 runs, so it cannot finish in one day on the free tier. How many days it needs: not measured yet.</li>
-  <li><b>Owner steps still open:</b> review <code>evals/topics.jsonl</code>; decide how to get quota (many days of resumable batches, or a paid key); rate the 6 report pairs to calibrate the judge. Without the 6 ratings the report must say the judge is not calibrated.</li>
+  <li><b>Topic review (2026-11-02).</b> The owner delegated the review of <code>evals/topics.jsonl</code>, so it was done in the main session (<code>evals/topics_review.md</code>). 12 topics across 4 domains (tech 2, science 3, policy 3, business 4). Two must-cover points were reworded because they were too vague (quantum-error-correction, creator-economy); no topic was added or removed. The two smoke topics are kept, and <code>carbon-capture</code> stays as a deliberately hard case.</li>
+  <li><b>Free-tier run plan.</b> First pass: 1 run per topic per system = 24 runs (12 topics x 2 systems), in small daily batches after Gemini's daily reset, with no scoring until the runs exist. Second pass (the second run per topic): only if time allows; otherwise the report will state n=1 per topic per system. Then scoring, and the 6 report pairs for the owner to rate to calibrate the judge. How many days this takes: not measured yet.</li>
+  <li><b>First batch set aside.</b> Two attempts on 2026-11-01 (<code>slm-on-device</code>, baseline and multi, run 1) failed only because the free quota was already used up (Gemini per-day request limit; the baseline also hit a Groq per-minute token limit). They are kept as a record in <code>results/benchmark_attempts/</code> and their slots are run again later; both systems' runs from that batch were set aside together. Earlier that day the R4 local test and several pings had used Gemini's daily requests. These 2 attempts are not benchmark results.</li>
+  <li><b>Shared keys.</b> The live demo and the benchmark use the same free API keys, so demo use reduces the benchmark's daily quota. One live demo job made 35 LLM calls and used 49,499 tokens (<code>results/r4_render.json</code>, n=1). The demo's own cap (2 jobs a day) limits, but does not remove, that overlap.</li>
+  <li><b>Capacity seen so far.</b> The R2 evaluations allowed roughly one or two multi-agent runs per day (observed, n=2 runs, one produced a report). The full grid is 48 runs (2 per topic per system), so it cannot finish in one day.</li>
+  <li><b>Owner step still open:</b> rate the 6 report pairs to calibrate the judge. Without the ratings the report must say the judge is not calibrated.</li>
 </ul>
 
-<h2 id="r4">R4 &middot; Deploy with jobs, streaming and traces <span class="tag">in progress</span></h2>
+<h2 id="r4">R4 &middot; Deploy with jobs, streaming and traces <span class="tag">live on Render</span></h2>
 <div class="card warn">
-  <b>Status: service merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">PR #6</a>), local test done, Space deploy pending.</b> Nothing here was measured on the Docker image or on a Hugging Face Space: neither exists yet. Every number below comes from a <b>local uvicorn process on Windows 11</b> with real Gemini, Groq and Tavily calls (<code>results/r4_deploy.json</code>, 2 real jobs, n=1 per scenario) and from <code>results/stage_r4.json</code>.
+  <b>Status: live on Render. The service is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">#6</a>), tested locally (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/8">#8</a>) and tested once on the deployed demo (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/12">#12</a>).</b> The local numbers (2 real jobs, <code>results/r4_deploy.json</code>) come from a uvicorn process on Windows 11. The deployed numbers (1 real job, 13 checks, <code>results/r4_render.json</code>) come from the Render service. Both are n=1 per scenario and neither is a benchmark. Summary: <code>results/stage_r4.json</code>.
 </div>
 
 <h3>What was built</h3>
@@ -691,7 +703,7 @@ flowchart TD
   <li><b>A SQLite job store that is also the queue.</b> Jobs, idempotency keys (stored as a hash), node outputs, a snapshot of the budget meter and trace, and an ordered event log live in one file. One runner thread runs one job at a time.</li>
   <li><b>Crash and resume.</b> Each finished graph node (supervisor, each worker, critic, ...) is saved when it completes. After a restart a running job is replayed from the start with the same run id; saved nodes return at once and only unfinished work runs. A job gets at most 2 resumes.</li>
   <li><b>Free-tier protection.</b> Per-run budgets (40 steps, 150,000 tokens, 360 s, 0.05 USD), a daily cap (2 jobs, 400,000 tokens), a provider-quota latch, a bounded queue (3 waiting), a per-IP rate limit and a body limit.</li>
-  <li><b>OpenTelemetry spans with Langfuse-compatible attributes</b>, written by an own JSONL exporter, and a Dockerfile plus a deploy workflow to a Hugging Face Docker Space (neither built or run yet). 362 tests pass and ruff is clean (checked by the main session; fake LLMs and tools, no network).</li>
+  <li><b>OpenTelemetry spans with Langfuse-compatible attributes</b>, written by an own JSONL exporter, a Dockerfile that Render builds and runs, and a static demo page. A Gradio Space app (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/9">#9</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/11">#11</a>) stays in the repo for paid Hugging Face plans. 362 tests passed and ruff was clean when last checked by the main session, before the Render change (not re-run by the reporter; fake LLMs and tools, no network).</li>
 </ul>
 
 <h3>How it works</h3>
@@ -803,9 +815,68 @@ sequenceDiagram
   <li>One job per scenario is a demonstration that the mechanism works, not a success rate or a latency distribution.</li>
 </ul>
 
+<h3>Live demo on Render</h3>
+<p>URL: <a href="https://research-reporter.onrender.com">https://research-reporter.onrender.com</a>. Test on 2026-11-02, 17:28 to 17:32 UTC, from a Windows 11 client (curl and a Python SSE reader) through Cloudflare to the Render free instance in Frankfurt, with real Gemini, Groq and Tavily on the server. <b>One real job (n=1)</b>; the other checks are single requests. Source: <code>results/r4_render.json</code>. No request was sent to the demo while writing this report.</p>
+<div class="scroll">
+<table>
+  <caption>Live test: 13 of 13 checks passed (n=1)</caption>
+  <thead><tr><th>Id</th><th>Check</th><th>Result</th></tr></thead>
+  <tbody>
+    <tr><td>H1</td><td><code>GET /health</code>: 200, storage=ephemeral, version 0.1.0 (0.343 s)</td><td>pass</td></tr>
+    <tr><td>H2</td><td><code>GET /quota</code> before the job: jobs 0 of 2 used, tokens 0 of 400,000, queue max 3</td><td>pass</td></tr>
+    <tr><td>V1</td><td>Topic of 2 characters rejected: 422, no job created</td><td>pass</td></tr>
+    <tr><td>I1</td><td><code>POST /reports</code> with an <code>Idempotency-Key</code>: 202, state queued</td><td>pass</td></tr>
+    <tr><td>I2</td><td>Same key and body: 200, same run id, replay header present</td><td>pass</td></tr>
+    <tr><td>I3</td><td>Same key, different body: 409 <code>idempotency_conflict</code></td><td>pass</td></tr>
+    <tr><td>I4</td><td>Only one job exists after I1 to I3 (quota jobs used = 1)</td><td>pass</td></tr>
+    <tr><td>S1</td><td>SSE follows the job to the terminal event: 11 events, ids 1 to 11 contiguous, closed by the server after <code>done</code></td><td>pass</td></tr>
+    <tr><td>S2</td><td><code>Last-Event-ID: 5</code> returned ids 6 to 11, no duplicates, no gaps</td><td>pass</td></tr>
+    <tr><td>G1</td><td><code>GET /reports/{id}</code> after the job: succeeded, writer ok, coverage object present</td><td>pass</td></tr>
+    <tr><td>G2</td><td><code>GET /reports/{id}/trace</code>: 70 spans</td><td>pass</td></tr>
+    <tr><td>P1</td><td>Pattern scan of every saved response (key prefixes, <code>Bearer</code>, raw provider error text, <code>Traceback</code>, provider host names): 0 hits</td><td>pass</td></tr>
+    <tr><td>Q1</td><td>Quota after the job: tokens used 49,499 = trace total; jobs 1 of 2</td><td>pass</td></tr>
+  </tbody>
+</table>
+</div>
+<p class="muted">The scan covers only what the test requested; the Render service log was not visible to the evaluator.</p>
+
+<div class="scroll">
+<table>
+  <caption>The live job next to local job 1 (same topic, n=1 each, not tested for significance)</caption>
+  <thead><tr><th>Measure</th><th>Local job 1 (2026-11-01)</th><th>Live job (2026-11-02)</th></tr></thead>
+  <tbody>
+    <tr><td>Final state</td><td>succeeded</td><td>succeeded</td></tr>
+    <tr><td>Latency (trace)</td><td class="num">233.3 s</td><td class="num">226.0 s</td></tr>
+    <tr><td>Tokens</td><td class="num">48,308</td><td class="num">49,499</td></tr>
+    <tr><td>Steps</td><td class="num">28</td><td class="num">29</td></tr>
+    <tr><td>LLM calls / failed on all providers</td><td class="num">35 / 6</td><td class="num">35 / 5</td></tr>
+    <tr><td>Sections (n=3)</td><td>1 pass, 1 weak, 1 incomplete</td><td>1 pass, 1 unreviewed, 1 incomplete (fail)</td></tr>
+    <tr><td>Coverage (ok / weak / missing)</td><td>not in that run's output (the field was added afterwards)</td><td class="num">2 / 0 / 1</td></tr>
+    <tr><td>Sources</td><td class="num">6</td><td class="num">10 (6 cited, 0 invalid citations)</td></tr>
+    <tr><td>cost_usd</td><td class="num">0.0 (unpriced)</td><td class="num">0.0 (unpriced)</td></tr>
+  </tbody>
+</table>
+</div>
+<ul>
+  <li><b>The job did not fully succeed in content.</b> State <code>succeeded</code>, but coverage was 2 ok, 0 weak, 1 missing: section s2 stayed incomplete after the critic's one retry, because of per-minute provider rate limits (5 of 35 LLM calls failed on every provider; per-attempt failures seen: Gemini per-minute requests, Groq per-minute tokens, Groq empty replies, and one Gemini call with a per-day request limit). The quota latch was not set.</li>
+  <li><b>SSE over Cloudflare and Render.</b> The stream stayed open 219.5 s and was not cut. Heartbeat comments came about every 15 s (11 of them); the longest gap between data events was 68.3 s. The client connected 15 s after the POST and received events 1 and 2 as history. This is one stream from a Python client; a browser client was not tested.</li>
+  <li><b>Quota accounting.</b> Tokens used rose during the job (703 seen about 15 s in) and ended equal to the trace total (49,499). Jobs used: 1 of 2.</li>
+  <li><b>Cost.</b> 0.0 because the free tiers are unpriced; the trace reports cost as null. It is not a dollar measurement.</li>
+</ul>
+
+<h3>Hosting: why Render</h3>
+<p><b>The Hugging Face path did not work on a free account.</b> Docker Spaces turned out to be a paid option. A free account can only host Gradio Spaces on ZeroGPU, and ZeroGPU refused the app at startup with "No @spaces.GPU function detected during startup": the service uses no GPU. Adding a dummy GPU function just to pass that check was ruled out. The Gradio Space app (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/9">#9</a>, <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/11">#11</a>) stays in the repo for paid Hugging Face plans (<code>docs/deploy_hf.md</code>).</p>
+<p><b>Render's free web service</b> runs the repository's Dockerfile (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/11">#11</a>; steps in <code>docs/deploy_render.md</code>). Trade-offs, as documented in the repo:</p>
+<ul>
+  <li>Docker, region Frankfurt, 0.1 CPU and 512 MB RAM; 750 free instance hours per workspace per month.</li>
+  <li>The service sleeps after 15 minutes idle and needs about 1 minute to wake (stated; the cold-start time was not measured because the instance was awake during the test).</li>
+  <li>Ephemeral disk: a restart loses stored jobs, and Render may restart a free service at any time, which cuts SSE streams. Clients reconnect with <code>Last-Event-ID</code> and treat a 404 as a lost job. Crash and resume (merged in the service, tested locally) therefore cannot be relied on there.</li>
+  <li>Cost: free, so no dollar figure exists for the deployment.</li>
+</ul>
+
 <h3>What broke, and what was fixed</h3>
 <div class="card bad">
-  <b>The fixes below are verified with fakes only.</b> The live local test ran <b>before</b> them, and the exported example trace is from that pre-fix run. They have not been re-run against real providers, a Docker image or a Space.
+  <b>The fixes below are verified with fakes only.</b> The live local test ran <b>before</b> them, and the exported example trace is from that pre-fix run. The live Render job (above) ran after these fixes: it reports a <code>coverage</code> object, provider names on failed spans and 35 LLM calls equal to 35 LLM spans. The log-masking fix on the Render service log is not measured yet (that log was not visible).
 </div>
 <div class="scroll">
 <table>
@@ -848,23 +919,25 @@ sequenceDiagram
 <h3>What is still not shown</h3>
 <div class="card bad">
   <ul>
-    <li><b>The Docker image</b>: not built or run (not measured yet).</li>
-    <li><b>The Space deploy</b>: needs the owner's <code>HF_TOKEN</code>, the Space, the Space secrets and the <code>HF_SPACE_ID</code> variable. No demo link exists.</li>
-    <li><b>Persistence on a Space</b> (<code>/data</code>, a restart): not measured yet. The local "persistent" storage mode says nothing about it.</li>
-    <li><b>Load behaviour</b>: concurrent clients, several SSE streams, the per-IP rate limiter (429), the full queue, <code>X-Forwarded-For</code> behind a proxy: not triggered.</li>
-    <li><b>The daily cap and the quota latch under real exhaustion</b>, <code>DELETE</code> (cancel) and the demo page: not exercised live. They are covered by fake-backed tests only.</li>
-    <li><b>The fixes above</b> on live providers, and any success rate or latency over more than 1 job per scenario.</li>
+    <li><b>Crash and resume on the live service</b>: only tested locally (<code>results/r4_deploy.json</code>, n=1). Not measured yet on Render.</li>
+    <li><b>Persistence across restarts</b>: storage is ephemeral; not measured yet.</li>
+    <li><b>Load behaviour</b>: concurrent clients, several SSE streams, the per-IP rate limiter and the full queue: not triggered.</li>
+    <li><b>The daily cap and the quota latch under real exhaustion</b>: not exercised live (fake-backed tests only).</li>
+    <li><b>Memory use</b> on the 512 MB instance: not measured yet.</li>
+    <li><b>Cold-start time</b> after sleep: not measured yet.</li>
+    <li><b>SSE from a browser</b> and over several jobs: not measured yet. Also not exercised live: <code>DELETE</code> (cancel) and the demo page <code>GET /</code>.</li>
+    <li>Any success rate or latency over more than 1 job per scenario, and any dollar cost.</li>
   </ul>
 </div>
 
-<h3>Pull request</h3>
-<p><a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">PR #6</a> (merged: the service, 39 files, 5,018 insertions and 52 deletions in the merge commit). The local test and the fixes are on branch <code>stage/r4-local-test</code>, not committed yet (12 modified files and 2 new ones in the working tree when this was written).</p>
+<h3>Pull requests</h3>
+<p><a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">#6</a> (merged: the service, 39 files, 5,018 insertions and 52 deletions in the merge commit). <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/8">#8</a> (merged): local test, fixes and the first R4 report section. <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/9">#9</a> (merged): Gradio Space. <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/11">#11</a> (merged): ZeroGPU fix and the move to Render. <a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/12">#12</a> (merged): live demo link and the deployed-demo test results.</p>
 
 <h2 id="next">What comes next</h2>
 <ul>
   <li><b>R2</b> Critic and writer, with deterministic citation checks. <span class="tag">merged</span></li>
-  <li><b>R3</b> Benchmark on 12 topics, multi-agent against this baseline. The resumable harness is built and merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">PR #4</a>); no benchmark run has been made, so there are no benchmark numbers yet (not measured yet). Free-tier capacity is the constraint (see the R3 section). <span class="tag">in progress</span></li>
-  <li><b>R4</b> Deployed demo with jobs, streaming progress and traces. The service is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">PR #6</a>) and tested locally; the Space deploy is pending (see the R4 section). <span class="tag">in progress</span></li>
+  <li><b>R3</b> Benchmark on 12 topics, multi-agent against this baseline. The resumable harness is built and merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/4">PR #4</a>); 0 of 24 first-pass runs are done, so there are no benchmark numbers yet (not measured yet). Free-tier capacity, shared with the demo, is the constraint (see the R3 section). <span class="tag">in progress</span></li>
+  <li><b>R4</b> Deployed demo with jobs, streaming progress and traces. The service is merged (<a href="https://github.com/Mohamed-jarboui/multi-agent-research-reporter/pull/6">PR #6</a>), tested locally and live on Render (see the R4 section). <span class="tag">live</span></li>
 </ul>
 
 </main>
