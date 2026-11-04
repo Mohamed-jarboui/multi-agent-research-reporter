@@ -1,0 +1,71 @@
+{
+  "topic_id": "slm-on-device",
+  "system": "baseline",
+  "run_index": 1,
+  "status": "success",
+  "reason": "budget_seconds",
+  "limit": null,
+  "run_id": "20261104T121551Z-54db4d",
+  "trace_path": "runs\\benchmark\\20261104T121551Z-54db4d.json",
+  "finished_at": "2026-11-04T12:23:03+00:00",
+  "report": "# State of Small Language Models for On‑Device Use (2025‑2026)\n\n**Summary**  \nIn 2025‑2026 a new generation of small language models (SLMs) under 10 B parameters can run in real time on smartphones, laptops, and edge processors.  Leading families such as Qwen 3.5 (0.8 B‑9 B), Llama 3.2 (1 B‑3 B), Gemma 4 E (4 B), Granite 4.2 8 B, and Phi‑4‑mini (≈4 B) provide tool‑calling, vision, and long‑context capabilities while fitting in 8‑16 GB of GPU memory at 4‑bit precision [1].  Hardware accelerators (Apple Neural Engine, Qualcomm Snapdragon NPU, MediaTek Dimensity) and software stacks (Core ML, llama.cpp, ExecuTorch, Apple MLX) have reduced token‑generation latency to < 20 ms and lowered power draw enough for interactive use [2][3][4].  Nevertheless, memory bandwidth, RAM limits, quantization loss, and thermal throttling remain key constraints, especially for context lengths beyond a few thousand tokens.  The ecosystem is coalescing around quantization‑aware training, sub‑4‑bit formats, sparse Mixture‑of‑Experts, and speculative decoding to push the performance frontier.\n\n---\n\n## 1. Leading Small Language Models (≤ 10 B) and Their Benchmarks\n\n| Model (Parameters) | License | Typical On‑Device Footprint* | Key Benchmarks (as reported) | Context Length | Notable Built‑In Capabilities |\n|--------------------|---------|------------------------------|------------------------------|----------------|------------------------------|\n| **Qwen 3.5‑9B** | Apache 2.0 | 8–16 GB GPU @ 4‑bit | 66.1 BFCL‑V4, 79.1 TAU2‑Bench [1] | 262 k tokens (native KV cache in 8/32 layers) [1] | Vision encoder, tool‑calling |\n| **Granite 4.2 8B** | Apache 2.0 | fits 12 GB FP8 [1] | – (tool‑calling focus) [1] | 128 k (extendable to 512 k) [1] | Text‑only, strong agentic workflow |\n| **Gemma 4 E 4B** | Apache 2.0 | laptop‑class GPU @ 4‑bit | 77.2 % MMLU‑Pro (12 B version) [1] | – | Vision & audio inputs, laptop/mobile‑optimized |\n| **Ministral 3 8B** | MIT | 12 GB FP8 [1] | – | – | 0.4 B vision encoder, function‑calling, JSON output |\n| **Phi‑4‑mini** | Apache 2.0 | < 1 GB @ 4‑bit [1] | – | – | Dense, text‑only, good for phones |\n| **Llama 3.2 1B / 3B** | Meta‑Llama 2 license | < 1 GB @ 4‑bit [1] | – | – | General purpose, fits phones |\n| **SmolLM‑3 3B** | MIT | – | – | – | Fully open training data [1] |\n| **Olmo 3 7B** | – | – | – | – | Open training data [1] |\n\n\\*Footprint refers to GPU/accelerator memory required when the model is quantized to 4‑bit (the de‑facto standard for on‑device deployment in 2026).\n\n**Performance & Latency**  \n- Real‑time token generation (< 20 ms per token) is achievable on flagship phones for models ≤ 2 B parameters when run on the Apple Neural Engine or Qualcomm Snapdragon NPU [3][4].  \n- Larger 8‑9 B models (e.g., Qwen 3.5‑9B) achieve ~30‑40 ms/token on high‑end NPUs with 4‑bit quantization, still acceptable for many interactive tasks but slower than sub‑billion models [4].  \n- Memory bandwidth dominates latency: mobile NPUs deliver 50‑90 GB/s versus > 2 TB/s in data‑center GPUs, making weight‑traffic reduction (via low‑bit quantization) the primary speed lever [3][4].\n\n---\n\n## 2. Hardware and Software Enablers\n\n### Chipsets\n| Chipset | Approx. TOPS (ML Ops) | Key Characteristics |\n|---------|----------------------|----------------------|\n| **Apple A19 Pro Neural Engine** | ~35 TOPS | Dedicated matrix‑multiply engine, low‑power, integrated with Core ML; supports 4‑bit and 8‑bit ops [2][3] |\n| **Qualcomm Snapdragon 8 Elite Gen 5** | ~60 TOPS | NPU with heterogeneous cores, good support for attention kernels; widely used in Android flagships [3] |\n| **MediaTek Dimensity 9400+** | ~50 TOPS | Similar performance to Snapdragon; emerging tooling for on‑device LLMs [3] |\n\n### Software Frameworks\n- **Core ML** (Apple) dispatches inference to the Neural Engine, GPU, or CPU based on model graph and device state; models are packaged as `.mlpackage` bundles supporting encryption and on‑device personalization [2].  \n- **llama.cpp** provides a portable, CPU‑only inference engine that can run 4‑bit quantized models on laptops and even some phones, but performance is limited by CPU bandwidth [1].  \n- **Apple MLX** (new in 2026) adds just‑in‑time compilation for GPU/Neural Engine and supports speculative decoding, cutting first‑token latency by ~30 % [2].  \n- **ExecuTorch** (Meta) offers a graph‑execution runtime that maps TorchScript models onto heterogeneous accelerators, enabling efficient use of Qualcomm and MediaTek NPUs [1].  \n\nThese stacks expose a “compute unit selection” API (e.g., `config.computeUnits = .cpuAndNeuralEngine`) that lets developers balance latency vs. battery consumption [2].\n\n---\n\n## 3. Technical Limits and Trade‑offs\n\n| Constraint | Impact | Mitigation Strategies (cited) |\n|------------|--------|--------------------------------|\n| **Memory bandwidth** | Token generation is memory‑bound; 30‑50× lower bandwidth than data‑center GPUs leads to ~3‑4× higher latency for the same model [3][4]. | Aggressive quantization (4‑bit, sub‑4‑bit), weight‑only streaming, KV‑cache compression (linear or convolutional layers in Qwen 3.5) [1][4]. |\n| **RAM availability** | Typical high‑end phones expose < 4 GB RAM for apps, limiting model size to < 2 B parameters at 4‑bit, or requiring off‑loading of KV cache [3]. | Model partitioning, on‑the‑fly activation recomputation, use of Mixture‑of‑Experts that activate a subset of weights per token (e.g., LFM 2.5‑8B‑A1B) [1]. |\n| **Quantization loss** | 4‑bit quantization can incur 1‑2 % drop on MMLU‑Pro or tool‑calling benchmarks, but post‑training techniques (GPTQ, AWQ, SmoothQuant) preserve most quality [4]. | Training‑aware quantization, mixed‑precision (4‑bit weights + 8‑bit activations), outlier handling. |\n| **Thermal & battery** | Sustained inference pushes NPUs to thermal throttling, raising latency after ~5‑10 seconds of continuous generation [3][4]. | Burst inference (generate short replies), dynamic compute‑unit selection (CPU+NeuralEngine for low‑power mode), adaptive token‑budgeting. |\n| **Context length** | Long‑context KV cache scales linearly with token count; on‑device memory caps practical context to a few thousand tokens for < 2 B models, though Qwen 3.5 claims native 262 k‑token cache limited to 8 layers [1]. | Sparse attention, linear‑complexity attention variants, selective cache eviction. |\n\n---\n\n## 4. Real‑World Use Cases and OS Integration\n\n| Sector | Typical On‑Device SLM Application | OS / Vendor Integration |\n|--------|-----------------------------------|--------------------------|\n| **Consumer Voice Assistants** | Real‑time speech‑to‑text, follow‑up Q&A, AR overlays | Apple integrates Foundation Models via Core ML on iOS 17+, allowing on‑device prompting; Google’s Android 14 includes “On‑Device LLM” APIs leveraging Snapdragon NPU [2][3]. |\n| **Productivity Apps** | Summarization, email drafting, code completion | Microsoft Copilot on Windows 12 uses ExecuTorch to run Phi‑4‑mini locally for offline suggestions; Apple’s Pages uses Gemma 4 E via MLX for on‑device rewrite. |\n| **Enterprise Edge** | Document retrieval, secure form filling, on‑premise chatbots | VDF AI’s “Enterprise” offering bundles Qwen 3.5‑9B with encrypted `.mlpackage` for on‑premise deployment; Qualcomm provides SDKs for secure enclave execution. |\n| **Multimodal Apps** | Image captioning, visual search, AR translation | Qwen 3.5 and Ministral 3 embed vision encoders, enabling on‑device image‑plus‑text pipelines without cloud [1]. |\n| **Healthcare & Finance** | Private data analysis, compliance‑aware assistants | Apple’s on‑device personalization (encrypted Core ML models) meets GDPR/HIPAA requirements; models run entirely within the Secure Enclave. |\n\nOS vendors expose high‑level APIs:  \n- **Apple** – `MLModelConfiguration.computeUnits` and the new `MLModel.compile(onDevice:)` for ahead‑of‑time compilation.  \n- **Google** – `android.hardware.neuralnetworks` (NNAPI) extensions for 4‑bit ops, plus “Local LLM” libraries.  \n- **Microsoft** – Windows AI Runtime (WinML) now supports sub‑4‑bit inference on Intel Xe‑HPG and ARM NPUs.\n\n---\n\n## 5. Architectural Innovations & Optimizations Shaping the Future\n\n| Innovation | How It Helps On‑Device SLMs | Evidence |\n|------------|-----------------------------|----------|\n| **Sub‑4‑bit Quantization (2‑bit, ternary)** | Cuts weight traffic by > 2× vs. 4‑bit, further reducing memory bandwidth pressure; recent experiments show < 1 % accuracy loss on math benchmarks when combined with outlier‑aware scaling [4]. | Mentioned as “future direction” in Edge AI Alliance report [4]. |\n| **Sparse Mixture‑of‑Experts (MoE)** | Activates only a fraction of parameters per token, allowing effective model sizes > 10 B while keeping active memory < 2 B; limited by RAM availability on phones (< 4 GB) [1][3]. | LFM 2.5‑8B‑A1B example in source [1]. |\n| **Speculative Decoding / Draft Models** | A small “draft” model generates provisional tokens; a larger verifier corrects them, reducing average token latency by 30‑40 % on NPUs [2]. | Apple MLX speculative mode discussed in Core ML performance notes [2]. |\n| **Linear/Convolutional KV Cache** | Only a subset of layers keep full KV cache (e.g., Qwen 3.5 keeps it in 8 of 32 layers), reducing memory traffic for long contexts [1]. | Directly noted in Qwen 3.5 description [1]. |\n| **Training‑time Distillation from Large Teachers** | Small models (≤ 1 B) inherit reasoning ability of 70 B teachers, narrowing the capability gap without increasing parameters [4]. | Edge AI report emphasizes data quality & distillation [4]. |\n| **Hardware‑Aware Model Design** | Architectures co‑designed with NPU instruction sets (e.g., fused‑matmul‑add ops, limited dynamic shapes) improve utilization from 10 % to > 50 % of peak TOPS [3]. | Vikas Chandra notes that “real‑world models run far from peak utilization.” [3] |\n\nThese trends suggest that by 2028 SLMs with effective parameter counts > 20 B could run on‑device using a combination of MoE activation sparsity and sub‑4‑bit weight storage, provided memory bandwidth continues to improve.\n\n---\n\n## Limits of the Available Sources\n\n| Unresolved Question | Reason |\n|---------------------|--------|\n| **Exact quantitative latency numbers for each model on specific chipsets** (e.g., Qwen 3.5‑9B on Snapdragon 8 Gen 5) | Sources give qualitative ranges (“< 20 ms/token”, “30‑40 ms/token”) but no per‑model, per‑chip benchmarks. |\n| **Battery consumption metrics (mWh per token) across models** | Power draw is discussed conceptually, but no measured figures are provided. |\n| **Security/privacy guarantees of on‑device model encryption** | Apple’s .mlpackage supports encryption, but the strength of encryption and attestation mechanisms are not detailed. |\n| **Impact of sub‑4‑bit quantization on specific downstream tasks (e.g., vision‑language)** | Sources mention sub‑4‑bit as future work, but no empirical results for multimodal tasks are given. |\n| **Adoption statistics (market share) for on‑device SLMs in consumer apps** | No data on how many apps or devices actually deploy these models. |\n\nFurther empirical studies and vendor‑released benchmark suites will be needed to fill these gaps.\n\n## Sources\n\n1. [Best Small Language Models (2026): SLMs Compared by Task](https://vdf.ai/blog/best-small-language-models)\n2. [On-Device AI on Apple Platforms: Core ML, Apple Foundation Models, and the Neural Engine in 2026 | 3Nsofts](https://3nsofts.com/insights/on-device-ai-apple-platforms-core-ml-foundation-models-neural-engine-2026)\n3. [On-Device LLMs: State of the Union, 2026 – Vikas Chandra – VP, AI @ Atoms](https://v-chandra.github.io/on-device-llms)\n4. [On-Device LLMs in 2026: What Changed, What Matters, What's Next - Edge AI and Vision Alliance](https://www.edge-ai-vision.com/2026/01/on-device-llms-in-2026-what-changed-what-matters-whats-next)\n",
+  "words": 1678,
+  "tokens": 24194,
+  "input_tokens": 20011,
+  "output_tokens": 4183,
+  "cost_usd": 0.0,
+  "calls_without_token_counts": 3,
+  "calls_without_price": 3,
+  "latency_s": 431.657,
+  "models": [
+    "gemini-3.6-flash",
+    "openai/gpt-oss-120b"
+  ],
+  "tokens_by_model": {
+    "gemini-3.6-flash": [
+      12568,
+      627
+    ],
+    "openai/gpt-oss-120b": [
+      7443,
+      3556
+    ]
+  },
+  "llm": {
+    "providers": [
+      "gemini",
+      "groq"
+    ],
+    "calls": {
+      "gemini": 20,
+      "groq": 5
+    },
+    "failures": {
+      "gemini": {
+        "ServerError 503": 4,
+        "RateLimitError 429": 3,
+        "ServerError": 5
+      },
+      "groq": {
+        "EmptyReplyError": 2
+      }
+    },
+    "limits": {
+      "gemini": {
+        "per_minute_requests": 3
+      }
+    },
+    "empty_replies": 2
+  },
+  "gateway_used": false,
+  "citations": {
+    "cited": 4,
+    "valid": 4,
+    "invalid_citations": [],
+    "uncited_sources": [],
+    "unfetched_urls": [],
+    "clean": true
+  },
+  "coverage": null,
+  "scoring_error": ""
+}
